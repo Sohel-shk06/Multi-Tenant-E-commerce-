@@ -204,18 +204,85 @@ page v dosrc/
 │       ├── Forbidden.jsx
 │       └── ServerError.jsx
 │
-├── components/
-│   ├── ui/
-│   ├── forms/
-│   ├── tables/
-│   ├── cards/
-│   ├── charts/
-│   ├── modals/
-│   ├── navbar/
-│   ├── sidebar/
-│   ├── loaders/
-│   ├── pagination/
-│   └── shared/
+src/components/
+
+├── ui/
+│   ├── Button.jsx
+│   ├── Input.jsx
+│   ├── Select.jsx
+│   ├── TextArea.jsx
+│   ├── Checkbox.jsx
+│   ├── Radio.jsx
+│   ├── Badge.jsx
+│   ├── Avatar.jsx
+│   ├── Tooltip.jsx
+│   ├── Tabs.jsx
+│   └── Breadcrumb.jsx
+│
+├── forms/
+│   ├── LoginForm.jsx
+│   ├── RegisterForm.jsx
+│   ├── ProductForm.jsx
+│   ├── StoreForm.jsx
+│   ├── ProfileForm.jsx
+│   ├── AddressForm.jsx
+│   └── ReviewForm.jsx
+│
+├── tables/
+│   ├── ProductTable.jsx
+│   ├── OrderTable.jsx
+│   ├── CustomerTable.jsx
+│   ├── InventoryTable.jsx
+│   └── PayoutTable.jsx
+│
+├── cards/
+│   ├── ProductCard.jsx
+│   ├── StoreCard.jsx
+│   ├── OrderCard.jsx
+│   ├── ReviewCard.jsx
+│   └── StatsCard.jsx
+│
+├── charts/
+│   ├── RevenueChart.jsx
+│   ├── SalesChart.jsx
+│   ├── OrderChart.jsx
+│   ├── CustomerChart.jsx
+│   └── InventoryChart.jsx
+│
+├── modals/
+│   ├── ConfirmModal.jsx
+│   ├── DeleteModal.jsx
+│   ├── ProductModal.jsx
+│   └── ImagePreviewModal.jsx
+│
+├── navbar/
+│   ├── CustomerNavbar.jsx
+│   ├── VendorNavbar.jsx
+│   ├── AuthNavbar.jsx
+│   └── MobileNavbar.jsx
+│
+├── sidebar/
+│   ├── CustomerSidebar.jsx
+│   ├── VendorSidebar.jsx
+│   └── AdminSidebar.jsx
+│
+├── loaders/
+│   ├── Loader.jsx
+│   ├── PageLoader.jsx
+│   ├── TableLoader.jsx
+│   └── CardLoader.jsx
+│
+├── pagination/
+│   └── Pagination.jsx
+│
+└── shared/
+    ├── Header.jsx
+    ├── Footer.jsx
+    ├── SearchBar.jsx
+    ├── EmptyState.jsx
+    ├── ErrorMessage.jsx
+    ├── NoData.jsx
+    └── ProtectedComponent.jsx
 │
 ├── services/
 │   ├── api.js
