@@ -1,6 +1,6 @@
 import React from 'react';
-import Navbar from './app/Navbar.jsx'; 
-import VendorDashboard from './pages/VendorDashboard.jsx';
+import Navbar from './components/navbar/VendorNavbar.jsx'; 
+import VendorDashboard from './pages/vendor/dashboard/Dashboard.jsx';
 function App() {
   return (
     <div className="min-h-screen bg-gray-50">
