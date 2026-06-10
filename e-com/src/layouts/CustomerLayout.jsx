@@ -32,6 +32,23 @@ const CartIcon = () => (
   </svg>
 );
 
+const BellIcon = () => (
+  <svg
+    aria-hidden="true"
+    className="h-5 w-5"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M14.86 17.08a2.99 2.99 0 0 1-5.72 0M18 8.75a6 6 0 0 0-12 0v2.74c0 .72-.26 1.41-.74 1.95L4 14.86h16l-1.26-1.42A2.94 2.94 0 0 1 18 11.49V8.75Z"
+    />
+  </svg>
+);
+
 const CustomerLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-[#fafafa] text-gray-900">
@@ -47,12 +64,18 @@ const CustomerLayout = ({ children }) => {
               </span>
             </a>
 
-            <button className="relative inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white p-3 text-gray-700 shadow-sm transition hover:border-[#cd6615] hover:text-[#cd6615] lg:hidden">
-              <CartIcon />
-              <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#cd6615] px-1.5 text-xs font-semibold text-white">
-                2
-              </span>
-            </button>
+            <div className="flex items-center gap-2 lg:hidden">
+              <button className="relative inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white p-3 text-gray-700 shadow-sm transition hover:border-[#cd6615] hover:text-[#cd6615]">
+                <BellIcon />
+                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#cd6615]" />
+              </button>
+              <button className="relative inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white p-3 text-gray-700 shadow-sm transition hover:border-[#cd6615] hover:text-[#cd6615]">
+                <CartIcon />
+                <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#cd6615] px-1.5 text-xs font-semibold text-white">
+                  2
+                </span>
+              </button>
+            </div>
           </div>
 
           <div className="relative flex-1 lg:mx-8">
@@ -67,14 +90,30 @@ const CustomerLayout = ({ children }) => {
           </div>
 
           <div className="hidden items-center gap-3 lg:flex">
-            <button className="rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:border-[#cd6615] hover:text-[#cd6615]">
-              Sign In
+            <button className="relative inline-flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-700 shadow-sm transition hover:border-[#cd6615] hover:text-[#cd6615]">
+              <BellIcon />
+              <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full border-2 border-white bg-[#cd6615]" />
             </button>
             <button className="relative inline-flex items-center gap-2 rounded-xl bg-[#cd6615] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-700">
               <CartIcon />
               <span>Cart</span>
               <span className="ml-1 rounded-full bg-white/20 px-2 py-0.5 text-xs">
                 2
+              </span>
+            </button>
+            <button className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white py-2 pl-2 pr-4 shadow-sm transition hover:border-[#cd6615]">
+              <img
+                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=96&q=80"
+                alt="Aarohi Sharma"
+                className="h-9 w-9 rounded-full object-cover"
+              />
+              <span className="text-left">
+                <span className="block text-sm font-semibold leading-5 text-gray-900">
+                  Aarohi Sharma
+                </span>
+                <span className="block text-xs leading-4 text-gray-500">
+                  Customer
+                </span>
               </span>
             </button>
           </div>
