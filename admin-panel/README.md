@@ -205,20 +205,113 @@ src/
 │       ├── Forbidden.jsx
 │       └── ServerError.jsx
 │
-├── components/
-│   ├── ui/
-│   ├── forms/
-│   ├── tables/
-│   ├── charts/
-│   ├── cards/
-│   ├── modals/
-│   ├── sidebar/
-│   ├── navbar/
-│   ├── loaders/
-│   ├── pagination/
-│   ├── filters/
-│   ├── breadcrumbs/
-│   └── shared/
+src/components/
+
+├── ui/
+│   ├── Button.jsx
+│   ├── Input.jsx
+│   ├── Select.jsx
+│   ├── Textarea.jsx
+│   ├── Checkbox.jsx
+│   ├── Radio.jsx
+│   ├── Switch.jsx
+│   ├── Badge.jsx
+│   ├── Avatar.jsx
+│   ├── Tooltip.jsx
+│   ├── Tabs.jsx
+│   └── StatusBadge.jsx
+│
+├── forms/
+│   ├── LoginForm.jsx
+│   ├── VendorForm.jsx
+│   ├── StoreForm.jsx
+│   ├── CategoryForm.jsx
+│   ├── ProductForm.jsx
+│   ├── SubscriptionForm.jsx
+│   ├── CommissionForm.jsx
+│   ├── SettingsForm.jsx
+│   └── ProfileForm.jsx
+│
+├── tables/
+│   ├── VendorTable.jsx
+│   ├── StoreTable.jsx
+│   ├── ProductTable.jsx
+│   ├── OrderTable.jsx
+│   ├── PaymentTable.jsx
+│   ├── SubscriptionTable.jsx
+│   ├── CommissionTable.jsx
+│   ├── CustomerTable.jsx
+│   ├── ReviewTable.jsx
+│   └── DisputeTable.jsx
+│
+├── charts/
+│   ├── RevenueChart.jsx
+│   ├── SalesChart.jsx
+│   ├── VendorChart.jsx
+│   ├── CustomerChart.jsx
+│   ├── ProductChart.jsx
+│   ├── OrderChart.jsx
+│   ├── CommissionChart.jsx
+│   └── SubscriptionChart.jsx
+│
+├── cards/
+│   ├── StatsCard.jsx
+│   ├── RevenueCard.jsx
+│   ├── VendorCard.jsx
+│   ├── ProductCard.jsx
+│   ├── OrderCard.jsx
+│   ├── CustomerCard.jsx
+│   └── ReportCard.jsx
+│
+├── modals/
+│   ├── ConfirmModal.jsx
+│   ├── DeleteModal.jsx
+│   ├── VendorModal.jsx
+│   ├── ProductModal.jsx
+│   ├── StoreModal.jsx
+│   └── ImagePreviewModal.jsx
+│
+├── sidebar/
+│   ├── AdminSidebar.jsx
+│   ├── SidebarMenu.jsx
+│   └── SidebarItem.jsx
+│
+├── navbar/
+│   ├── AdminNavbar.jsx
+│   ├── NavbarProfile.jsx
+│   ├── NavbarNotifications.jsx
+│   └── NavbarSearch.jsx
+│
+├── loaders/
+│   ├── Loader.jsx
+│   ├── PageLoader.jsx
+│   ├── TableLoader.jsx
+│   ├── CardLoader.jsx
+│   └── DashboardLoader.jsx
+│
+├── pagination/
+│   └── Pagination.jsx
+│
+├── filters/
+│   ├── DateFilter.jsx
+│   ├── StatusFilter.jsx
+│   ├── VendorFilter.jsx
+│   ├── StoreFilter.jsx
+│   ├── ProductFilter.jsx
+│   └── OrderFilter.jsx
+│
+├── breadcrumbs/
+│   └── Breadcrumbs.jsx
+│
+└── shared/
+|    ├── Header.jsx
+|    ├── Footer.jsx
+|     ├── SearchBar.jsx
+|    ├── EmptyState.jsx
+|    ├── ErrorMessage.jsx
+|    ├── NoData.jsx
+|    ├── PermissionGuard.jsx
+|    └── PageTitle.jsx
 │
 ├── services/
 │   ├── api.js
