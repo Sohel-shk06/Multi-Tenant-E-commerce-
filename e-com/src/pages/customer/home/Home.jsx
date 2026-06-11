@@ -1,6 +1,10 @@
+import { Link } from "react-router-dom";
+import { useWishlist } from "../../../context/WishlistContext";
+
 const stores = [
   {
     name: "Urban Loom",
+    slug: "urban-loom",
     category: "Handmade apparel",
     rating: "4.9",
     orders: "2.4k",
@@ -9,6 +13,7 @@ const stores = [
   },
   {
     name: "Bean & Barrel",
+    slug: "bean-barrel",
     category: "Coffee and pantry",
     rating: "4.8",
     orders: "1.8k",
@@ -17,6 +22,7 @@ const stores = [
   },
   {
     name: "Casa Craft",
+    slug: "casa-craft",
     category: "Home decor",
     rating: "4.9",
     orders: "3.1k",
@@ -25,6 +31,7 @@ const stores = [
   },
   {
     name: "Glow Theory",
+    slug: "glow-theory",
     category: "Clean beauty",
     rating: "4.7",
     orders: "980",
@@ -35,46 +42,64 @@ const stores = [
 
 const products = [
   {
+    id: "linen-shirt",
     name: "Everyday Linen Shirt",
     vendor: "Urban Loom",
-    price: "$48.00",
+    price: 3999,
     tag: "Best seller",
-    swatch: "bg-orange-100",
+    swatch: "bg-sky-100",
+    rating: "4.8",
+    category: "Fashion",
   },
   {
+    id: "cold-brew",
     name: "Single-Origin Cold Brew Kit",
     vendor: "Bean & Barrel",
-    price: "$32.00",
+    price: 1999,
     tag: "New",
     swatch: "bg-amber-100",
+    rating: "4.8",
+    category: "Pantry",
   },
   {
+    id: "table-lamp",
     name: "Ceramic Table Lamp",
     vendor: "Casa Craft",
-    price: "$86.00",
+    price: 6999,
     tag: "Trending",
     swatch: "bg-emerald-100",
+    rating: "4.9",
+    category: "Home Decor",
   },
   {
+    id: "rose-serum",
     name: "Hydrating Rose Serum",
     vendor: "Glow Theory",
-    price: "$29.00",
+    price: 2499,
     tag: "Popular",
     swatch: "bg-rose-100",
+    rating: "4.7",
+    category: "Beauty",
   },
   {
+    id: "canvas-tote",
     name: "Canvas Market Tote",
     vendor: "Urban Loom",
-    price: "$24.00",
+    price: 2400,
     tag: "Eco pick",
     swatch: "bg-sky-100",
+    rating: "4.5",
+    category: "Fashion",
   },
   {
+    id: "stoneware-bowl",
     name: "Stoneware Serving Bowl",
     vendor: "Casa Craft",
-    price: "$54.00",
+    price: 4500,
     tag: "Limited",
     swatch: "bg-violet-100",
+    rating: "4.6",
+    category: "Home Decor",
   },
 ];
 
@@ -88,9 +113,29 @@ const StarIcon = () => (
   </svg>
 );
 
+const HeartIcon = ({ className = "h-5 w-5", filled = false }) => (
+  <svg
+    aria-hidden="true"
+    className={className}
+    fill={filled ? "#cd6615" : "none"}
+    viewBox="0 0 24 24"
+    stroke={filled ? "#cd6615" : "currentColor"}
+    strokeWidth="2"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M21 8.25c0 6.25-9 11.25-9 11.25S3 14.5 3 8.25A4.75 4.75 0 0 1 11.26 5 4.75 4.75 0 0 1 21 8.25Z"
+    />
+  </svg>
+);
+
 const Home = () => {
+  const { toggleWishlist, isInWishlist } = useWishlist();
+
   return (
     <div className="space-y-8">
+      {/* Hero Section */}
       <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.15fr_0.85fr] lg:p-10">
           <div className="flex flex-col justify-center">
@@ -106,38 +151,46 @@ const Home = () => {
               the simple storefront experience.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <button className="rounded-xl bg-[#cd6615] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-700">
+              <Link
+                to="/products"
+                className="inline-flex justify-center rounded-xl bg-[#cd6615] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-700 items-center"
+              >
                 Explore products
-              </button>
-              <button className="rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:border-[#cd6615] hover:text-[#cd6615]">
+              </Link>
+              <Link
+                to="/stores"
+                className="inline-flex justify-center rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:border-[#cd6615] hover:text-[#cd6615] items-center"
+              >
                 Browse stores
-              </button>
+              </Link>
             </div>
           </div>
 
+          {/* Quick Categories Display */}
           <div className="rounded-xl border border-gray-200 bg-[#fafafa] p-5">
             <div className="grid grid-cols-2 gap-4">
-              {["Fashion", "Coffee", "Decor", "Beauty"].map((label, index) => (
-                <div
-                  key={label}
-                  className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+              {[
+                { label: "Fashion", slug: "fashion", color: "bg-sky-100" },
+                { label: "Coffee", slug: "pantry", color: "bg-amber-100" },
+                { label: "Decor", slug: "home-decor", color: "bg-emerald-100" },
+                { label: "Beauty", slug: "beauty", color: "bg-rose-100" }
+              ].map((cat) => (
+                <Link
+                  key={cat.label}
+                  to={`/categories/${cat.slug}`}
+                  className="block rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:border-[#cd6615] transition"
                 >
-                  <div
-                    className={`mb-8 h-20 rounded-lg ${
-                      ["bg-orange-100", "bg-amber-100", "bg-emerald-100", "bg-rose-100"][
-                        index
-                      ]
-                    }`}
-                  />
-                  <p className="text-sm font-semibold text-gray-900">{label}</p>
-                  <p className="mt-1 text-xs text-gray-500">Verified vendors</p>
-                </div>
+                  <div className={`mb-8 h-20 rounded-lg ${cat.color}`} />
+                  <p className="text-sm font-semibold text-gray-900">{cat.label}</p>
+                  <p className="mt-1 text-xs text-gray-500">Verified vendors &rarr;</p>
+                </Link>
               ))}
             </div>
           </div>
         </div>
       </section>
 
+      {/* Top Rated Stores */}
       <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
         <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div>
@@ -146,16 +199,20 @@ const Home = () => {
               Independent sellers customers love
             </h2>
           </div>
-          <button className="w-fit rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-[#cd6615] hover:text-[#cd6615]">
+          <Link
+            to="/stores"
+            className="w-fit rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-[#cd6615] hover:text-[#cd6615]"
+          >
             View all stores
-          </button>
+          </Link>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stores.map((store) => (
-            <article
-              key={store.name}
-              className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md"
+            <Link
+              key={store.slug}
+              to={`/stores/${store.slug}`}
+              className="block rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md"
             >
               <div
                 className={`mb-5 flex h-14 w-14 items-center justify-center rounded-xl text-sm font-bold ${store.accent}`}
@@ -171,11 +228,12 @@ const Home = () => {
                 </span>
                 <span className="text-sm text-gray-500">{store.orders} orders</span>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       </section>
 
+      {/* Trending Products */}
       <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
         <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div>
@@ -184,36 +242,62 @@ const Home = () => {
               Popular picks across NexCart
             </h2>
           </div>
-          <button className="w-fit rounded-lg bg-[#cd6615] px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700">
+          <Link
+            to="/products"
+            className="w-fit rounded-lg bg-[#cd6615] px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700"
+          >
             Shop trending
-          </button>
+          </Link>
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
             <article
-              key={`${product.vendor}-${product.name}`}
+              key={product.id}
               className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md"
             >
-              <div className={`h-44 ${product.swatch}`}>
-                <div className="flex h-full items-end justify-end p-4">
-                  <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#cd6615] shadow-sm">
-                    {product.tag}
-                  </span>
+              <Link to={`/products/${product.id}`} className="block">
+                <div className={`relative h-44 ${product.swatch}`}>
+                  <div className="absolute top-4 left-4">
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#cd6615] shadow-sm">
+                      {product.tag}
+                    </span>
+                  </div>
+                  <div className="absolute top-4 right-4">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleWishlist(product);
+                      }}
+                      className="rounded-full bg-white/90 p-2 text-[#cd6615] shadow-sm cursor-pointer hover:scale-110 hover:bg-gray-50 transition-all duration-200"
+                      aria-label="Toggle wishlist"
+                    >
+                      <HeartIcon className="h-4 w-4" filled={isInWishlist(product.id)} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="font-bold text-gray-900">{product.name}</h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Sold by {product.vendor}
+                <div className="p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="font-bold text-gray-900 text-sm">{product.name}</h3>
+                      <p className="mt-1 text-xs text-gray-500">
+                        Sold by {product.vendor}
+                      </p>
+                    </div>
+                    <p className="shrink-0 font-bold text-gray-900 text-sm">
+                      ₹{product.price.toLocaleString("en-IN")}
                     </p>
                   </div>
-                  <p className="shrink-0 font-bold text-gray-900">{product.price}</p>
                 </div>
-                <button className="mt-5 w-full rounded-xl border border-gray-200 bg-[#fafafa] px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-[#cd6615] hover:bg-white hover:text-[#cd6615]">
-                  Add to cart
+              </Link>
+              <div className="px-5 pb-5">
+                <button
+                  type="button"
+                  onClick={() => console.log("Handled by Cart Team")}
+                  className="w-full rounded-lg bg-[#cd6615] py-2.5 text-xs font-semibold text-white transition hover:bg-orange-700 cursor-pointer"
+                >
+                  Add to Cart
                 </button>
               </div>
             </article>

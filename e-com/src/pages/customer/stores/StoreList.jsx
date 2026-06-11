@@ -1,4 +1,7 @@
+import { Link } from "react-router-dom";
+
 const stores = [
+
   {
     name: "AudioTech",
     rating: "4.9",
@@ -131,12 +134,12 @@ const StoreList = () => {
               </span>
               <span className="text-sm text-gray-500">{store.sales} sales</span>
             </div>
-            <a
-              href={`/stores/${store.name.toLowerCase().replaceAll(" ", "-")}`}
+            <Link
+              to={`/stores/${store.name.toLowerCase().replaceAll(" ", "-")}`}
               className="mt-5 inline-flex w-full justify-center rounded-lg border border-gray-200 bg-[#fafafa] px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-[#cd6615] hover:bg-white hover:text-[#cd6615]"
             >
               Visit Store
-            </a>
+            </Link>
           </article>
         ))}
       </section>

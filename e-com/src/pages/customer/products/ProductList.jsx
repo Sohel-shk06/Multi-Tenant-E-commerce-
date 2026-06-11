@@ -1,57 +1,67 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useWishlist } from "../../../context/WishlistContext";
+
 const categories = ["All", "Audio", "Fashion", "Home", "Beauty", "Pantry"];
 const vendors = ["AudioTech", "Urban Loom", "Casa Craft", "Glow Theory", "Bean & Barrel"];
 
 const products = [
   {
+    id: "studio-headphones",
     name: "Studio Wireless Headphones",
     vendor: "AudioTech",
     category: "Audio",
-    price: "$129.00",
+    price: 12999,
     rating: "4.9",
     badge: "Best seller",
     swatch: "bg-orange-100",
   },
   {
+    id: "linen-shirt",
     name: "Everyday Linen Shirt",
     vendor: "Urban Loom",
     category: "Fashion",
-    price: "$48.00",
+    price: 3999,
     rating: "4.8",
     badge: "Organic cotton",
     swatch: "bg-sky-100",
   },
   {
+    id: "table-lamp",
     name: "Ceramic Table Lamp",
     vendor: "Casa Craft",
     category: "Home",
-    price: "$86.00",
+    price: 6999,
     rating: "4.9",
     badge: "Handmade",
     swatch: "bg-emerald-100",
   },
   {
+    id: "rose-serum",
     name: "Hydrating Rose Serum",
     vendor: "Glow Theory",
     category: "Beauty",
-    price: "$29.00",
+    price: 2499,
     rating: "4.7",
     badge: "Clean beauty",
     swatch: "bg-rose-100",
   },
   {
+    id: "cold-brew",
     name: "Single-Origin Cold Brew Kit",
     vendor: "Bean & Barrel",
     category: "Pantry",
-    price: "$32.00",
+    price: 1999,
     rating: "4.8",
     badge: "New arrival",
     swatch: "bg-amber-100",
   },
   {
+    id: "bluetooth-speaker",
     name: "Portable Bluetooth Speaker",
     vendor: "AudioTech",
     category: "Audio",
-    price: "$74.00",
+    price: 4999,
     rating: "4.6",
     badge: "Travel pick",
     swatch: "bg-violet-100",
@@ -68,7 +78,55 @@ const StarIcon = () => (
   </svg>
 );
 
+const HeartIcon = ({ className = "h-5 w-5", filled = false }) => (
+  <svg
+    aria-hidden="true"
+    className={className}
+    fill={filled ? "#cd6615" : "none"}
+    viewBox="0 0 24 24"
+    stroke={filled ? "#cd6615" : "currentColor"}
+    strokeWidth="2"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M21 8.25c0 6.25-9 11.25-9 11.25S3 14.5 3 8.25A4.75 4.75 0 0 1 11.26 5 4.75 4.75 0 0 1 21 8.25Z"
+    />
+  </svg>
+);
+
 const ProductList = () => {
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [maxPrice, setMaxPrice] = useState(100000);
+  const [selectedVendors, setSelectedVendors] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const toggleVendor = (vendorName) => {
+    setSelectedVendors((prev) => {
+      if (prev.includes(vendorName)) {
+        return prev.filter((v) => v !== vendorName);
+      }
+      return [...prev, vendorName];
+    });
+  };
+
+  const resetFilters = () => {
+    setSelectedCategory("All");
+    setMaxPrice(100000);
+    setSelectedVendors([]);
+    setSearchQuery("");
+  };
+
+  const filteredProducts = products.filter((product) => {
+    const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
+    const matchesPrice = product.price <= maxPrice;
+    const matchesVendor = selectedVendors.length === 0 || selectedVendors.includes(product.vendor);
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          product.vendor.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesPrice && matchesVendor && matchesSearch;
+  });
+
   return (
     <div className="space-y-8">
       <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
@@ -84,7 +142,7 @@ const ProductList = () => {
             </p>
           </div>
           <div className="rounded-lg border border-gray-200 bg-[#fafafa] px-4 py-3 text-sm font-semibold text-gray-700">
-            248 products from verified stores
+            {filteredProducts.length} products found
           </div>
         </div>
       </section>
@@ -93,7 +151,7 @@ const ProductList = () => {
         <aside className="h-fit rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-gray-900">Filters</h2>
-            <button className="text-sm font-semibold text-[#cd6615]">Reset</button>
+            <button onClick={resetFilters} className="text-sm font-semibold text-[#cd6615] bg-transparent outline-none border-none cursor-pointer">Reset</button>
           </div>
 
           <div className="mt-6 space-y-6">
@@ -103,8 +161,10 @@ const ProductList = () => {
                 {categories.map((category) => (
                   <button
                     key={category}
-                    className={`rounded-lg border px-4 py-2 text-left text-sm font-semibold transition ${
-                      category === "All"
+                    type="button"
+                    onClick={() => setSelectedCategory(category)}
+                    className={`rounded-lg border px-4 py-2 text-left text-xs font-semibold transition cursor-pointer ${
+                      category === selectedCategory
                         ? "border-[#cd6615] bg-orange-50 text-[#cd6615]"
                         : "border-gray-200 bg-white text-gray-700 hover:border-[#cd6615] hover:text-[#cd6615]"
                     }`}
@@ -120,23 +180,25 @@ const ProductList = () => {
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <input
                   type="text"
-                  value="$0"
+                  value="₹0"
                   readOnly
-                  className="rounded-lg border border-gray-200 bg-[#fafafa] px-3 py-2 text-sm text-gray-700 outline-none"
+                  className="rounded-lg border border-gray-200 bg-[#fafafa] px-3 py-2 text-xs text-gray-700 outline-none"
                 />
                 <input
                   type="text"
-                  value="$150"
+                  value={`₹${maxPrice.toLocaleString("en-IN")}`}
                   readOnly
-                  className="rounded-lg border border-gray-200 bg-[#fafafa] px-3 py-2 text-sm text-gray-700 outline-none"
+                  className="rounded-lg border border-gray-200 bg-[#fafafa] px-3 py-2 text-xs text-gray-700 outline-none"
                 />
               </div>
               <input
                 type="range"
                 min="0"
-                max="150"
-                defaultValue="120"
-                className="mt-4 w-full accent-[#cd6615]"
+                max="100000"
+                step="500"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(Number(e.target.value))}
+                className="mt-4 w-full accent-[#cd6615] cursor-pointer"
               />
             </div>
 
@@ -144,11 +206,12 @@ const ProductList = () => {
               <label className="text-sm font-semibold text-gray-900">Vendor</label>
               <div className="mt-3 space-y-3">
                 {vendors.map((vendor) => (
-                  <label key={vendor} className="flex items-center gap-3 text-sm text-gray-600">
+                  <label key={vendor} className="flex items-center gap-3 text-xs text-gray-600 cursor-pointer">
                     <input
                       type="checkbox"
+                      checked={selectedVendors.includes(vendor)}
+                      onChange={() => toggleVendor(vendor)}
                       className="h-4 w-4 rounded border-gray-300 accent-[#cd6615]"
-                      defaultChecked={vendor === "AudioTech"}
                     />
                     {vendor}
                   </label>
@@ -162,54 +225,84 @@ const ProductList = () => {
           <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <input
               type="search"
-              placeholder="Search products"
-              className="h-11 flex-1 rounded-lg border border-gray-200 bg-[#fafafa] px-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#cd6615] focus:bg-white focus:ring-4 focus:ring-orange-100"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search products..."
+              className="h-11 flex-1 rounded-lg border border-gray-200 bg-[#fafafa] px-4 text-xs text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#cd6615] focus:bg-white focus:ring-4 focus:ring-orange-100"
             />
-            <select className="h-11 rounded-lg border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 outline-none focus:border-[#cd6615] focus:ring-4 focus:ring-orange-100">
+            <select className="h-11 rounded-lg border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-700 outline-none focus:border-[#cd6615] focus:ring-4 focus:ring-orange-100 cursor-pointer">
               <option>Sort by relevance</option>
               <option>Price: low to high</option>
               <option>Top rated</option>
             </select>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {products.map((product) => (
-              <article
-                key={`${product.vendor}-${product.name}`}
-                className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md"
-              >
-                <div className={`h-48 ${product.swatch}`}>
-                  <div className="flex h-full items-start justify-end p-4">
-                    <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#cd6615] shadow-sm">
-                      {product.badge}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        {product.category}
-                      </p>
-                      <h3 className="mt-2 font-bold text-gray-900">{product.name}</h3>
-                      <p className="mt-1 text-sm text-gray-500">Sold by {product.vendor}</p>
+          {filteredProducts.length === 0 ? (
+            <div className="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
+              <p className="text-sm font-medium text-gray-500">No products match your current filter settings.</p>
+              <button onClick={resetFilters} className="mt-4 rounded-lg bg-[#cd6615] px-4 py-2 text-xs font-semibold text-white transition hover:bg-orange-700 cursor-pointer">
+                Clear Filters
+              </button>
+            </div>
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {filteredProducts.map((product) => (
+                <article
+                  key={product.id}
+                  className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md"
+                >
+                  <Link to={`/products/${product.id}`} className="block">
+                    <div className={`relative h-48 ${product.swatch}`}>
+                      <div className="absolute top-4 left-4">
+                        <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#cd6615] shadow-sm">
+                          {product.badge}
+                        </span>
+                      </div>
+                      <div className="absolute top-4 right-4">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            toggleWishlist(product);
+                          }}
+                          className="rounded-full bg-white/90 p-2 text-[#cd6615] shadow-sm cursor-pointer hover:scale-110 hover:bg-gray-50 transition-all duration-200"
+                          aria-label="Toggle wishlist"
+                        >
+                          <HeartIcon className="h-4 w-4" filled={isInWishlist(product.id)} />
+                        </button>
+                      </div>
                     </div>
-                    <p className="shrink-0 font-bold text-gray-900">{product.price}</p>
-                  </div>
-
-                  <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4">
-                    <span className="flex items-center gap-1 text-sm font-semibold text-gray-900">
+                    <div className="p-5">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            {product.category}
+                          </p>
+                          <h3 className="mt-2 text-sm font-bold text-gray-900">{product.name}</h3>
+                          <p className="mt-1 text-xs text-gray-500">Sold by {product.vendor}</p>
+                        </div>
+                        <p className="shrink-0 text-sm font-bold text-gray-900">
+                          ₹{product.price.toLocaleString("en-IN")}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                  <div className="mx-5 mb-5 mt-0 flex items-center justify-between border-t border-gray-100 pt-4">
+                    <span className="flex items-center gap-1 text-xs font-semibold text-gray-900">
                       <StarIcon />
                       {product.rating}
                     </span>
-                    <button className="rounded-lg bg-[#cd6615] px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700">
+                    <button
+                      onClick={() => console.log("Handled by Cart Team")}
+                      className="rounded-lg bg-[#cd6615] px-4 py-2 text-xs font-semibold text-white transition hover:bg-orange-700 cursor-pointer"
+                    >
                       Add to Cart
                     </button>
                   </div>
-                </div>
-              </article>
-            ))}
-          </div>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </div>
@@ -217,3 +310,4 @@ const ProductList = () => {
 };
 
 export default ProductList;
+
