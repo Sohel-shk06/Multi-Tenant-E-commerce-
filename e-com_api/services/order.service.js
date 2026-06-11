@@ -114,46 +114,94 @@ export const updateOrderStatus = async (orderId, status, userId, userRole) => {
   return order;
 };
 
+
+
+
 // Create order (for testing - normally created after payment)
 export const createOrder = async (orderData) => {
   const { customer, vendor, store, items, shippingAddress, paymentMethod } = orderData;
 
-  // Calculate totals
+  // ✅ FIX: Agar vendor nahi mila, toh store se fetch karo
+  let vendorId = vendor;
+  if (!vendorId && store) {
+    const { Store } = await import('../models/Store.js');
+    const storeData = await Store.findById(store);
+    if (storeData) {
+      vendorId = storeData.vendor;
+      console.log('✅ Vendor auto-fetched from store:', vendorId);
+    }
+  }
+
+  if (!vendorId) {
+    throw new ApiError(400, 'Vendor information is required');
+  }
+
+  // ✅ FIX: Calculate totals from items
   let subtotal = 0;
+  const enrichedItems = [];
+  
   for (const item of items) {
     const product = await Product.findById(item.product);
     if (!product) {
       throw new ApiError(404, `Product ${item.product} not found`);
     }
-    item.price = product.price;
-    item.title = product.title;
-    subtotal += product.price * item.quantity;
+    if (product.stock < item.quantity) {
+      throw new ApiError(400, `Insufficient stock for ${product.title}. Available: ${product.stock}`);
+    }
+    
+    const itemTotal = product.price * item.quantity;
+    subtotal += itemTotal;
+    
+    enrichedItems.push({
+      product: item.product,
+      title: product.title,
+      price: product.price,
+      quantity: item.quantity
+    });
   }
 
   const tax = subtotal * 0.18; // 18% GST
-  const shippingCost = 50; // Flat shipping
+  const shippingCost = subtotal > 500 ? 0 : 50; // Free shipping above 500
   const totalAmount = subtotal + tax + shippingCost;
 
-  const order = await Order.create({
+  // ✅ FIX: Generate unique order number
+  const date = new Date();
+  const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  const orderNumber = `ORD-${dateStr}-${random}`;
+
+  console.log('📝 Creating order:', {
+    orderNumber,
     customer,
-    vendor,
+    vendor: vendorId,
     store,
-    items,
+    items: enrichedItems.length,
+    totalAmount
+  });
+
+  const order = await Order.create({
+    orderNumber,
+    customer,
+    vendor: vendorId,
+    store,
+    items: enrichedItems,
     subtotal,
     tax,
     shippingCost,
     totalAmount,
     shippingAddress,
     paymentMethod: paymentMethod || 'cod',
-    paymentStatus: paymentMethod === 'cod' ? 'pending' : 'paid'
+    paymentStatus: paymentMethod === 'cod' ? 'pending' : 'paid',
+    status: 'pending'
   });
 
-  // Reduce stock for each product
+  // ✅ Reduce stock for each product
   for (const item of items) {
     await Product.findByIdAndUpdate(item.product, {
       $inc: { stock: -item.quantity }
     });
   }
 
+  console.log('✅ Order created successfully:', order._id);
   return order;
 };

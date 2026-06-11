@@ -13,15 +13,37 @@ export const getStore = asyncHandler(async (req, res) => {
 });
 
 export const createStore = asyncHandler(async (req, res) => {
-  // Agar admin hai, toh body se vendorId lo, warna logged-in vendor ka ID use karo
-  const vendorId = req.user.role === 'admin' ? req.body.vendor : req.user._id;
+  console.log('📥 Creating store with data:', req.body); // Debug log
+  console.log('👤 User:', req.user); // Debug log
   
-  if (!vendorId) {
-    return res.status(400).json({ success: false, message: 'Vendor ID is required' });
+  let vendorId;
+  
+  // ✅ FIX: Vendor ke liye logged-in user ka ID use karo
+  if (req.user.role === 'vendor') {
+    vendorId = req.user._id;
+  } else if (req.user.role === 'admin') {
+    vendorId = req.body.vendor;
+    if (!vendorId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Vendor ID is required when admin creates a store' 
+      });
+    }
+  } else {
+    return res.status(403).json({ 
+      success: false, 
+      message: 'Only vendors and admins can create stores' 
+    });
   }
 
-  const store = await storeService.createStore(req.body, vendorId);
-  return res.status(201).json(new ApiResponse(201, store, 'Store created successfully'));
+  try {
+    const store = await storeService.createStore(req.body, vendorId);
+    console.log('✅ Store created:', store._id);
+    return res.status(201).json(new ApiResponse(201, store, 'Store created successfully'));
+  } catch (error) {
+    console.error('❌ Error creating store:', error);
+    throw error;
+  }
 });
 
 export const updateStore = asyncHandler(async (req, res) => {

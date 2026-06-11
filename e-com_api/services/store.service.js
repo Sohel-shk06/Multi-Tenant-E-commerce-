@@ -6,7 +6,6 @@ export const getAllStores = async (query, userId, userRole) => {
   const skip = (page - 1) * limit;
   const filter = {};
 
-  // Role-based filtering
   if (userRole === 'vendor') {
     filter.vendor = userId;
   }
@@ -49,16 +48,67 @@ export const getStoreById = async (storeId, userId, userRole) => {
 };
 
 export const createStore = async (storeData, vendorId) => {
-  const existingStore = await Store.findOne({ slug: storeData.slug });
-  if (existingStore) {
-    throw new ApiError(409, 'Store with this slug already exists');
+  console.log('🔧 Service: Creating store with:', { storeData, vendorId });
+  
+  // ✅ Validation
+  if (!storeData.name || !storeData.name.trim()) {
+    throw new ApiError(400, 'Store name is required');
   }
 
-  const store = await Store.create({
-    ...storeData,
-    vendor: vendorId
-  });
-  return store;
+  // Auto-generate slug if not provided
+  let slug = storeData.slug;
+  if (!slug) {
+    slug = storeData.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  }
+
+  // Check if slug already exists
+  const existingStore = await Store.findOne({ slug });
+  if (existingStore) {
+    // If slug exists, append a number
+    let counter = 1;
+    let newSlug = `${slug}-${counter}`;
+    while (await Store.findOne({ slug: newSlug })) {
+      counter++;
+      newSlug = `${slug}-${counter}`;
+    }
+    slug = newSlug;
+    console.log('⚠️ Slug already exists, using:', slug);
+  }
+
+  try {
+    const store = await Store.create({
+      name: storeData.name.trim(),
+      slug: slug,
+      description: storeData.description?.trim() || '',
+      vendor: vendorId,
+      status: storeData.status || 'active',
+      settings: storeData.settings || {
+        currency: 'INR',
+        returnPolicy: '7 days return policy'
+      }
+    });
+
+    console.log('✅ Store created successfully:', store._id);
+    return store;
+  } catch (error) {
+    console.error('❌ Database error creating store:', error);
+    
+    // Handle MongoDB duplicate key error
+    if (error.code === 11000) {
+      throw new ApiError(409, 'Store with this name or slug already exists');
+    }
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      throw new ApiError(400, messages.join(', '));
+    }
+    
+    throw error;
+  }
 };
 
 export const updateStore = async (storeId, updateData, userId, userRole) => {

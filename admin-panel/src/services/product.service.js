@@ -29,5 +29,19 @@ export const productService = {
   updateProductStatus: async (productId, status) => {
     const response = await api.patch(`/products/${productId}/status`, { status });
     return response.data.data;
-  }
+  },
+
+
+
+getProductsForModeration: async (params) => {
+  const response = await api.get('/products/moderation/pending', { params });
+  return response.data.data;
+},
+
+moderateProduct: async (productId, action, notes = '') => {
+  const response = await api.patch(`/products/${productId}/moderate`, { action, notes });
+  return response.data.data;
+}
 };
+
+

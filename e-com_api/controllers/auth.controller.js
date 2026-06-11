@@ -25,3 +25,21 @@ export const resetPassword = asyncHandler(async (req, res) => {
   await authService.resetPasswordService(req.params.token, req.body.newPassword);
   return res.status(200).json(new ApiResponse(200, null, 'Password reset successful'));
 });
+
+// ... (existing imports and controllers)
+
+export const verifyEmail = asyncHandler(async (req, res) => {
+  const user = await authService.verifyEmailService(req.params.token);
+  return res.status(200).json(new ApiResponse(200, { user }, 'Email verified successfully'));
+});
+
+export const resendVerification = asyncHandler(async (req, res) => {
+  const token = await authService.resendVerificationService(req.body.email);
+  return res.status(200).json(new ApiResponse(200, { token }, 'Verification email resent successfully'));
+});
+
+export const changePassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  await authService.changePasswordService(req.user._id, oldPassword, newPassword);
+  return res.status(200).json(new ApiResponse(200, null, 'Password changed successfully'));
+});

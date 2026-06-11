@@ -2,16 +2,28 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchVendors, updateVendorStatus } from '../../app/store/vendorSlice';
 import { PageLoader } from '../../components/loaders/PageLoader';
-import { Search, MoreVertical, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Search, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
-export const VendorList = () => {
+export const VendorList = ({ defaultStatus = '' }) => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { vendors, isLoading, error, currentPage, totalPages } = useSelector((state) => state.vendors);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState(defaultStatus);
+
+  // Jab route change ho, toh status filter update karein
+  useEffect(() => {
+    setStatusFilter(defaultStatus);
+  }, [defaultStatus, location.pathname]);
 
   useEffect(() => {
-    dispatch(fetchVendors({ page: currentPage, search: searchTerm }));
-  }, [dispatch, currentPage, searchTerm]);
+    dispatch(fetchVendors({ 
+      page: currentPage, 
+      search: searchTerm,
+      status: statusFilter // ✅ Status filter pass karein
+    }));
+  }, [dispatch, currentPage, searchTerm, statusFilter]);
 
   const handleStatusChange = (vendorId, currentStatus) => {
     const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
@@ -31,6 +43,13 @@ export const VendorList = () => {
     }
   };
 
+  // Page title dynamically set karein
+  const getPageTitle = () => {
+    if (statusFilter === 'pending') return 'Pending Vendor Approvals';
+    if (statusFilter === 'suspended') return 'Suspended Vendors';
+    return 'All Vendors';
+  };
+
   if (isLoading && vendors.length === 0) return <PageLoader />;
 
   return (
@@ -38,13 +57,55 @@ export const VendorList = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Vendor Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage and monitor all platform vendors.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{getPageTitle()}</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {statusFilter === 'pending' && 'Review and approve pending vendor applications.'}
+            {statusFilter === 'suspended' && 'Manage suspended vendor accounts.'}
+            {!statusFilter && 'Manage and monitor all platform vendors.'}
+          </p>
         </div>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-          + Add New Vendor
-        </button>
+        {!statusFilter && (
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+            + Add New Vendor
+          </button>
+        )}
       </div>
+
+      {/* Status Filter Tabs (sirf main vendors page par dikhayein) */}
+      {!defaultStatus && (
+        <div className="flex space-x-2 border-b border-gray-200">
+          <button
+            onClick={() => setStatusFilter('')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              !statusFilter 
+                ? 'border-blue-600 text-blue-600' 
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            All Vendors
+          </button>
+          <button
+            onClick={() => setStatusFilter('pending')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              statusFilter === 'pending' 
+                ? 'border-blue-600 text-blue-600' 
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Pending
+          </button>
+          <button
+            onClick={() => setStatusFilter('suspended')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              statusFilter === 'suspended' 
+                ? 'border-blue-600 text-blue-600' 
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Suspended
+          </button>
+        </div>
+      )}
 
       {/* Search Bar */}
       <div className="relative max-w-md">
@@ -58,10 +119,7 @@ export const VendorList = () => {
         />
       </div>
 
-      {/* Error State */}
-      {error && (
-        <div className="p-4 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>
-      )}
+      {error && <div className="p-4 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}
 
       {/* Vendors Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -118,22 +176,20 @@ export const VendorList = () => {
           </table>
         </div>
 
-        {/* Pagination (Basic) */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-            <p className="text-sm text-gray-600">
-              Page {currentPage} of {totalPages}
-            </p>
+            <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
             <div className="flex space-x-2">
               <button
-                onClick={() => dispatch(fetchVendors({ page: currentPage - 1, search: searchTerm }))}
+                onClick={() => dispatch(fetchVendors({ page: currentPage - 1, search: searchTerm, status: statusFilter }))}
                 disabled={currentPage === 1}
                 className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 hover:bg-gray-50"
               >
                 Previous
               </button>
               <button
-                onClick={() => dispatch(fetchVendors({ page: currentPage + 1, search: searchTerm }))}
+                onClick={() => dispatch(fetchVendors({ page: currentPage + 1, search: searchTerm, status: statusFilter }))}
                 disabled={currentPage === totalPages}
                 className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 hover:bg-gray-50"
               >

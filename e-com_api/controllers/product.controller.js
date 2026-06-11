@@ -87,3 +87,28 @@ export const updateProductStatus = asyncHandler(async (req, res) => {
   const product = await productService.updateProductStatus(req.params.productId, status, vendorId);
   return res.status(200).json(new ApiResponse(200, product, `Product ${status} successfully`));
 });
+
+
+export const getProductsForModeration = asyncHandler(async (req, res) => {
+  const result = await productService.getProductsForModeration(req.query);
+  return res.status(200).json(new ApiResponse(200, result, 'Products for moderation fetched successfully'));
+});
+
+export const moderateProduct = asyncHandler(async (req, res) => {
+  const { action, notes } = req.body; // action: 'approve' or 'reject'
+  const product = await productService.moderateProduct(req.params.productId, action, notes);
+  return res.status(200).json(new ApiResponse(200, product, `Product ${action}d successfully`));
+});
+
+
+// ===== PUBLIC: Customer Facing Controllers =====
+
+export const getPublicProducts = asyncHandler(async (req, res) => {
+  const result = await productService.getPublicProducts(req.query);
+  return res.status(200).json(new ApiResponse(200, result, 'Products fetched successfully'));
+});
+
+export const getPublicProduct = asyncHandler(async (req, res) => {
+  const product = await productService.getPublicProduct(req.params.productId);
+  return res.status(200).json(new ApiResponse(200, product, 'Product fetched successfully'));
+});

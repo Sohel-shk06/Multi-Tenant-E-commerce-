@@ -5,14 +5,13 @@ import { authorizeRoles } from '../middlewares/role.middleware.js';
 
 const router = Router();
 
-// All category routes are protected and admin-only
-router.use(verifyJWT);
-router.use(authorizeRoles('admin'));
+// ✅ FIX: GET routes ko admin, vendor, aur customer sab ke liye open karein
+router.get('/', verifyJWT, authorizeRoles('admin', 'vendor', 'customer'), categoryController.getCategories);
+router.get('/:categoryId', verifyJWT, authorizeRoles('admin', 'vendor', 'customer'), categoryController.getCategory);
 
-router.get('/', categoryController.getCategories);
-router.get('/:categoryId', categoryController.getCategory);
-router.post('/', categoryController.createCategory);
-router.patch('/:categoryId', categoryController.updateCategory);
-router.delete('/:categoryId', categoryController.deleteCategory);
+// ✅ POST, PATCH, DELETE sirf admin ke liye restricted rahenge
+router.post('/', verifyJWT, authorizeRoles('admin'), categoryController.createCategory);
+router.patch('/:categoryId', verifyJWT, authorizeRoles('admin'), categoryController.updateCategory);
+router.delete('/:categoryId', verifyJWT, authorizeRoles('admin'), categoryController.deleteCategory);
 
 export default router;
