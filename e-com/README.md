@@ -17,7 +17,7 @@ If you are developing a production application, we recommend using TypeScript wi
 
 
 
-page v dosrc/
+e-com/
 │
 ├── app/
 │   ├── store/

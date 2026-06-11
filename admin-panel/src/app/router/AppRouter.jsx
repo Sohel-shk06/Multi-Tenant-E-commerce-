@@ -23,6 +23,7 @@ import { OrderList } from '../../pages/orders/OrderList';
 import { OrderDetails } from '../../pages/orders/OrderDetails';
 import { StoreList } from '../../pages/stores/StoreList';
 import { CreateStore } from '../../pages/stores/CreateStore';
+import { ProductModeration } from '../../pages/products/ProductModeration';
 
 
 // Error Pages
@@ -44,19 +45,22 @@ export const AppRouter = () => {
         {/* 2. Protected Routes (Dashboard Layout - With Sidebar/Navbar) */}
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
-            
+
             {/* Admin Only Routes */}
             <Route element={<RoleRoute allowedRoles={['admin']} />}>
               <Route path="/admin/dashboard" element={<Dashboard />} />
               <Route path="/admin/vendors" element={<VendorList />} />
+              <Route path="/admin/vendors/pending" element={<VendorList defaultStatus="pending" />} />
+              <Route path="/admin/vendors/suspended" element={<VendorList defaultStatus="suspended" />} />
               <Route path="/admin/categories" element={<CategoryList />} />
-<Route path="/admin/categories/create" element={<CreateCategory />} />
-<Route path="/admin/products" element={<ProductList />} />
-<Route path="/admin/products/create" element={<CreateProduct />} />
-<Route path="/admin/orders" element={<OrderList />} />
-<Route path="/admin/orders/:orderId" element={<OrderDetails />} />
-<Route path="/admin/stores" element={<StoreList />} />
-<Route path="/admin/stores/create" element={<CreateStore />} />
+              <Route path="/admin/categories/create" element={<CreateCategory />} />
+              <Route path="/admin/products" element={<ProductList />} />
+              <Route path="/admin/products/create" element={<CreateProduct />} />
+              <Route path="/admin/products/moderation" element={<ProductModeration />} />
+              <Route path="/admin/orders" element={<OrderList />} />
+              <Route path="/admin/orders/:orderId" element={<OrderDetails />} />
+              <Route path="/admin/stores" element={<StoreList />} />
+              <Route path="/admin/stores/create" element={<CreateStore />} />
               {/* Baaki admin routes yahan add honge */}
             </Route>
 
@@ -77,7 +81,7 @@ export const AppRouter = () => {
 
         {/* 3. Error Routes */}
         <Route path="/unauthorized" element={<Unauthorized />} />
-        
+
         {/* 4. Catch-all / Default Route */}
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="*" element={<NotFound />} />

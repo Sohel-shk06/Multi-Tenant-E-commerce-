@@ -79,3 +79,63 @@ export const resetPasswordService = async (token, newPassword) => {
 
   return true;
 };
+
+
+// ... (existing code: registerUser, loginUser, forgotPasswordService, resetPasswordService)
+
+export const verifyEmailService = async (token) => {
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  
+  const user = await User.findOne({ 
+    verifyEmailToken: hashedToken, 
+    verifyEmailExpire: { $gt: Date.now() } 
+  });
+
+  if (!user) {
+    throw new ApiError(400, 'Invalid or expired verification token');
+  }
+
+  user.isVerified = true;
+  user.verifyEmailToken = undefined;
+  user.verifyEmailExpire = undefined;
+  await user.save({ validateBeforeSave: false });
+
+  return user;
+};
+
+export const resendVerificationService = async (email) => {
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new ApiError(404, 'User with this email does not exist');
+  }
+  if (user.isVerified) {
+    throw new ApiError(400, 'Email is already verified');
+  }
+
+  const verifyToken = crypto.randomBytes(20).toString('hex');
+  user.verifyEmailToken = crypto.createHash('sha256').update(verifyToken).digest('hex');
+  user.verifyEmailExpire = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+  await user.save({ validateBeforeSave: false });
+
+  // TODO: Yahan Nodemailer se email bhejne ka code aayega
+  console.log(`📧 Verification Link: ${config.CLIENT_URL}/verify-email/${verifyToken}`);
+  
+  return verifyToken;
+};
+
+export const changePasswordService = async (userId, oldPassword, newPassword) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  const isMatch = await user.comparePassword(oldPassword);
+  if (!isMatch) {
+    throw new ApiError(401, 'Incorrect old password');
+  }
+
+  user.password = newPassword; // pre-save hook automatically hash karega
+  await user.save();
+
+  return true;
+};
