@@ -117,26 +117,39 @@ export const updateOrderStatus = async (orderId, status, userId, userRole) => {
 
 
 
-// Create order (for testing - normally created after payment)
+// Create order
 export const createOrder = async (orderData) => {
+  console.log('📥 Creating order with data:', JSON.stringify(orderData, null, 2));
+  
   const { customer, vendor, store, items, shippingAddress, paymentMethod } = orderData;
 
-  // ✅ FIX: Agar vendor nahi mila, toh store se fetch karo
+  // Validations
+  if (!customer) throw new ApiError(400, 'Customer information is required');
+  if (!store) throw new ApiError(400, 'Store information is required');
+  if (!items || items.length === 0) throw new ApiError(400, 'Order must have at least one item');
+
+  // ✅ FIX 1: Vendor fetch karo store se agar nahi mila
   let vendorId = vendor;
-  if (!vendorId && store) {
-    const { Store } = await import('../models/Store.js');
-    const storeData = await Store.findById(store);
-    if (storeData) {
-      vendorId = storeData.vendor;
-      console.log('✅ Vendor auto-fetched from store:', vendorId);
+  if (!vendorId) {
+    try {
+      const { Store } = await import('../models/Store.js');
+      const storeData = await Store.findById(store);
+      if (storeData && storeData.vendor) {
+        vendorId = storeData.vendor;
+        console.log('✅ Vendor auto-fetched from store:', vendorId);
+      } else {
+        console.error('❌ Store not found or vendor missing:', storeData);
+      }
+    } catch (err) {
+      console.error('❌ Error fetching store:', err);
     }
   }
 
   if (!vendorId) {
-    throw new ApiError(400, 'Vendor information is required');
+    throw new ApiError(400, 'Vendor information required (directly or via store)');
   }
 
-  // ✅ FIX: Calculate totals from items
+  // ✅ FIX 2: Items process karo aur totals calculate karo
   let subtotal = 0;
   const enrichedItems = [];
   
@@ -160,48 +173,45 @@ export const createOrder = async (orderData) => {
     });
   }
 
-  const tax = subtotal * 0.18; // 18% GST
-  const shippingCost = subtotal > 500 ? 0 : 50; // Free shipping above 500
+  const tax = subtotal * 0.18;
+  const shippingCost = subtotal > 500 ? 0 : 50;
   const totalAmount = subtotal + tax + shippingCost;
 
-  // ✅ FIX: Generate unique order number
-  const date = new Date();
-  const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-  const orderNumber = `ORD-${dateStr}-${random}`;
+  console.log('📝 Order calculation:', { subtotal, tax, shippingCost, totalAmount });
 
-  console.log('📝 Creating order:', {
-    orderNumber,
-    customer,
-    vendor: vendorId,
-    store,
-    items: enrichedItems.length,
-    totalAmount
-  });
-
-  const order = await Order.create({
-    orderNumber,
-    customer,
-    vendor: vendorId,
-    store,
-    items: enrichedItems,
-    subtotal,
-    tax,
-    shippingCost,
-    totalAmount,
-    shippingAddress,
-    paymentMethod: paymentMethod || 'cod',
-    paymentStatus: paymentMethod === 'cod' ? 'pending' : 'paid',
-    status: 'pending'
-  });
-
-  // ✅ Reduce stock for each product
-  for (const item of items) {
-    await Product.findByIdAndUpdate(item.product, {
-      $inc: { stock: -item.quantity }
+  // ✅ FIX 3: Order create - orderNumber auto-generate hoga pre-save hook se
+  try {
+    const order = await Order.create({
+      customer,
+      vendor: vendorId,
+      store,
+      items: enrichedItems,
+      subtotal,
+      tax,
+      shippingCost,
+      totalAmount,
+      shippingAddress,
+      paymentMethod: paymentMethod || 'cod',
+      paymentStatus: paymentMethod === 'cod' ? 'pending' : 'paid',
+      status: 'pending'
     });
-  }
 
-  console.log('✅ Order created successfully:', order._id);
-  return order;
+    console.log('✅ Order created:', order._id, 'Number:', order.orderNumber);
+
+    // ✅ Stock reduce karo
+    for (const item of items) {
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { stock: -item.quantity }
+      });
+    }
+
+    return order;
+  } catch (error) {
+    console.error('❌ Error creating order:', error);
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      throw new ApiError(400, `Validation failed: ${messages.join(', ')}`);
+    }
+    throw error;
+  }
 };

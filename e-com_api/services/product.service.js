@@ -262,7 +262,6 @@ export const getPublicProducts = async (query) => {
   const { page = 1, limit = 12, search, category, minPrice, maxPrice } = query;
   const skip = (page - 1) * limit;
   
-  // Sirf active products dikhao
   const filter = { status: 'active' };
   
   if (search) {
@@ -272,9 +271,7 @@ export const getPublicProducts = async (query) => {
     ];
   }
   
-  if (category) {
-    filter.category = category;
-  }
+  if (category) filter.category = category;
   
   if (minPrice || maxPrice) {
     filter.price = {};
@@ -284,7 +281,14 @@ export const getPublicProducts = async (query) => {
 
   const products = await Product.find(filter)
     .populate('category', 'name slug')
-    .populate('store', 'name slug')
+    .populate({
+      path: 'store',
+      select: 'name slug vendor',  // ✅ vendor field include kiya
+      populate: { 
+        path: 'vendor', 
+        select: '_id name'  // ✅ vendor populate kiya with ID
+      }
+    })
     .skip(skip)
     .limit(Number(limit))
     .sort({ createdAt: -1 });
@@ -303,7 +307,14 @@ export const getPublicProducts = async (query) => {
 export const getPublicProduct = async (productId) => {
   const product = await Product.findOne({ _id: productId, status: 'active' })
     .populate('category', 'name slug')
-    .populate('store', 'name slug');
+    .populate({
+      path: 'store',
+      select: 'name slug vendor',  // ✅ vendor field include kiya
+      populate: { 
+        path: 'vendor', 
+        select: '_id name'  // ✅ vendor populate kiya with ID
+      }
+    });
   
   if (!product) {
     throw new ApiError(404, 'Product not found or is no longer available');
