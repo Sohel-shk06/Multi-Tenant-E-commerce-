@@ -25,11 +25,11 @@ const storeSchema = new mongoose.Schema({
   },
   logo: { 
     type: String, 
-    default: '' // Cloudinary URL
+    default: ''
   },
   banner: { 
     type: String, 
-    default: '' // Cloudinary URL
+    default: ''
   },
   status: { 
     type: String, 
@@ -49,9 +49,9 @@ const storeSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// Auto-generate slug from name
+// ✅ FIX: Mongoose v8+ mein 'next' parameter nahi chahiye
 storeSchema.pre('save', function() {
-  if (this.isModified('name')) {
+  if (this.isModified('name') && !this.slug) {
     this.slug = this.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')

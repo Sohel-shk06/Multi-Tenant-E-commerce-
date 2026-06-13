@@ -23,8 +23,8 @@ const orderItemSchema = new mongoose.Schema({
 const orderSchema = new mongoose.Schema({
   orderNumber: { 
     type: String, 
-    required: true, 
     unique: true 
+    // ✅ required: true HATA DIYA - pre-save hook auto-generate karega
   },
   customer: { 
     type: mongoose.Schema.Types.ObjectId, 
@@ -33,8 +33,8 @@ const orderSchema = new mongoose.Schema({
   },
   vendor: { 
     type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User',
-    required: true 
+    ref: 'User'
+    // ✅ required: true HATA DIYA - backend store se fetch karega
   },
   store: { 
     type: mongoose.Schema.Types.ObjectId, 
@@ -80,7 +80,7 @@ const orderSchema = new mongoose.Schema({
   paymentMethod: {
     type: String,
     enum: ['stripe', 'cod', 'upi', 'netbanking'],
-    default: 'stripe'
+    default: 'cod'  // ✅ Default cod rakha
   },
   shippingAddress: {
     fullName: { type: String, required: true },
@@ -104,13 +104,22 @@ const orderSchema = new mongoose.Schema({
   deliveredAt: { type: Date }
 }, { timestamps: true });
 
-// Auto-generate order number
-orderSchema.pre('save', async function(next) {
-  if (this.isNew) {
-    const count = await mongoose.model('Order').countDocuments();
-    this.orderNumber = `ORD-${Date.now()}-${String(count + 1).padStart(4, '0')}`;
+// ✅ FIXED: Mongoose v8+ - next parameter nahi chahiye
+orderSchema.pre('save', async function() {
+  if (this.isNew && !this.orderNumber) {
+    try {
+      const count = await mongoose.model('Order').countDocuments();
+      const timestamp = Date.now();
+      const sequence = String(count + 1).padStart(4, '0');
+      this.orderNumber = `ORD-${timestamp}-${sequence}`;
+      console.log('✅ Auto-generated order number:', this.orderNumber);
+    } catch (error) {
+      console.error('Error generating order number:', error);
+      // Fallback: simple random number
+      this.orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    }
   }
-  next();
+  // ✅ next() call nahi karna - async function automatically handle karega
 });
 
 export const Order = mongoose.model('Order', orderSchema);

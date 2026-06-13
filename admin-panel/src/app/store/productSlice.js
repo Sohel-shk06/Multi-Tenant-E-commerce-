@@ -82,4 +82,32 @@ const productSlice = createSlice({
   },
 });
 
+// Existing thunks ke saath ye add karein:
+
+export const fetchProductsForModeration = createAsyncThunk(
+  'products/fetchForModeration',
+  async (params, { rejectWithValue }) => {
+    try {
+      const data = await productService.getProductsForModeration(params);
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch products for moderation');
+    }
+  }
+);
+
+export const moderateProduct = createAsyncThunk(
+  'products/moderate',
+  async ({ productId, action, notes }, { rejectWithValue, dispatch }) => {
+    try {
+      await productService.moderateProduct(productId, action, notes);
+      // Moderation ke baad list refresh karein
+      dispatch(fetchProductsForModeration({ page: 1 }));
+      return { productId, action };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to moderate product');
+    }
+  }
+);
+
 export default productSlice.reducer;

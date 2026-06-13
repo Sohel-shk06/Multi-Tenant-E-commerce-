@@ -189,3 +189,135 @@ export const updateProductStatus = async (productId, status, vendorId) => {
 
   return product;
 };
+
+
+
+// Get products pending moderation (draft status)
+export const getProductsForModeration = async (query) => {
+  const { page = 1, limit = 10, search } = query;
+  const skip = (page - 1) * limit;
+  
+  const filter = { status: 'draft' }; // Sirf draft products moderation ke liye
+  
+  if (search) {
+    filter.$or = [
+      { title: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } }
+    ];
+  }
+
+  const products = await Product.find(filter)
+    .populate('category', 'name slug')
+    .populate('vendor', 'name email')
+    .populate('store', 'name')
+    .skip(skip)
+    .limit(Number(limit))
+    .sort({ createdAt: -1 });
+
+  const totalProducts = await Product.countDocuments(filter);
+
+  return {
+    products,
+    totalPages: Math.ceil(totalProducts / limit),
+    currentPage: Number(page),
+    totalProducts
+  };
+};
+
+// Moderate product (approve or reject)
+export const moderateProduct = async (productId, action, adminNotes) => {
+  const product = await Product.findById(productId);
+  
+  if (!product) {
+    throw new ApiError(404, 'Product not found');
+  }
+
+  if (product.status !== 'draft') {
+    throw new ApiError(400, 'Only draft products can be moderated');
+  }
+
+  if (action === 'approve') {
+    product.status = 'active';
+    product.moderationNotes = adminNotes || '';
+    product.moderatedAt = new Date();
+    product.moderatedBy = 'admin'; // TODO: req.user.id pass karna
+  } else if (action === 'reject') {
+    product.status = 'rejected';
+    product.moderationNotes = adminNotes || 'Product does not meet platform guidelines';
+    product.moderatedAt = new Date();
+    product.moderatedBy = 'admin';
+  } else {
+    throw new ApiError(400, 'Invalid moderation action');
+  }
+
+  await product.save();
+  return product;
+};
+
+
+// ===== PUBLIC: Customer Facing Functions =====
+
+// Get all ACTIVE products for customers
+export const getPublicProducts = async (query) => {
+  const { page = 1, limit = 12, search, category, minPrice, maxPrice } = query;
+  const skip = (page - 1) * limit;
+  
+  const filter = { status: 'active' };
+  
+  if (search) {
+    filter.$or = [
+      { title: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } }
+    ];
+  }
+  
+  if (category) filter.category = category;
+  
+  if (minPrice || maxPrice) {
+    filter.price = {};
+    if (minPrice) filter.price.$gte = Number(minPrice);
+    if (maxPrice) filter.price.$lte = Number(maxPrice);
+  }
+
+  const products = await Product.find(filter)
+    .populate('category', 'name slug')
+    .populate({
+      path: 'store',
+      select: 'name slug vendor',  // ✅ vendor field include kiya
+      populate: { 
+        path: 'vendor', 
+        select: '_id name'  // ✅ vendor populate kiya with ID
+      }
+    })
+    .skip(skip)
+    .limit(Number(limit))
+    .sort({ createdAt: -1 });
+
+  const totalProducts = await Product.countDocuments(filter);
+
+  return {
+    products,
+    totalPages: Math.ceil(totalProducts / limit),
+    currentPage: Number(page),
+    totalProducts
+  };
+};
+
+// Get single active product by ID
+export const getPublicProduct = async (productId) => {
+  const product = await Product.findOne({ _id: productId, status: 'active' })
+    .populate('category', 'name slug')
+    .populate({
+      path: 'store',
+      select: 'name slug vendor',  // ✅ vendor field include kiya
+      populate: { 
+        path: 'vendor', 
+        select: '_id name'  // ✅ vendor populate kiya with ID
+      }
+    });
+  
+  if (!product) {
+    throw new ApiError(404, 'Product not found or is no longer available');
+  }
+  return product;
+};
