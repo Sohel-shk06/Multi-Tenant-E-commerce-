@@ -173,6 +173,8 @@ const CustomerLayout = ({ children }) => {
                         <span className="block font-bold text-gray-900">Aarohi Sharma</span>
                         <span className="block text-gray-500 text-[10px]">aarohi@nexcart.in</span>
                       </div>
+                      <Link to="/profile" className="block rounded-lg px-3 py-2 hover:bg-gray-50 hover:text-[#cd6615] font-semibold transition" onClick={() => setIsProfileOpen(false)}>My Profile</Link>
+                      <Link to="/orders" className="block rounded-lg px-3 py-2 hover:bg-gray-50 hover:text-[#cd6615] font-semibold transition" onClick={() => setIsProfileOpen(false)}>My Orders</Link>
                       <Link to="/wishlist" className="block rounded-lg px-3 py-2 hover:bg-gray-50 hover:text-[#cd6615] font-semibold transition" onClick={() => setIsProfileOpen(false)}>My Wishlist</Link>
                       <Link to="/products" className="block rounded-lg px-3 py-2 hover:bg-gray-50 hover:text-[#cd6615] font-semibold transition" onClick={() => setIsProfileOpen(false)}>All Products</Link>
                       <Link to="/stores" className="block rounded-lg px-3 py-2 hover:bg-gray-50 hover:text-[#cd6615] font-semibold transition" onClick={() => setIsProfileOpen(false)}>All Stores</Link>
