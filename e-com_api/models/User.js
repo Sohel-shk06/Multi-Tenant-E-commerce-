@@ -20,6 +20,36 @@ const addressSchema = new mongoose.Schema({
   isDefault: { type: Boolean, default: false }
 }, { timestamps: true });
 
+// ✅ Business Info sub-schema (NEW - Vendor Settings ke liye)
+const businessInfoSchema = new mongoose.Schema({
+  businessName: { type: String, default: '' },
+  gstNumber: { type: String, default: '' },
+  panNumber: { type: String, default: '' },
+  businessAddress: {
+    address: { type: String, default: '' },
+    city: { type: String, default: '' },
+    state: { type: String, default: '' },
+    zipCode: { type: String, default: '' },
+    country: { type: String, default: 'India' }
+  },
+  bankDetails: {
+    accountHolder: { type: String, default: '' },
+    accountNumber: { type: String, default: '' },
+    ifscCode: { type: String, default: '' },
+    bankName: { type: String, default: '' }
+  }
+}, { _id: false });
+
+// ✅ Notification Preferences sub-schema (NEW)
+const notificationPreferencesSchema = new mongoose.Schema({
+  emailNotifications: { type: Boolean, default: true },
+  orderUpdates: { type: Boolean, default: true },
+  newReviews: { type: Boolean, default: true },
+  payoutUpdates: { type: Boolean, default: true },
+  promotionalEmails: { type: Boolean, default: false },
+  lowStockAlerts: { type: Boolean, default: true }
+}, { _id: false });
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
@@ -29,12 +59,32 @@ const userSchema = new mongoose.Schema({
     enum: ['admin', 'vendor', 'customer'], 
     default: 'customer' 
   },
+
+  status: {
+    type: String,
+    enum: ['pending', 'active', 'suspended'],
+    default: function() {
+      return this.role === 'vendor' ? 'pending' : 'active';
+    }
+  },
   isVerified: { type: Boolean, default: false },
   avatar: { type: String, default: '' },
-  phone: { type: String, default: '' }, // ✅ Added phone field
+  phone: { type: String, default: '' },
   
   // ✅ Address book
   addresses: [addressSchema],
+  
+  // ✅ NEW: Business Info (Vendor ke liye)
+  businessInfo: { 
+    type: businessInfoSchema, 
+    default: () => ({}) 
+  },
+  
+  // ✅ NEW: Notification Preferences
+  notificationPreferences: { 
+    type: notificationPreferencesSchema, 
+    default: () => ({}) 
+  },
   
   // Password Reset Tokens
   resetPasswordToken: String,

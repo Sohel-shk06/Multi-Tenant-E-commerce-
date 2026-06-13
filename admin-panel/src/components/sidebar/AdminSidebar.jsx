@@ -52,14 +52,16 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
       ],
     },
     {
-      title: 'Payments',
-      icon: CreditCard,
-      children: [
-        { title: 'Transactions', path: '/admin/payments' },
-        { title: 'Payouts', path: '/admin/payouts' },
-        { title: 'Refunds', path: '/admin/refunds' },
-      ],
-    },
+  title: 'Payments',
+  icon: CreditCard,
+  children: [
+    { title: 'Transactions', path: '/admin/payments' },
+    { title: 'Payouts', path: '/admin/payments/payouts' },
+    { title: 'Refunds', path: '/admin/payments/refunds' },
+    { title: 'Failed', path: '/admin/payments/failed' },
+    { title: 'Analytics', path: '/admin/payments/analytics' },
+  ],
+},
     {
       title: 'Subscriptions',
       icon: DollarSign,

@@ -24,7 +24,12 @@ import { OrderDetails } from '../../pages/orders/OrderDetails';
 import { StoreList } from '../../pages/stores/StoreList';
 import { CreateStore } from '../../pages/stores/CreateStore';
 import { ProductModeration } from '../../pages/products/ProductModeration';
-
+import { Transactions } from '../../pages/payments/Transactions';
+import { PaymentDetails } from '../../pages/payments/PaymentDetails';
+import { Payouts } from '../../pages/payments/Payouts';
+import { Refunds } from '../../pages/payments/Refunds';
+import { FailedPayments } from '../../pages/payments/FailedPayments';
+import { PaymentAnalytics } from '../../pages/payments/PaymentAnalytics';
 
 // Error Pages
 import { NotFound } from '../../pages/errors/NotFound';
@@ -34,7 +39,7 @@ export const AppRouter = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* 1. Public Routes (Auth Layout - No Sidebar/Navbar) */}
+        {/* 1. Public Routes */}
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -42,26 +47,47 @@ export const AppRouter = () => {
           <Route path="/verify-email/:token" element={<VerifyEmail />} />
         </Route>
 
-        {/* 2. Protected Routes (Dashboard Layout - With Sidebar/Navbar) */}
+        {/* 2. Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
 
             {/* Admin Only Routes */}
             <Route element={<RoleRoute allowedRoles={['admin']} />}>
               <Route path="/admin/dashboard" element={<Dashboard />} />
+
+              {/* Vendors */}
               <Route path="/admin/vendors" element={<VendorList />} />
               <Route path="/admin/vendors/pending" element={<VendorList defaultStatus="pending" />} />
               <Route path="/admin/vendors/suspended" element={<VendorList defaultStatus="suspended" />} />
+
+              {/* ✅ ✅ ✅ CATEGORIES - EDIT ROUTE ADDED ✅ ✅ ✅ */}
               <Route path="/admin/categories" element={<CategoryList />} />
               <Route path="/admin/categories/create" element={<CreateCategory />} />
+              <Route path="/admin/categories/edit/:categoryId" element={<CreateCategory />} />
+
+              {/* ✅ ✅ ✅ PRODUCTS - SAB ROUTES SAHI ✅ ✅ ✅ */}
               <Route path="/admin/products" element={<ProductList />} />
               <Route path="/admin/products/create" element={<CreateProduct />} />
+              <Route path="/admin/products/edit/:productId" element={<CreateProduct />} />
               <Route path="/admin/products/moderation" element={<ProductModeration />} />
+
+              {/* ✅ ✅ ✅ ORDERS - SAHI ORDER MEIN ✅ ✅ ✅ */}
               <Route path="/admin/orders" element={<OrderList />} />
+              <Route path="/admin/orders/pending" element={<OrderList defaultStatus="pending" />} />
+              <Route path="/admin/orders/completed" element={<OrderList defaultStatus="completed" />} />
+              <Route path="/admin/orders/cancelled" element={<OrderList defaultStatus="cancelled" />} />
               <Route path="/admin/orders/:orderId" element={<OrderDetails />} />
+
+              <Route path="/admin/payments" element={<Transactions />} />
+              <Route path="/admin/payments/payouts" element={<Payouts />} />
+              <Route path="/admin/payments/refunds" element={<Refunds />} />
+              <Route path="/admin/payments/failed" element={<FailedPayments />} />
+              <Route path="/admin/payments/analytics" element={<PaymentAnalytics />} />
+              <Route path="/admin/payments/:paymentId" element={<PaymentDetails />} />
+
+              {/* Stores */}
               <Route path="/admin/stores" element={<StoreList />} />
               <Route path="/admin/stores/create" element={<CreateStore />} />
-              {/* Baaki admin routes yahan add honge */}
             </Route>
 
             {/* Vendor Only Routes */}
@@ -74,7 +100,6 @@ export const AppRouter = () => {
               <Route path="/customer/dashboard" element={<Dashboard />} />
             </Route>
 
-            {/* Default redirect for authenticated users */}
             <Route path="/dashboard" element={<Navigate to="/" replace />} />
           </Route>
         </Route>
@@ -82,7 +107,7 @@ export const AppRouter = () => {
         {/* 3. Error Routes */}
         <Route path="/unauthorized" element={<Unauthorized />} />
 
-        {/* 4. Catch-all / Default Route */}
+        {/* 4. Catch-all */}
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

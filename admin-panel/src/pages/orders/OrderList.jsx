@@ -1,19 +1,30 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { fetchOrders, updateOrderStatus } from '../../app/store/orderSlice';
 import { PageLoader } from '../../components/loaders/PageLoader';
 import { Search, Eye, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-export const OrderList = () => {
+export const OrderList = ({ defaultStatus = '' }) => {  // ✅ defaultStatus prop added
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { orders, isLoading, error, currentPage, totalPages } = useSelector((state) => state.orders);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState(defaultStatus);
+
+  // ✅ Jab route change ho, toh status filter update karein
+  useEffect(() => {
+    setStatusFilter(defaultStatus);
+  }, [defaultStatus, location.pathname]);
 
   useEffect(() => {
-    dispatch(fetchOrders({ page: currentPage, search: searchTerm, status: statusFilter }));
+    dispatch(fetchOrders({ 
+      page: currentPage, 
+      search: searchTerm, 
+      status: statusFilter 
+    }));
   }, [dispatch, currentPage, searchTerm, statusFilter]);
 
   const handleStatusChange = (orderId, newStatus) => {
@@ -48,15 +59,66 @@ export const OrderList = () => {
     return transitions[currentStatus] || [];
   };
 
+  // ✅ Dynamic page title
+  const getPageTitle = () => {
+    if (statusFilter === 'pending') return 'Pending Orders';
+    if (statusFilter === 'completed') return 'Completed Orders';
+    if (statusFilter === 'cancelled') return 'Cancelled Orders';
+    return 'Order Management';
+  };
+
   if (isLoading && orders.length === 0) return <PageLoader />;
 
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Order Management</h1>
-        <p className="text-sm text-gray-500 mt-1">Track and manage all customer orders.</p>
+        <h1 className="text-2xl font-bold text-gray-900">{getPageTitle()}</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          {statusFilter === 'pending' && 'Review and process pending customer orders.'}
+          {statusFilter === 'completed' && 'View all successfully completed orders.'}
+          {statusFilter === 'cancelled' && 'View all cancelled orders.'}
+          {!statusFilter && 'Track and manage all customer orders.'}
+        </p>
       </div>
+
+      {/* Status Filter Tabs (sirf main orders page par dikhayein) */}
+      {!defaultStatus && (
+        <div className="flex space-x-2 border-b border-gray-200">
+          <button
+            onClick={() => setStatusFilter('')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              !statusFilter ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            All Orders
+          </button>
+          <button
+            onClick={() => setStatusFilter('pending')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              statusFilter === 'pending' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Pending
+          </button>
+          <button
+            onClick={() => setStatusFilter('completed')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              statusFilter === 'completed' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Completed
+          </button>
+          <button
+            onClick={() => setStatusFilter('cancelled')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              statusFilter === 'cancelled' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Cancelled
+          </button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -70,19 +132,21 @@ export const OrderList = () => {
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="shipped">Shipped</option>
-          <option value="delivered">Delivered</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
+        {!defaultStatus && (
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        )}
       </div>
 
       {/* Error State */}

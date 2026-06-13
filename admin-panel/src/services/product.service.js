@@ -1,10 +1,10 @@
 import api from './api';
 
 export const productService = {
-  getProducts: async (params) => {
-    const response = await api.get('/products', { params });
-    return response.data.data;
-  },
+ getProducts: async (params) => {
+  const response = await api.get('/products/all', { params });  // ✅ /all add kiya
+  return response.data.data;
+},
 
   getProduct: async (productId) => {
     const response = await api.get(`/products/${productId}`);

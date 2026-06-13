@@ -3,6 +3,7 @@ import { productService } from '../../services/product.service';
 
 const initialState = {
   products: [],
+  currentProduct: null, // ✅ YE ADD KAREIN
   totalPages: 1,
   currentPage: 1,
   totalProducts: 0,
@@ -22,6 +23,18 @@ export const fetchProducts = createAsyncThunk(
   }
 );
 
+export const fetchProduct = createAsyncThunk(
+  'products/fetchProduct',
+  async (productId, { rejectWithValue }) => {
+    try {
+      const product = await productService.getProduct(productId);
+      return product;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch product');
+    }
+  }
+);
+
 export const createProduct = createAsyncThunk(
   'products/createProduct',
   async (productData, { rejectWithValue, dispatch }) => {
@@ -31,6 +44,19 @@ export const createProduct = createAsyncThunk(
       return product;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create product');
+    }
+  }
+);
+
+export const updateProduct = createAsyncThunk(
+  'products/updateProduct',
+  async ({ productId, productData }, { rejectWithValue, dispatch }) => {
+    try {
+      const product = await productService.updateProduct(productId, productData);
+      dispatch(fetchProducts({ page: 1 }));
+      return product;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update product');
     }
   }
 );
@@ -61,29 +87,6 @@ export const updateProductStatus = createAsyncThunk(
   }
 );
 
-const productSlice = createSlice({
-  name: 'products',
-  initialState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchProducts.pending, (state) => { state.isLoading = true; })
-      .addCase(fetchProducts.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.products = action.payload.products;
-        state.totalPages = action.payload.totalPages;
-        state.currentPage = action.payload.currentPage;
-        state.totalProducts = action.payload.totalProducts;
-      })
-      .addCase(fetchProducts.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      });
-  },
-});
-
-// Existing thunks ke saath ye add karein:
-
 export const fetchProductsForModeration = createAsyncThunk(
   'products/fetchForModeration',
   async (params, { rejectWithValue }) => {
@@ -101,7 +104,6 @@ export const moderateProduct = createAsyncThunk(
   async ({ productId, action, notes }, { rejectWithValue, dispatch }) => {
     try {
       await productService.moderateProduct(productId, action, notes);
-      // Moderation ke baad list refresh karein
       dispatch(fetchProductsForModeration({ page: 1 }));
       return { productId, action };
     } catch (error) {
@@ -109,5 +111,82 @@ export const moderateProduct = createAsyncThunk(
     }
   }
 );
+
+const productSlice = createSlice({
+  name: 'products',
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      // fetchProducts
+      .addCase(fetchProducts.pending, (state) => { 
+        state.isLoading = true; 
+      })
+      .addCase(fetchProducts.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.products = action.payload.products;
+        state.totalPages = action.payload.totalPages;
+        state.currentPage = action.payload.currentPage;
+        state.totalProducts = action.payload.totalProducts;
+      })
+      .addCase(fetchProducts.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      
+      // ✅ fetchProduct (single product)
+      .addCase(fetchProduct.pending, (state) => { 
+        state.isLoading = true; 
+      })
+      .addCase(fetchProduct.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentProduct = action.payload;
+      })
+      .addCase(fetchProduct.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      
+      // ✅ updateProduct
+      .addCase(updateProduct.pending, (state) => { 
+        state.isLoading = true; 
+      })
+      .addCase(updateProduct.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(updateProduct.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      
+      // ✅ fetchProductsForModeration
+      .addCase(fetchProductsForModeration.pending, (state) => { 
+        state.isLoading = true; 
+      })
+      .addCase(fetchProductsForModeration.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.products = action.payload.products;
+        state.totalPages = action.payload.totalPages;
+        state.currentPage = action.payload.currentPage;
+        state.totalProducts = action.payload.totalProducts;
+      })
+      .addCase(fetchProductsForModeration.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      
+      // ✅ moderateProduct
+      .addCase(moderateProduct.pending, (state) => { 
+        state.isLoading = true; 
+      })
+      .addCase(moderateProduct.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(moderateProduct.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      });
+  },
+});
 
 export default productSlice.reducer;

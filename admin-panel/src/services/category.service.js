@@ -6,7 +6,7 @@ export const categoryService = {
     return response.data.data;
   },
 
-  getCategory: async (categoryId) => {
+  getCategory: async (categoryId) => {  // ✅ YE ADD KAREIN
     const response = await api.get(`/categories/${categoryId}`);
     return response.data.data;
   },
@@ -16,7 +16,7 @@ export const categoryService = {
     return response.data.data;
   },
 
-  updateCategory: async (categoryId, categoryData) => {
+  updateCategory: async (categoryId, categoryData) => {  // ✅ YE ADD KAREIN
     const response = await api.patch(`/categories/${categoryId}`, categoryData);
     return response.data.data;
   },

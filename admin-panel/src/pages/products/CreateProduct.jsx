@@ -1,19 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { createProduct } from '../../app/store/productSlice';
+import { useNavigate, useParams } from 'react-router-dom';
+import { createProduct, updateProduct, fetchProduct } from '../../app/store/productSlice';
 import { fetchCategories } from '../../app/store/categorySlice';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { ArrowLeft, Plus, X } from 'lucide-react';
+import { PageLoader } from '../../components/loaders/PageLoader';
+import { ArrowLeft, Plus, X, Save, Edit } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export const CreateProduct = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user } = useAuth(); // ✅ Current user ka role check karne ke liye
+  const { productId } = useParams(); // ✅ URL se productId milega agar edit mode hai
+  const isEditMode = Boolean(productId); // ✅ Edit mode detect karein
+  
+  const { user } = useAuth();
   const { categories } = useSelector((state) => state.categories);
-  const { vendors } = useSelector((state) => state.vendors); // ✅ Vendors list
+  const { vendors } = useSelector((state) => state.vendors);
+  const { currentProduct, isLoading } = useSelector((state) => state.products);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -21,28 +26,66 @@ export const CreateProduct = () => {
     price: '',
     comparePrice: '',
     category: '',
-    vendor: '', // ✅ Admin ke liye vendor selection
+    vendor: '',
     store: '',
     stock: '',
     sku: '',
     tags: '',
-    variants: []
+    variants: [],
+    status: 'draft'
   });
   
   const [localError, setLocalError] = useState('');
+  const [loadingProduct, setLoadingProduct] = useState(false);
 
   const isAdmin = user?.role === 'admin';
 
-  // Categories aur Vendors load karein
+  // ✅ Categories, Vendors load karein + Edit mode mein product data load karein
   useEffect(() => {
     dispatch(fetchCategories({ page: 1, limit: 100 }));
     if (isAdmin) {
-      // Admin ke liye vendors list fetch karein
       import('../../app/store/vendorSlice').then(({ fetchVendors }) => {
         dispatch(fetchVendors({ page: 1, limit: 100 }));
       });
     }
-  }, [dispatch, isAdmin]);
+    
+    // ✅ Agar edit mode hai, toh product data load karein
+    if (isEditMode) {
+      loadProductData();
+    }
+  }, [dispatch, isAdmin, productId]);
+
+  // ✅ Product data form mein populate karein
+  useEffect(() => {
+    if (isEditMode && currentProduct) {
+      setFormData({
+        title: currentProduct.title || '',
+        description: currentProduct.description || '',
+        price: currentProduct.price || '',
+        comparePrice: currentProduct.comparePrice || '',
+        category: currentProduct.category?._id || currentProduct.category || '',
+        vendor: currentProduct.vendor?._id || currentProduct.vendor || '',
+        store: currentProduct.store?._id || currentProduct.store || '',
+        stock: currentProduct.stock || '',
+        sku: currentProduct.sku || '',
+        tags: currentProduct.tags?.join(', ') || '',
+        variants: currentProduct.variants || [],
+        status: currentProduct.status || 'draft'
+      });
+    }
+  }, [currentProduct, isEditMode]);
+
+  const loadProductData = async () => {
+    setLoadingProduct(true);
+    try {
+      await dispatch(fetchProduct(productId)).unwrap();
+    } catch (err) {
+      setLocalError('Failed to load product data');
+      console.error(err);
+    } finally {
+      setLoadingProduct(false);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -82,7 +125,6 @@ export const CreateProduct = () => {
       setLocalError('Category is required');
       return;
     }
-    // ✅ Admin ke liye vendor selection zaroori hai
     if (isAdmin && !formData.vendor) {
       setLocalError('Please select a vendor for this product');
       return;
@@ -93,23 +135,36 @@ export const CreateProduct = () => {
       price: Number(formData.price),
       comparePrice: Number(formData.comparePrice) || 0,
       stock: Number(formData.stock) || 0,
-      tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : [],
+      tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
       variants: formData.variants.filter(v => v.name && v.value)
     };
 
-    // ✅ Agar vendor nahi select kiya (Vendor login hai), toh field remove karo
     if (!isAdmin) {
       delete productData.vendor;
     }
 
-    const resultAction = await dispatch(createProduct(productData));
+    let resultAction;
     
-    if (resultAction.type === 'products/createProduct/fulfilled') {
+    if (isEditMode) {
+      // ✅ Edit mode - updateProduct call karein
+      resultAction = await dispatch(updateProduct({ productId, productData }));
+    } else {
+      // ✅ Create mode - createProduct call karein
+      resultAction = await dispatch(createProduct(productData));
+    }
+    
+    if (resultAction.type.endsWith('/fulfilled')) {
+      alert(`✅ Product ${isEditMode ? 'updated' : 'created'} successfully!`);
       navigate('/admin/products');
     } else {
-      setLocalError(resultAction.payload || 'Failed to create product');
+      setLocalError(resultAction.payload || `Failed to ${isEditMode ? 'update' : 'create'} product`);
     }
   };
+
+  // ✅ Loading state
+  if (isEditMode && loadingProduct) {
+    return <PageLoader />;
+  }
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -122,7 +177,17 @@ export const CreateProduct = () => {
       </button>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Create New Product</h1>
+        {/* ✅ Dynamic Title */}
+        <div className="flex items-center space-x-3 mb-6">
+          {isEditMode ? (
+            <Edit className="w-6 h-6 text-blue-600" />
+          ) : (
+            <Plus className="w-6 h-6 text-blue-600" />
+          )}
+          <h1 className="text-2xl font-bold text-gray-900">
+            {isEditMode ? 'Edit Product' : 'Create New Product'}
+          </h1>
+        </div>
 
         {localError && (
           <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg text-sm border border-red-200">
@@ -131,7 +196,7 @@ export const CreateProduct = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* ✅ Admin ke liye Vendor Selection (agar admin hai toh dikhao) */}
+          {/* ✅ Admin ke liye Vendor Selection */}
           {isAdmin && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Vendor Assignment</h2>
@@ -269,6 +334,26 @@ export const CreateProduct = () => {
             </div>
           </div>
 
+          {/* ✅ Status Field (sirf edit mode mein) */}
+          {isEditMode && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Product Status</h2>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+            </div>
+          )}
+
           {/* Variants */}
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b pb-2">
@@ -342,8 +427,11 @@ export const CreateProduct = () => {
 
           {/* Submit Buttons */}
           <div className="flex space-x-3 pt-6 border-t">
-            <Button type="submit" className="flex-1">
-              Create Product
+            <Button type="submit" className="flex-1" disabled={isLoading}>
+              <div className="flex items-center space-x-2">
+                <Save className="w-4 h-4" />
+                <span>{isLoading ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Product' : 'Create Product')}</span>
+              </div>
             </Button>
             <Button 
               type="button" 

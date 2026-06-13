@@ -52,6 +52,7 @@ import { SalesAnalytics } from '../../pages/vendor/analytics/SalesAnalytics';
 import { ProductAnalytics } from '../../pages/vendor/analytics/ProductAnalytics';
 import { OrderAnalytics } from '../../pages/vendor/analytics/OrderAnalytics';
 import { CustomerAnalytics } from '../../pages/vendor/analytics/CustomerAnalytics';
+import { VendorSettings } from '../../pages/vendor/settings/VendorSettings';
 
 // Protected Route Component
 const ProtectedRoute = ({ allowedRoles, children }) => {
@@ -156,7 +157,7 @@ export const AppRouter = () => {
                     <Route path="analytics/products" element={<ProductAnalytics />} />
                     <Route path="analytics/orders" element={<OrderAnalytics />} />
                     <Route path="analytics/customers" element={<CustomerAnalytics />} />
-                    <Route path="settings" element={<div className="p-6">Settings Page (Coming Soon)</div>} />
+                    <Route path="settings" element={<VendorSettings />} /> 
                 </Route>
 
                 {/* ===== ADMIN ROUTES ===== */}

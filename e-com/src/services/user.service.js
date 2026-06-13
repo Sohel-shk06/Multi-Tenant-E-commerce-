@@ -36,5 +36,31 @@ export const userService = {
   deleteAddress: async (addressId) => {
     const response = await api.delete(`/user/addresses/${addressId}`);
     return response.data.data;
-  }
+  },
+
+  // ===== Vendor Settings =====
+getVendorSettings: async () => {
+  const response = await api.get('/user/settings');
+  return response.data.data;
+},
+
+updateBusinessInfo: async (businessData) => {
+  const response = await api.patch('/user/settings/business', businessData);
+  return response.data.data;
+},
+
+updateNotificationPreferences: async (preferences) => {
+  const response = await api.patch('/user/settings/notifications', preferences);
+  return response.data.data;
+},
+
+updateBankDetails: async (bankData) => {
+  const response = await api.patch('/user/settings/bank', bankData);
+  return response.data.data;
+},
+
+deleteVendorAccount: async (password) => {
+  const response = await api.delete('/user/settings/account', { data: { password } });
+  return response.data.data;
+},
 };

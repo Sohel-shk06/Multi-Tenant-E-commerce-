@@ -6,6 +6,7 @@ import categoryReducer from './categorySlice';
 import productReducer from './productSlice';
 import orderReducer from './orderSlice';
 import storeReducer from './storeSlice';
+import paymentReducer from './paymentSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     products: productReducer,
     orders: orderReducer,
     stores: storeReducer,
+    payments: paymentReducer,
     // Baaki slices (vendor, product, etc.) baad mein yahan add honge
   },
 });

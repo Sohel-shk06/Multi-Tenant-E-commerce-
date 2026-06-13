@@ -49,76 +49,110 @@
 
 
 
+// import mongoose from 'mongoose';
+// import dotenv from 'dotenv';
+// import { User } from './models/User.js';
+// import { Store } from './models/Store.js';
+// import { config } from './config/env.js';
+
+// dotenv.config();
+
+// const seedVendor = async () => {
+//   try {
+//     // 1. Database connect karein
+//     await mongoose.connect(config.MONGO_URI);
+//     console.log('✅ Database connected successfully.');
+
+//     // 2. Vendor details
+//     const vendorData = {
+//       name: 'TechStore Pro',
+//       email: 'vendor@marketplace.com',
+//       password: 'vendor@12345',
+//       role: 'vendor',
+//       isVerified: true,
+//       status: 'active'
+//     };
+
+//     // 3. Check karein ki vendor pehle se exist toh nahi karta
+//     let vendor = await User.findOne({ email: vendorData.email });
+    
+//     if (vendor) {
+//       console.log('⚠️  Vendor already exists!');
+//       console.log(`📧 Email: ${vendor.email}`);
+//       console.log('🔑 Password: vendor@12345');
+//     } else {
+//       // 4. Naya Vendor create karein
+//       vendor = await User.create(vendorData);
+//       console.log('🎉 Vendor account created successfully!');
+//     }
+
+//     // 5. Vendor ka Store create karein (agar nahi hai)
+//     let store = await Store.findOne({ vendor: vendor._id });
+    
+//     if (!store) {
+//       store = await Store.create({
+//         name: 'TechStore Pro Official',
+//         slug: 'techstore-pro',
+//         description: 'Premium electronics and gadgets store',
+//         vendor: vendor._id,
+//         status: 'active',
+//         isActive: true
+//       });
+//       console.log('🏪 Vendor store created successfully!');
+//     } else {
+//       console.log('⚠️  Vendor store already exists!');
+//     }
+
+//     console.log('\n===========================================');
+//     console.log('📋 VENDOR CREDENTIALS:');
+//     console.log('===========================================');
+//     console.log(`📧 Email:    vendor@marketplace.com`);
+//     console.log(`🔑 Password: vendor@12345`);
+//     console.log(`🏪 Store ID: ${store._id}`);
+//     console.log(`👤 Vendor ID: ${vendor._id}`);
+//     console.log('===========================================\n');
+    
+//     console.log('💡 TIP: Product create karte time ye Store ID use karein!');
+    
+//     process.exit(0);
+//   } catch (error) {
+//     console.error('❌ Error seeding vendor:', error.message);
+//     process.exit(1);
+//   }
+// };
+
+// seedVendor();
+
+
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import { User } from './models/User.js';
-import { Store } from './models/Store.js';
 import { config } from './config/env.js';
+import { User } from './models/User.js';
 
-dotenv.config();
-
-const seedVendor = async () => {
+const fixVendors = async () => {
   try {
-    // 1. Database connect karein
     await mongoose.connect(config.MONGO_URI);
-    console.log('✅ Database connected successfully.');
+    console.log('✅ Connected to MongoDB');
 
-    // 2. Vendor details
-    const vendorData = {
-      name: 'TechStore Pro',
-      email: 'vendor@marketplace.com',
-      password: 'vendor@12345',
-      role: 'vendor',
-      isVerified: true,
-      status: 'active'
-    };
+    // Find all vendors without status field
+    const vendors = await User.find({ 
+      role: 'vendor', 
+      status: { $exists: false } 
+    });
 
-    // 3. Check karein ki vendor pehle se exist toh nahi karta
-    let vendor = await User.findOne({ email: vendorData.email });
-    
-    if (vendor) {
-      console.log('⚠️  Vendor already exists!');
-      console.log(`📧 Email: ${vendor.email}`);
-      console.log('🔑 Password: vendor@12345');
-    } else {
-      // 4. Naya Vendor create karein
-      vendor = await User.create(vendorData);
-      console.log('🎉 Vendor account created successfully!');
+    console.log(`📊 Found ${vendors.length} vendors to update`);
+
+    for (const vendor of vendors) {
+      vendor.status = vendor.isVerified ? 'active' : 'pending';
+      await vendor.save();
+      console.log(`✅ Updated: ${vendor.name} → ${vendor.status}`);
     }
 
-    // 5. Vendor ka Store create karein (agar nahi hai)
-    let store = await Store.findOne({ vendor: vendor._id });
-    
-    if (!store) {
-      store = await Store.create({
-        name: 'TechStore Pro Official',
-        slug: 'techstore-pro',
-        description: 'Premium electronics and gadgets store',
-        vendor: vendor._id,
-        status: 'active',
-        isActive: true
-      });
-      console.log('🏪 Vendor store created successfully!');
-    } else {
-      console.log('⚠️  Vendor store already exists!');
-    }
-
-    console.log('\n===========================================');
-    console.log('📋 VENDOR CREDENTIALS:');
-    console.log('===========================================');
-    console.log(`📧 Email:    vendor@marketplace.com`);
-    console.log(`🔑 Password: vendor@12345`);
-    console.log(`🏪 Store ID: ${store._id}`);
-    console.log(`👤 Vendor ID: ${vendor._id}`);
-    console.log('===========================================\n');
-    
-    console.log('💡 TIP: Product create karte time ye Store ID use karein!');
-    
+    console.log('🎉 All vendors updated successfully!');
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error seeding vendor:', error.message);
+    console.error('❌ Error:', error);
     process.exit(1);
   }
 };
 
-seedVendor();
+fixVendors();
