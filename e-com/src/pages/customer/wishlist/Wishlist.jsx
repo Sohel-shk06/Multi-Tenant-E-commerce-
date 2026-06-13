@@ -1,127 +1,142 @@
-import { useSelector, useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { toggleWishlist } from '../../../app/store/cartSlice';
-import { Heart, ShoppingBag, Trash2, Package } from 'lucide-react';
+import { Link } from "react-router-dom";
+import { useWishlist } from "../../../context/WishlistContext";
 
-export const Wishlist = () => {
-  const dispatch = useDispatch();
-  const { wishlist } = useSelector((state) => state.cart);
+const StarIcon = () => (
+  <svg
+    aria-hidden="true"
+    className="h-4 w-4 fill-[#cd6615] text-[#cd6615]"
+    viewBox="0 0 20 20"
+  >
+    <path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.18 3.63a1 1 0 0 0 .95.69h3.82c.97 0 1.37 1.24.59 1.81l-3.09 2.24a1 1 0 0 0-.36 1.12l1.18 3.63c.3.92-.76 1.69-1.54 1.12l-3.09-2.24a1 1 0 0 0-1.18 0l-3.09 2.24c-.78.57-1.84-.2-1.54-1.12l1.18-3.63a1 1 0 0 0-.36-1.12L2.51 9.06c-.78-.57-.38-1.81.59-1.81h3.82a1 1 0 0 0 .95-.69l1.18-3.63Z" />
+  </svg>
+);
 
-  const handleRemoveFromWishlist = (productId) => {
-    // Toggle se remove ho jayega kyunki already wishlist mein hai
-    dispatch(toggleWishlist({ productId }));
-  };
+const TrashIcon = () => (
+  <svg
+    aria-hidden="true"
+    className="h-4.5 w-4.5 text-red-500 hover:text-red-700"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="m14.74 9-.34 9m-4.78 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+    />
+  </svg>
+);
 
-  if (wishlist.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <div className="text-center bg-white p-12 rounded-2xl shadow-sm border border-gray-200 max-w-md w-full">
-          <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Your wishlist is empty</h2>
-          <p className="text-gray-500 mb-6">Save products you love to buy them later.</p>
-          <Link 
-            to="/products" 
-            className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700"
-          >
-            <span>Start Shopping</span>
-            <ShoppingBag className="w-4 h-4" />
-          </Link>
-        </div>
-      </div>
-    );
-  }
+const Wishlist = () => {
+  const { wishlistItems, removeFromWishlist } = useWishlist();
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Wishlist</h1>
-          <p className="text-gray-500 mt-1">{wishlist.length} item{wishlist.length !== 1 ? 's' : ''} saved</p>
+    <div className="space-y-8">
+      {/* Page Title Section */}
+      <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+        <div>
+          <p className="text-sm font-semibold text-[#cd6615]">My Account</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            My Wishlist
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-500 sm:text-base">
+            Keep track of items you want to buy. Items in your wishlist are saved to your account.
+          </p>
         </div>
+      </section>
 
-        {/* Wishlist Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {wishlist.map((item) => (
-            <div 
-              key={item.productId} 
-              className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 group"
+      {wishlistItems.length === 0 ? (
+        /* Empty State */
+        <section className="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-orange-50 text-[#cd6615]">
+            <svg
+              className="h-8 w-8"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
             >
-              {/* Image */}
-              <Link to={`/products/${item.productId}`} className="block">
-                <div className="relative h-56 bg-gray-100">
-                  {item.image ? (
-                    <img 
-                      src={item.image} 
-                      alt={item.title} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Package className="w-12 h-12 text-gray-300" />
-                    </div>
-                  )}
-                  
-                  {/* Wishlist Badge */}
-                  <div className="absolute top-3 right-3">
-                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md">
-                      <Heart className="w-5 h-5 text-red-500 fill-current" />
-                    </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 8.25c0 7.25-9 12-9 12s-9-4.75-9-12A5.25 5.25 0 0 1 12 4.5a5.25 5.25 0 0 1 9 3.75Z"
+              />
+            </svg>
+          </div>
+          <h2 className="mt-5 text-xl font-bold text-gray-900">Your wishlist is empty</h2>
+          <p className="mt-2 text-sm text-gray-500">
+            Browse our catalogue to add items to your wishlist and save them for later.
+          </p>
+          <div className="mt-8">
+            <Link
+              to="/products"
+              className="rounded-xl bg-[#cd6615] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-700 inline-block"
+            >
+              Explore Products
+            </Link>
+          </div>
+        </section>
+      ) : (
+        /* Saved Items Grid */
+        <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {wishlistItems.map((product) => (
+            <article
+              key={product.id}
+              className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md"
+            >
+              <Link to={`/products/${product.id}`} className="block">
+                <div className={`relative h-48 ${product.swatch || "bg-gray-100"}`}>
+                  <div className="absolute top-4 left-4">
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#cd6615] shadow-sm">
+                      {product.badge || "Saved"}
+                    </span>
+                  </div>
+                  <div className="absolute top-4 right-4">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        removeFromWishlist(product.id);
+                      }}
+                      className="rounded-full bg-white/90 p-2 text-red-500 shadow-sm cursor-pointer hover:scale-110 hover:bg-red-50 transition-all duration-200"
+                      aria-label="Remove from wishlist"
+                    >
+                      <TrashIcon />
+                    </button>
+                  </div>
+                </div>
+                <div className="p-5">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    {product.vendor}
+                  </p>
+                  <h3 className="mt-2 text-sm font-bold text-gray-900 min-h-10">{product.name}</h3>
+                  <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3">
+                    <span className="flex items-center gap-1 text-xs font-semibold text-gray-900">
+                      <StarIcon />
+                      {product.rating || "4.8"}
+                    </span>
+                    <span className="font-bold text-gray-900 text-sm">
+                      ₹{product.price.toLocaleString("en-IN")}
+                    </span>
                   </div>
                 </div>
               </Link>
-
-              {/* Content */}
-              <div className="p-4">
-                <Link to={`/products/${item.productId}`}>
-                  <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
-                    {item.title}
-                  </h3>
-                </Link>
-                
-                <div className="flex items-center justify-between mt-4">
-                  <span className="text-lg font-bold text-gray-900">
-                    ₹{item.price.toLocaleString()}
-                  </span>
-                  
-                  <button
-                    onClick={() => handleRemoveFromWishlist(item.productId)}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Remove from wishlist"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Add to Cart Button */}
-                <Link
-                  to={`/products/${item.productId}`}
-                  className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+              <div className="px-5 pb-5">
+                <button
+                  type="button"
+                  onClick={() => console.log("Handled by Cart Team")}
+                  className="w-full rounded-lg bg-[#cd6615] py-2.5 text-xs font-semibold text-white transition hover:bg-orange-700 cursor-pointer"
                 >
-                  <ShoppingBag className="w-4 h-4" />
-                  <span>View Product</span>
-                </Link>
+                  Add to Cart
+                </button>
               </div>
-            </div>
+            </article>
           ))}
-        </div>
-
-        {/* Clear All Button */}
-        {wishlist.length > 1 && (
-          <div className="mt-8 text-center">
-            <button
-              onClick={() => {
-                if (window.confirm('Are you sure you want to clear your wishlist?')) {
-                  wishlist.forEach(item => dispatch(toggleWishlist({ productId: item.productId })));
-                }
-              }}
-              className="px-6 py-2 text-red-600 hover:bg-red-50 border border-red-200 rounded-lg font-medium transition-colors"
-            >
-              Clear All Wishlist
-            </button>
-          </div>
-        )}
-      </div>
+        </section>
+      )}
     </div>
   );
 };
+
+export default Wishlist;

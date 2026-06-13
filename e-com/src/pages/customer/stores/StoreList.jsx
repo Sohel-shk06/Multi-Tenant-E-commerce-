@@ -1,159 +1,150 @@
-import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { storeService } from '../../../services/store.service';
-import { Search, Store as StoreIcon, Package, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Link } from "react-router-dom";
 
-export const StoreList = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [stores, setStores] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, totalStores: 0 });
-  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+const stores = [
 
-  useEffect(() => {
-    loadStores();
-  }, [searchParams]);
+  {
+    name: "AudioTech",
+    rating: "4.9",
+    sales: "8.2k",
+    description: "Premium headphones, speakers, and everyday tech accessories.",
+    initials: "AT",
+    accent: "bg-orange-50 text-[#cd6615]",
+  },
+  {
+    name: "Urban Loom",
+    rating: "4.8",
+    sales: "2.4k",
+    description: "Modern apparel made with natural fabrics and relaxed fits.",
+    initials: "UL",
+    accent: "bg-sky-50 text-sky-700",
+  },
+  {
+    name: "Casa Craft",
+    rating: "4.9",
+    sales: "3.1k",
+    description: "Warm home decor, ceramics, lighting, and hosting essentials.",
+    initials: "CC",
+    accent: "bg-emerald-50 text-emerald-700",
+  },
+  {
+    name: "Glow Theory",
+    rating: "4.7",
+    sales: "980",
+    description: "Clean beauty formulas for simple daily skincare routines.",
+    initials: "GT",
+    accent: "bg-rose-50 text-rose-700",
+  },
+  {
+    name: "Bean & Barrel",
+    rating: "4.8",
+    sales: "1.8k",
+    description: "Small-batch coffee, pantry staples, and brewing kits.",
+    initials: "BB",
+    accent: "bg-amber-50 text-amber-700",
+  },
+  {
+    name: "Trail & Table",
+    rating: "4.6",
+    sales: "760",
+    description: "Durable outdoor goods for picnics, camp kitchens, and travel.",
+    initials: "TT",
+    accent: "bg-lime-50 text-lime-700",
+  },
+];
 
-  const loadStores = async () => {
-    setLoading(true);
-    try {
-      const data = await storeService.getPublicStores({
-        page: searchParams.get('page') || 1,
-        limit: 12,
-        search: searchParams.get('search') || ''
-      });
-      setStores(data.stores || []);
-      setPagination({
-        currentPage: data.currentPage,
-        totalPages: data.totalPages,
-        totalStores: data.totalStores
-      });
-    } catch (error) {
-      console.error('Failed to load stores', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+const SearchIcon = () => (
+  <svg
+    aria-hidden="true"
+    className="h-5 w-5 text-gray-400"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="m21 21-4.35-4.35m1.35-5.15a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"
+    />
+  </svg>
+);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const newParams = new URLSearchParams();
-    if (searchTerm) newParams.set('search', searchTerm);
-    newParams.set('page', '1');
-    setSearchParams(newParams);
-  };
+const StarIcon = () => (
+  <svg
+    aria-hidden="true"
+    className="h-4 w-4 fill-[#cd6615] text-[#cd6615]"
+    viewBox="0 0 20 20"
+  >
+    <path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.18 3.63a1 1 0 0 0 .95.69h3.82c.97 0 1.37 1.24.59 1.81l-3.09 2.24a1 1 0 0 0-.36 1.12l1.18 3.63c.3.92-.76 1.69-1.54 1.12l-3.09-2.24a1 1 0 0 0-1.18 0l-3.09 2.24c-.78.57-1.84-.2-1.54-1.12l1.18-3.63a1 1 0 0 0-.36-1.12L2.51 9.06c-.78-.57-.38-1.81.59-1.81h3.82a1 1 0 0 0 .95-.69l1.18-3.63Z" />
+  </svg>
+);
 
-  const handlePageChange = (newPage) => {
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set('page', newPage);
-    setSearchParams(newParams);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
+const StoreList = () => {
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">All Stores</h1>
-          <p className="text-gray-500 mt-1">{pagination.totalStores} stores available</p>
-        </div>
-
-        {/* Search */}
-        <form onSubmit={handleSearch} className="mb-8">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+    <div className="space-y-8">
+      <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-[#cd6615]">Verified vendors</p>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+              Shop by store
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-500 sm:text-base">
+              Browse trusted NexCart vendors, review store ratings, and discover
+              independent brands with reliable fulfillment.
+            </p>
+          </div>
+          <div className="relative w-full lg:max-w-sm">
+            <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center">
+              <SearchIcon />
+            </div>
             <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search stores..."
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              type="search"
+              placeholder="Search Stores"
+              className="h-12 w-full rounded-lg border border-gray-200 bg-[#fafafa] pl-12 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#cd6615] focus:bg-white focus:ring-4 focus:ring-orange-100"
             />
           </div>
-        </form>
+        </div>
+      </section>
 
-        {/* Stores Grid */}
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
-        ) : stores.length > 0 ? (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {stores.map((store) => (
-                <Link 
-                  key={store._id} 
-                  to={`/stores/${store._id}`} 
-                  className="group"
-                >
-                  <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 h-full">
-                    {/* Store Header */}
-                    <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-24 relative">
-                      <div className="absolute -bottom-8 left-6">
-                        <div className="w-16 h-16 bg-white rounded-xl border-4 border-white shadow-lg flex items-center justify-center">
-                          <StoreIcon className="w-8 h-8 text-blue-600" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Store Info */}
-                    <div className="pt-12 p-6">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                        {store.name}
-                      </h3>
-                      {store.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2 mb-4">
-                          {store.description}
-                        </p>
-                      )}
-                      
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                        <div className="flex items-center space-x-2 text-sm text-gray-500">
-                          <Package className="w-4 h-4" />
-                          <span>View Products</span>
-                        </div>
-                        <span className="text-xs text-gray-400">
-                          by {store.vendor?.name || 'Vendor'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-
-            {/* Pagination */}
-            {pagination.totalPages > 1 && (
-              <div className="flex items-center justify-center space-x-2">
-                <button
-                  onClick={() => handlePageChange(pagination.currentPage - 1)}
-                  disabled={pagination.currentPage === 1}
-                  className="p-2 border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <span className="text-sm text-gray-600">
-                  Page {pagination.currentPage} of {pagination.totalPages}
-                </span>
-                <button
-                  onClick={() => handlePageChange(pagination.currentPage + 1)}
-                  disabled={pagination.currentPage === pagination.totalPages}
-                  className="p-2 border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
+      <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {stores.map((store) => (
+          <article
+            key={store.name}
+            className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div
+                className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-base font-bold ${store.accent}`}
+              >
+                {store.initials}
               </div>
-            )}
-          </>
-        ) : (
-          <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
-            <StoreIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900">No stores found</h3>
-            <p className="text-gray-500 mt-2">Try adjusting your search terms.</p>
-          </div>
-        )}
-      </div>
+              <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-[#cd6615]">
+                Verified
+              </span>
+            </div>
+            <h2 className="mt-5 text-xl font-bold text-gray-900">{store.name}</h2>
+            <p className="mt-2 min-h-12 text-sm leading-6 text-gray-500">
+              {store.description}
+            </p>
+            <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-4">
+              <span className="flex items-center gap-1 text-sm font-semibold text-gray-900">
+                <StarIcon />
+                {store.rating}
+              </span>
+              <span className="text-sm text-gray-500">{store.sales} sales</span>
+            </div>
+            <Link
+              to={`/stores/${store.name.toLowerCase().replaceAll(" ", "-")}`}
+              className="mt-5 inline-flex w-full justify-center rounded-lg border border-gray-200 bg-[#fafafa] px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-[#cd6615] hover:bg-white hover:text-[#cd6615]"
+            >
+              Visit Store
+            </Link>
+          </article>
+        ))}
+      </section>
     </div>
   );
 };
+
+export default StoreList;

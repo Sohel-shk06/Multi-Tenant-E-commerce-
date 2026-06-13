@@ -1,147 +1,151 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { reviewService } from '../../../services/review.service';
-import { StarRating } from '../../../components/customer/StarRating';
-import { Edit, Trash2, Star, Package, ArrowLeft } from 'lucide-react';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { StarRating } from "../../../components/customer/StarRating";
+import { Trash2, Package, ArrowLeft, Star, Edit } from "lucide-react";
 
 export const MyReviews = () => {
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1 });
+  const [reviews, setReviews] = useState([
+    {
+      id: "rev_1",
+      rating: 4,
+      title: "Excellent smartwatch, battery lasts a week!",
+      comment: "Super lightweight, tracking features are highly accurate. Screen is bright even under outdoor sunlight.",
+      date: "2026-06-12",
+      product: {
+        id: "prod_noise_smartwatch",
+        title: "Noise Pulse Go Slim Smartwatch",
+        image: "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=100&q=80",
+      },
+    },
+    {
+      id: "rev_2",
+      rating: 5,
+      title: "Amazing bass and battery backup!",
+      comment: "Very durable neckband. Great sound signature for EDM and Bollywood music. Fast charging works like a charm.",
+      date: "2026-06-11",
+      product: {
+        id: "prod_boat_rockerz",
+        title: "Boat Rockerz 255 Wireless Earphones",
+        image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=100&q=80",
+      },
+    },
+  ]);
 
-  useEffect(() => {
-    loadReviews();
-  }, []);
-
-  const loadReviews = async (page = 1) => {
-    setLoading(true);
-    try {
-      const data = await reviewService.getMyReviews({ page, limit: 10 });
-      setReviews(data.reviews || []);
-      setPagination({
-        currentPage: data.currentPage,
-        totalPages: data.totalPages
-      });
-    } catch (error) {
-      console.error('Failed to load reviews', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (reviewId) => {
-    if (!window.confirm('Are you sure you want to delete this review?')) return;
-    try {
-      await reviewService.deleteReview(reviewId);
-      setReviews(reviews.filter(r => r._id !== reviewId));
-    } catch (error) {
-      alert(error.response?.data?.message || 'Failed to delete review');
+  const handleDelete = (id) => {
+    const confirm = window.confirm("Are you sure you want to delete this review?");
+    if (confirm) {
+      setReviews((prev) => prev.filter((r) => r.id !== id));
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Link to="/customer/profile" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6">
-          <ArrowLeft className="w-4 h-4" />
-          <span className="text-sm font-medium">Back to Profile</span>
-        </Link>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-              <Star className="w-6 h-6 mr-2 text-yellow-500 fill-yellow-500" />
-              My Reviews
-            </h1>
-            <span className="text-sm text-gray-500">{pagination.totalPages > 0 ? `${reviews.length} review(s)` : 'No reviews yet'}</span>
-          </div>
-
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-          ) : reviews.length > 0 ? (
-            <div className="space-y-6">
-              {reviews.map((review) => (
-                <div key={review._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <StarRating rating={review.rating} size="sm" />
-                        <span className="text-xs text-green-600 flex items-center">
-                          <span className="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
-                          Verified Purchase
-                        </span>
-                      </div>
-                      <h3 className="font-semibold text-gray-900 mb-1">{review.title}</h3>
-                      <p className="text-sm text-gray-600 mb-3">{review.comment}</p>
-                      
-                      <Link 
-                        to={`/products/${review.product?._id}`} 
-                        className="inline-flex items-center text-xs text-blue-600 hover:text-blue-700 font-medium"
-                      >
-                        <Package className="w-3 h-3 mr-1" />
-                        {review.product?.title || 'View Product'}
-                      </Link>
-                    </div>
-                    
-                    <div className="flex flex-col items-end space-y-2">
-                      <span className="text-xs text-gray-400">
-                        {new Date(review.createdAt).toLocaleDateString()}
-                      </span>
-                      <div className="flex space-x-2">
-                        <Link
-                          to={`/customer/reviews/edit/${review._id}`}
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                          title="Edit Review"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(review._id)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                          title="Delete Review"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {/* Pagination */}
-              {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-center space-x-2 pt-4 border-t">
-                  <button
-                    onClick={() => loadReviews(pagination.currentPage - 1)}
-                    disabled={pagination.currentPage === 1}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 hover:bg-gray-50"
-                  >
-                    Previous
-                  </button>
-                  <span className="text-sm text-gray-600">Page {pagination.currentPage} of {pagination.totalPages}</span>
-                  <button
-                    onClick={() => loadReviews(pagination.currentPage + 1)}
-                    disabled={pagination.currentPage === pagination.totalPages}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 hover:bg-gray-50"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Star className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">You haven't written any reviews yet.</p>
-              <Link to="/customer/orders" className="mt-3 inline-block text-blue-600 hover:text-blue-700 text-sm font-medium">
-                Go to My Orders to review products
-              </Link>
-            </div>
-          )}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">My Product Reviews</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Browse and manage all feedback you have shared on purchased items
+          </p>
+        </div>
+        <div className="bg-orange-50 text-[#cd6615] border border-orange-100 rounded-xl px-3 py-1.5 text-xs font-bold flex items-center gap-1.5">
+          <Star className="w-4 h-4 fill-[#cd6615]" />
+          <span>{reviews.length} Total Reviews</span>
         </div>
       </div>
+
+      {reviews.length > 0 ? (
+        <div className="space-y-6">
+          {reviews.map((review) => (
+            <div
+              key={review.id}
+              className="bg-white border border-gray-150 rounded-2xl p-5 shadow-sm hover:shadow-md transition duration-200"
+            >
+              <div className="flex flex-col sm:flex-row gap-4 items-start justify-between">
+                <div className="flex-1 space-y-3">
+                  {/* Product Header */}
+                  <div className="flex gap-3 items-center">
+                    <img
+                      src={review.product.image}
+                      alt={review.product.title}
+                      className="w-12 h-12 rounded-lg object-cover border border-gray-100 shrink-0"
+                    />
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-900 leading-tight">
+                        {review.product.title}
+                      </h4>
+                      <Link
+                        to={`/products/${review.product.id}`}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#cd6615] hover:underline mt-1"
+                      >
+                        <Package className="w-3.5 h-3.5" />
+                        View Product Details
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Rating Stars */}
+                  <div className="flex items-center gap-2">
+                    <StarRating rating={review.rating} size="sm" />
+                    <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 uppercase tracking-wider">
+                      Verified Buyer
+                    </span>
+                  </div>
+
+                  {/* Review text */}
+                  <div>
+                    <h5 className="text-sm font-bold text-gray-800">{review.title}</h5>
+                    <p className="text-xs sm:text-sm text-gray-605 mt-1 leading-relaxed">
+                      {review.comment}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Date and Delete actions */}
+                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100 gap-4">
+                  <span className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider font-mono">
+                    {new Date(review.date).toLocaleDateString("en-IN", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                  
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => alert("Review editing is handled inside write-review workflow.")}
+                      className="text-gray-400 hover:text-[#cd6615] p-2 rounded-lg hover:bg-gray-50 transition cursor-pointer"
+                      title="Edit Review"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(review.id)}
+                      className="text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition cursor-pointer"
+                      title="Delete Review"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12 border border-gray-150 border-dashed rounded-2xl">
+          <Star className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <h3 className="font-bold text-gray-850">No Reviews Written</h3>
+          <p className="text-xs text-gray-400 mt-1 mb-4">You have not submitted any product reviews yet.</p>
+          <Link
+            to="/orders"
+            className="px-4 py-2 bg-[#cd6615] text-white font-medium rounded-xl text-xs hover:bg-[#b2550f] transition inline-block"
+          >
+            Review Purchases
+          </Link>
+        </div>
+      )}
     </div>
   );
 };
+
+export default MyReviews;
