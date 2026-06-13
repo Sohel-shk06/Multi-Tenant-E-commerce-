@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../../services/api';
-import { ShoppingBag, Eye, Package, RefreshCw } from 'lucide-react';
+import { ShoppingBag, Eye, Package, RefreshCw, Star } from 'lucide-react'; // ✅ Star icon added
 
 export const MyOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -139,13 +139,28 @@ export const MyOrders = () => {
                     {order.paymentStatus}
                   </span>
                 </div>
-                <Link
-                  to={`/customer/orders/${order._id}`}
-                  className="inline-flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  <Eye className="w-4 h-4" />
-                  <span>View Details</span>
-                </Link>
+                
+                <div className="flex items-center space-x-4">
+                
+                  {/* ✅ Write Review Button - URL params ke saath */}
+{(order.status === 'delivered' || order.status === 'completed') && order.items.length > 0 && (
+  <Link
+    to={`/customer/reviews/write?productId=${order.items[0].product?._id || order.items[0].product}&orderId=${order._id}`}
+    className="inline-flex items-center space-x-1 text-sm text-green-600 hover:text-green-700 font-medium"
+  >
+    <Star className="w-4 h-4" />
+    <span>Write Review</span>
+  </Link>
+)}
+                  
+                  <Link
+                    to={`/customer/orders/${order._id}`}
+                    className="inline-flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    <Eye className="w-4 h-4" />
+                    <span>View Details</span>
+                  </Link>
+                </div>
               </div>
             </div>
           ))}

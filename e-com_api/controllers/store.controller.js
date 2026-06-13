@@ -55,3 +55,20 @@ export const deleteStore = asyncHandler(async (req, res) => {
   await storeService.deleteStore(req.params.storeId, req.user._id, req.user.role);
   return res.status(200).json(new ApiResponse(200, null, 'Store deleted successfully'));
 });
+
+// ===== PUBLIC: Customer Facing Controllers =====
+
+export const getPublicStores = asyncHandler(async (req, res) => {
+  const result = await storeService.getPublicStores(req.query);
+  return res.status(200).json(new ApiResponse(200, result, 'Stores fetched successfully'));
+});
+
+export const getPublicStore = asyncHandler(async (req, res) => {
+  const store = await storeService.getPublicStore(req.params.storeId);
+  return res.status(200).json(new ApiResponse(200, store, 'Store fetched successfully'));
+});
+
+export const getStoreProducts = asyncHandler(async (req, res) => {
+  const result = await storeService.getStoreProducts(req.params.storeId, req.query);
+  return res.status(200).json(new ApiResponse(200, result, 'Store products fetched successfully'));
+});

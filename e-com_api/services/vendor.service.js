@@ -1,7 +1,11 @@
+import mongoose from 'mongoose'; 
 import { User } from '../models/User.js';
 import { Product } from '../models/Product.js';
 import { Order } from '../models/Order.js';
 import { ApiError } from '../utils/ApiError.js';
+import { Payout } from '../models/Payment.js';
+import { Review } from '../models/Review.js';
+
 
 
 import { Store } from '../models/Store.js';
@@ -493,4 +497,642 @@ export const updateVendorOrderStatus = async (vendorId, orderId, newStatus) => {
 
   await order.save();
   return order;
+};
+
+
+
+const PLATFORM_COMMISSION_RATE = 0.10; // 10% platform fee
+
+export const getVendorEarningsOverview = async (vendorId) => {
+  try {
+    // 1. Calculate Total Revenue from completed/delivered orders
+    const revenueData = await Order.aggregate([
+      { $match: { vendor: new mongoose.Types.ObjectId(vendorId), status: { $in: ['delivered', 'completed'] } } },
+      { $group: { _id: null, totalRevenue: { $sum: '$totalAmount' } } }
+    ]);
+    const totalRevenue = revenueData[0]?.totalRevenue || 0;
+
+    // 2. Calculate Commission and Net Earnings (10% platform fee)
+    const platformCommission = totalRevenue * 0.10;
+    const netEarnings = totalRevenue - platformCommission;
+
+    // 3. Calculate Total Processed Payouts
+    const payoutData = await Payout.aggregate([
+      { $match: { vendor: new mongoose.Types.ObjectId(vendorId), status: 'processed' } },
+      { $group: { _id: null, totalPaid: { $sum: '$amount' } } }
+    ]);
+    const totalPaid = payoutData[0]?.totalPaid || 0;
+
+    // 4. Calculate Pending Payouts
+    const pendingPayoutData = await Payout.aggregate([
+      { $match: { vendor: new mongoose.Types.ObjectId(vendorId), status: 'pending' } },
+      { $group: { _id: null, totalPending: { $sum: '$amount' } } }
+    ]);
+    const totalPending = pendingPayoutData[0]?.totalPending || 0;
+
+    // 5. Available Balance
+    const availableBalance = netEarnings - totalPaid - totalPending;
+
+    return {
+      totalRevenue: totalRevenue || 0,
+      platformCommission: platformCommission || 0,
+      netEarnings: netEarnings || 0,
+      totalPaid: totalPaid || 0,
+      totalPending: totalPending || 0,
+      availableBalance: Math.max(0, availableBalance) || 0
+    };
+  } catch (error) {
+    console.error('❌ Error in getVendorEarningsOverview:', error);
+    throw new ApiError(500, 'Failed to calculate earnings overview');
+  }
+};
+
+export const getVendorPayoutHistory = async (vendorId, query) => {
+  const { page = 1, limit = 10 } = query;
+  const skip = (page - 1) * limit;
+
+  const payouts = await Payout.find({ vendor: vendorId })
+    .skip(skip)
+    .limit(Number(limit))
+    .sort({ requestedAt: -1 });
+
+  const totalPayouts = await Payout.countDocuments({ vendor: vendorId });
+
+  return {
+    payouts,
+    totalPages: Math.ceil(totalPayouts / limit),
+    currentPage: Number(page),
+    totalPayouts
+  };
+};
+
+export const requestVendorPayout = async (vendorId, amount) => {
+  if (amount <= 0) {
+    throw new ApiError(400, 'Invalid payout amount');
+  }
+
+  const overview = await getVendorEarningsOverview(vendorId);
+  
+  if (amount > overview.availableBalance) {
+    throw new ApiError(400, `Insufficient balance. Available: ₹${overview.availableBalance.toFixed(2)}`);
+  }
+
+  const payout = await Payout.create({
+    vendor: vendorId,
+    amount: amount,
+    status: 'pending'
+  });
+
+  return payout;
+};
+
+export const getVendorMonthlyEarnings = async (vendorId) => {
+  const monthlyData = await Order.aggregate([
+    { $match: { vendor: new mongoose.Types.ObjectId(vendorId), status: { $in: ['delivered', 'completed'] } } },
+    {
+      $group: {
+        _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+        revenue: { $sum: '$totalAmount' }
+      }
+    },
+    { $sort: { '_id': 1 } },
+    { $project: { month: '$_id', revenue: 1, _id: 0 } }
+  ]);
+
+  // Fill missing months with 0 for the last 6 months (optional but good for charts)
+  return monthlyData;
+};
+
+
+
+
+
+// Get all reviews for vendor's products
+export const getVendorReviews = async (vendorId, query) => {
+  const { page = 1, limit = 10, rating, sort = 'recent' } = query;
+  const skip = (page - 1) * limit;
+
+  // First, find all products of this vendor
+  const vendorProducts = await Product.find({ vendor: vendorId }).select('_id');
+  const productIds = vendorProducts.map(p => p._id);
+
+  const filter = { product: { $in: productIds } };
+  
+  if (rating) filter.rating = Number(rating);
+
+  // Sort
+  let sortOption = { createdAt: -1 };
+  if (sort === 'highest') sortOption = { rating: -1, createdAt: -1 };
+  if (sort === 'lowest') sortOption = { rating: 1, createdAt: -1 };
+  if (sort === 'unreplied') {
+    filter.vendorReply = { $exists: false };
+    sortOption = { createdAt: -1 };
+  }
+
+  const reviews = await Review.find(filter)
+    .populate('product', 'title images')
+    .populate('customer', 'name email')
+    .skip(skip)
+    .limit(Number(limit))
+    .sort(sortOption);
+
+  const totalReviews = await Review.countDocuments(filter);
+
+  return {
+    reviews,
+    totalPages: Math.ceil(totalReviews / limit),
+    currentPage: Number(page),
+    totalReviews
+  };
+};
+
+// Get single review (with authorization check)
+export const getVendorReview = async (vendorId, reviewId) => {
+  const review = await Review.findById(reviewId)
+    .populate('product', 'title images')
+    .populate('customer', 'name email')
+    .populate('order', 'orderNumber');
+
+  if (!review) {
+    throw new ApiError(404, 'Review not found');
+  }
+
+  // Check if this review is for vendor's product
+  const product = await Product.findOne({ _id: review.product._id, vendor: vendorId });
+  if (!product) {
+    throw new ApiError(403, 'You are not authorized to view this review');
+  }
+
+  return review;
+};
+
+// Reply to a review
+export const replyToReview = async (vendorId, reviewId, replyText) => {
+  const review = await Review.findById(reviewId);
+  if (!review) {
+    throw new ApiError(404, 'Review not found');
+  }
+
+  // Authorization check
+  const product = await Product.findOne({ _id: review.product, vendor: vendorId });
+  if (!product) {
+    throw new ApiError(403, 'You are not authorized to reply to this review');
+  }
+
+  if (!replyText || !replyText.trim()) {
+    throw new ApiError(400, 'Reply text is required');
+  }
+
+  review.vendorReply = replyText.trim();
+  review.vendorReplyAt = new Date();
+  await review.save();
+
+  return review;
+};
+
+// Delete vendor reply
+export const deleteVendorReply = async (vendorId, reviewId) => {
+  const review = await Review.findById(reviewId);
+  if (!review) {
+    throw new ApiError(404, 'Review not found');
+  }
+
+  const product = await Product.findOne({ _id: review.product, vendor: vendorId });
+  if (!product) {
+    throw new ApiError(403, 'You are not authorized');
+  }
+
+  review.vendorReply = undefined;
+  review.vendorReplyAt = undefined;
+  await review.save();
+
+  return review;
+};
+
+// Review Analytics for vendor
+export const getVendorReviewAnalytics = async (vendorId) => {
+  // Get all vendor products
+  const vendorProducts = await Product.find({ vendor: vendorId }).select('_id');
+  const productIds = vendorProducts.map(p => p._id);
+
+  // Total reviews count
+  const totalReviews = await Review.countDocuments({ product: { $in: productIds } });
+
+  // Average rating
+  const ratingData = await Review.aggregate([
+    { $match: { product: { $in: productIds } } },
+    { $group: { _id: null, avgRating: { $avg: '$rating' }, count: { $sum: 1 } } }
+  ]);
+  const avgRating = ratingData[0]?.avgRating || 0;
+
+  // Rating distribution
+  const distribution = await Review.aggregate([
+    { $match: { product: { $in: productIds } } },
+    { $group: { _id: '$rating', count: { $sum: 1 } } }
+  ]);
+  const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  distribution.forEach(d => { ratingDistribution[d._id] = d.count; });
+
+  // Replied vs Unreplied
+  const repliedCount = await Review.countDocuments({ 
+    product: { $in: productIds }, 
+    vendorReply: { $exists: true, $ne: null } 
+  });
+  const unrepliedCount = totalReviews - repliedCount;
+
+  // Most reviewed products
+  const topProducts = await Review.aggregate([
+    { $match: { product: { $in: productIds } } },
+    { $group: { _id: '$product', count: { $sum: 1 }, avgRating: { $avg: '$rating' } } },
+    { $sort: { count: -1 } },
+    { $limit: 5 }
+  ]);
+
+  // Populate product titles
+  const topProductsWithDetails = await Product.populate(topProducts, {
+    path: '_id',
+    select: 'title images'
+  });
+
+  return {
+    totalReviews,
+    averageRating: Math.round(avgRating * 10) / 10,
+    ratingDistribution,
+    repliedCount,
+    unrepliedCount,
+    topProducts: topProductsWithDetails
+  };
+};
+
+
+
+
+
+// Revenue Analytics (daily/monthly/yearly)
+export const getVendorRevenueAnalytics = async (vendorId, query) => {
+  const { period = 'monthly', startDate, endDate } = query;
+  
+  let dateFormat, groupFormat;
+  if (period === 'daily') {
+    dateFormat = '%Y-%m-%d';
+    groupFormat = 'day';
+  } else if (period === 'weekly') {
+    dateFormat = '%Y-W%V';
+    groupFormat = 'week';
+  } else {
+    dateFormat = '%Y-%m';
+    groupFormat = 'month';
+  }
+
+  const matchStage = { vendor: new mongoose.Types.ObjectId(vendorId), status: { $in: ['delivered', 'completed'] } };
+  
+  if (startDate && endDate) {
+    matchStage.createdAt = { 
+      $gte: new Date(startDate), 
+      $lte: new Date(endDate) 
+    };
+  }
+
+  const revenueData = await Order.aggregate([
+    { $match: matchStage },
+    {
+      $group: {
+        _id: { $dateToString: { format: dateFormat, date: '$createdAt' } },
+        revenue: { $sum: '$totalAmount' },
+        orders: { $sum: 1 },
+        avgOrderValue: { $avg: '$totalAmount' }
+      }
+    },
+    { $sort: { '_id': 1 } }
+  ]);
+
+  // Calculate totals
+  const totalRevenue = revenueData.reduce((sum, d) => sum + d.revenue, 0);
+  const totalOrders = revenueData.reduce((sum, d) => sum + d.orders, 0);
+  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+  // Growth calculation (compare with previous period)
+  let growthRate = 0;
+  if (revenueData.length >= 2) {
+    const current = revenueData[revenueData.length - 1].revenue;
+    const previous = revenueData[revenueData.length - 2].revenue;
+    if (previous > 0) {
+      growthRate = ((current - previous) / previous) * 100;
+    }
+  }
+
+  return {
+    data: revenueData.map(d => ({
+      period: d._id,
+      revenue: d.revenue,
+      orders: d.orders,
+      avgOrderValue: Math.round(d.avgOrderValue)
+    })),
+    summary: {
+      totalRevenue,
+      totalOrders,
+      avgOrderValue: Math.round(avgOrderValue),
+      growthRate: Math.round(growthRate * 10) / 10
+    }
+  };
+};
+
+// Product Analytics
+export const getVendorProductAnalytics = async (vendorId) => {
+  const vendorProducts = await Product.find({ vendor: vendorId }).select('_id');
+  const productIds = vendorProducts.map(p => p._id);
+
+  // Top selling products
+  const topProducts = await Order.aggregate([
+    { $match: { vendor: new mongoose.Types.ObjectId(vendorId), status: { $in: ['delivered', 'completed'] } } },
+    { $unwind: '$items' },
+    {
+      $group: {
+        _id: '$items.product',
+        totalSold: { $sum: '$items.quantity' },
+        totalRevenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
+        ordersCount: { $sum: 1 }
+      }
+    },
+    { $sort: { totalRevenue: -1 } },
+    { $limit: 10 }
+  ]);
+
+  // Populate product details
+  const topProductsWithDetails = await Product.populate(topProducts, {
+    path: '_id',
+    select: 'title images price stock'
+  });
+
+  // Low stock products
+  const lowStockProducts = await Product.find({
+    vendor: vendorId,
+    stock: { $lte: 10 },
+    status: 'active'
+  }).select('title stock price').limit(10);
+
+  // Products without reviews
+  const productsWithoutReviews = await Product.find({
+    vendor: vendorId,
+    totalReviews: 0,
+    status: 'active'
+  }).select('title price').limit(10);
+
+  // Total product stats
+  const productStats = await Product.aggregate([
+    { $match: { vendor: new mongoose.Types.ObjectId(vendorId) } },
+    {
+      $group: {
+        _id: null,
+        totalProducts: { $sum: 1 },
+        activeProducts: { $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] } },
+        draftProducts: { $sum: { $cond: [{ $eq: ['$status', 'draft'] }, 1, 0] } },
+        totalStock: { $sum: '$stock' },
+        totalStockValue: { $sum: { $multiply: ['$price', '$stock'] } }
+      }
+    }
+  ]);
+
+  return {
+    topProducts: topProductsWithDetails,
+    lowStockProducts,
+    productsWithoutReviews,
+    stats: productStats[0] || {
+      totalProducts: 0,
+      activeProducts: 0,
+      draftProducts: 0,
+      totalStock: 0,
+      totalStockValue: 0
+    }
+  };
+};
+
+// Order Analytics
+export const getVendorOrderAnalytics = async (vendorId) => {
+  // Status breakdown
+  const statusBreakdown = await Order.aggregate([
+    { $match: { vendor: new mongoose.Types.ObjectId(vendorId) } },
+    {
+      $group: {
+        _id: '$status',
+        count: { $sum: 1 },
+        revenue: { $sum: '$totalAmount' }
+      }
+    }
+  ]);
+
+  // Payment method breakdown
+  const paymentBreakdown = await Order.aggregate([
+    { $match: { vendor: new mongoose.Types.ObjectId(vendorId) } },
+    {
+      $group: {
+        _id: '$paymentMethod',
+        count: { $sum: 1 },
+        revenue: { $sum: '$totalAmount' }
+      }
+    }
+  ]);
+
+  // Recent orders trend (last 7 days)
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const recentTrend = await Order.aggregate([
+    { 
+      $match: { 
+        vendor: new mongoose.Types.ObjectId(vendorId),
+        createdAt: { $gte: sevenDaysAgo }
+      } 
+    },
+    {
+      $group: {
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+        orders: { $sum: 1 },
+        revenue: { $sum: '$totalAmount' }
+      }
+    },
+    { $sort: { '_id': 1 } }
+  ]);
+
+  // Total stats
+  const totalStats = await Order.aggregate([
+    { $match: { vendor: new mongoose.Types.ObjectId(vendorId) } },
+    {
+      $group: {
+        _id: null,
+        totalOrders: { $sum: 1 },
+        totalRevenue: { $sum: '$totalAmount' },
+        avgOrderValue: { $avg: '$totalAmount' }
+      }
+    }
+  ]);
+
+  return {
+    statusBreakdown,
+    paymentBreakdown,
+    recentTrend,
+    stats: totalStats[0] || { totalOrders: 0, totalRevenue: 0, avgOrderValue: 0 }
+  };
+};
+
+// Customer Analytics
+export const getVendorCustomerAnalytics = async (vendorId) => {
+  // Total unique customers
+  const uniqueCustomers = await Order.distinct('customer', { 
+    vendor: new mongoose.Types.ObjectId(vendorId) 
+  });
+  const totalCustomers = uniqueCustomers.length;
+
+  // Repeat customers (customers with more than 1 order)
+  const customerOrderCounts = await Order.aggregate([
+    { $match: { vendor: new mongoose.Types.ObjectId(vendorId) } },
+    {
+      $group: {
+        _id: '$customer',
+        orderCount: { $sum: 1 },
+        totalSpent: { $sum: '$totalAmount' }
+      }
+    }
+  ]);
+
+  const repeatCustomers = customerOrderCounts.filter(c => c.orderCount > 1).length;
+  const repeatRate = totalCustomers > 0 ? (repeatCustomers / totalCustomers) * 100 : 0;
+
+  // Top customers by spending
+  const topCustomers = customerOrderCounts
+    .sort((a, b) => b.totalSpent - a.totalSpent)
+    .slice(0, 10);
+
+  // Populate customer details
+  const topCustomersWithDetails = await User.populate(topCustomers, {
+    path: '_id',
+    select: 'name email'
+  });
+
+  // Customer acquisition trend (last 6 months)
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  const acquisitionTrend = await Order.aggregate([
+    { 
+      $match: { 
+        vendor: new mongoose.Types.ObjectId(vendorId),
+        createdAt: { $gte: sixMonthsAgo }
+      } 
+    },
+    {
+      $group: {
+        _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+        newCustomers: { $addToSet: '$customer' }
+      }
+    },
+    {
+      $project: {
+        period: '$_id',
+        newCustomers: { $size: '$newCustomers' }
+      }
+    },
+    { $sort: { period: 1 } }
+  ]);
+
+  return {
+    totalCustomers,
+    repeatCustomers,
+    repeatRate: Math.round(repeatRate * 10) / 10,
+    topCustomers: topCustomersWithDetails,
+    acquisitionTrend
+  };
+};
+
+// Overall Sales Analytics (combined overview)
+export const getVendorSalesAnalytics = async (vendorId) => {
+  // Today's stats
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const todayStats = await Order.aggregate([
+    { 
+      $match: { 
+        vendor: new mongoose.Types.ObjectId(vendorId),
+        createdAt: { $gte: today }
+      } 
+    },
+    {
+      $group: {
+        _id: null,
+        orders: { $sum: 1 },
+        revenue: { $sum: '$totalAmount' }
+      }
+    }
+  ]);
+
+  // This month stats
+  const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const monthStats = await Order.aggregate([
+    { 
+      $match: { 
+        vendor: new mongoose.Types.ObjectId(vendorId),
+        createdAt: { $gte: thisMonth },
+        status: { $in: ['delivered', 'completed'] }
+      } 
+    },
+    {
+      $group: {
+        _id: null,
+        orders: { $sum: 1 },
+        revenue: { $sum: '$totalAmount' }
+      }
+    }
+  ]);
+
+  // Last month stats (for comparison)
+  const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const lastMonthStats = await Order.aggregate([
+    { 
+      $match: { 
+        vendor: new mongoose.Types.ObjectId(vendorId),
+        createdAt: { $gte: lastMonth, $lt: thisMonth },
+        status: { $in: ['delivered', 'completed'] }
+      } 
+    },
+    {
+      $group: {
+        _id: null,
+        orders: { $sum: 1 },
+        revenue: { $sum: '$totalAmount' }
+      }
+    }
+  ]);
+
+  // Calculate growth
+  const currentMonthRevenue = monthStats[0]?.revenue || 0;
+  const lastMonthRevenue = lastMonthStats[0]?.revenue || 0;
+  const revenueGrowth = lastMonthRevenue > 0 
+    ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 
+    : 0;
+
+  const currentMonthOrders = monthStats[0]?.orders || 0;
+  const lastMonthOrders = lastMonthStats[0]?.orders || 0;
+  const ordersGrowth = lastMonthOrders > 0 
+    ? ((currentMonthOrders - lastMonthOrders) / lastMonthOrders) * 100 
+    : 0;
+
+  return {
+    today: {
+      orders: todayStats[0]?.orders || 0,
+      revenue: todayStats[0]?.revenue || 0
+    },
+    thisMonth: {
+      orders: currentMonthOrders,
+      revenue: currentMonthRevenue
+    },
+    lastMonth: {
+      orders: lastMonthOrders,
+      revenue: lastMonthRevenue
+    },
+    growth: {
+      revenue: Math.round(revenueGrowth * 10) / 10,
+      orders: Math.round(ordersGrowth * 10) / 10
+    }
+  };
 };

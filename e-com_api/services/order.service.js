@@ -49,23 +49,45 @@ export const getAllOrders = async (query, userId, userRole) => {
 };
 
 // Get single order by ID
+// Get single order by ID
 export const getOrderById = async (orderId, userId, userRole) => {
   const order = await Order.findById(orderId)
     .populate('customer', 'name email')
     .populate('vendor', 'name email')
-    .populate('store', 'name')
+    .populate('store', 'name slug')
     .populate('items.product', 'title images');
   
   if (!order) {
     throw new ApiError(404, 'Order not found');
   }
 
-  // Authorization check
-  if (userRole === 'vendor' && order.vendor._id.toString() !== userId) {
-    throw new ApiError(403, 'You are not authorized to view this order');
+  // ✅ FIX: Convert userId to string for proper comparison
+  const userIdStr = userId.toString();
+
+  console.log('🔍 Order authorization check:', {
+    userRole,
+    userId: userIdStr,
+    orderCustomerId: order.customer?._id?.toString(),
+    orderVendorId: order.vendor?._id?.toString()
+  });
+
+  // Authorization check - Admin can view any order
+  if (userRole === 'admin') {
+    return order;
   }
-  if (userRole === 'customer' && order.customer._id.toString() !== userId) {
-    throw new ApiError(403, 'You are not authorized to view this order');
+
+  // Vendor can only view their own orders
+  if (userRole === 'vendor') {
+    if (!order.vendor || order.vendor._id.toString() !== userIdStr) {
+      throw new ApiError(403, 'You are not authorized to view this order');
+    }
+  }
+
+  // Customer can only view their own orders
+  if (userRole === 'customer') {
+    if (!order.customer || order.customer._id.toString() !== userIdStr) {
+      throw new ApiError(403, 'You are not authorized to view this order');
+    }
   }
 
   return order;

@@ -48,9 +48,9 @@ export const CustomerLayout = () => {
 
             {/* Right Side */}
             <div className="flex items-center space-x-4">
-              <Link to="/customer/wishlist" className="p-2 text-gray-600 hover:text-red-600 relative">
-                <Heart className="w-5 h-5" />
-              </Link>
+              <Link to="/wishlist" className="p-2 text-gray-600 hover:text-red-600 relative">
+  <Heart className="w-5 h-5" />
+</Link>
               
               <Link to="/cart" className="p-2 text-gray-600 hover:text-blue-600 relative">
                 <ShoppingCart className="w-5 h-5" />
