@@ -142,3 +142,82 @@ export const updateVendorOrderStatus = asyncHandler(async (req, res) => {
   const order = await vendorService.updateVendorOrderStatus(req.user._id, req.params.orderId, status);
   return res.status(200).json(new ApiResponse(200, order, `Order status updated to ${status}`));
 });
+
+
+export const getVendorEarningsOverview = asyncHandler(async (req, res) => {
+  const overview = await vendorService.getVendorEarningsOverview(req.user._id);
+  return res.status(200).json(new ApiResponse(200, overview, 'Earnings overview fetched successfully'));
+});
+
+export const getVendorPayoutHistory = asyncHandler(async (req, res) => {
+  const result = await vendorService.getVendorPayoutHistory(req.user._id, req.query);
+  return res.status(200).json(new ApiResponse(200, result, 'Payout history fetched successfully'));
+});
+
+export const requestVendorPayout = asyncHandler(async (req, res) => {
+  const { amount } = req.body;
+  const payout = await vendorService.requestVendorPayout(req.user._id, amount);
+  return res.status(201).json(new ApiResponse(201, payout, 'Payout request submitted successfully'));
+});
+
+export const getVendorMonthlyEarnings = asyncHandler(async (req, res) => {
+  const data = await vendorService.getVendorMonthlyEarnings(req.user._id);
+  return res.status(200).json(new ApiResponse(200, data, 'Monthly earnings fetched successfully'));
+});
+
+
+// ===== VENDOR: Review Management =====
+
+export const getVendorReviews = asyncHandler(async (req, res) => {
+  const result = await vendorService.getVendorReviews(req.user._id, req.query);
+  return res.status(200).json(new ApiResponse(200, result, 'Vendor reviews fetched successfully'));
+});
+
+export const getVendorReview = asyncHandler(async (req, res) => {
+  const review = await vendorService.getVendorReview(req.user._id, req.params.reviewId);
+  return res.status(200).json(new ApiResponse(200, review, 'Review fetched successfully'));
+});
+
+export const replyToReview = asyncHandler(async (req, res) => {
+  const { reply } = req.body;
+  const review = await vendorService.replyToReview(req.user._id, req.params.reviewId, reply);
+  return res.status(200).json(new ApiResponse(200, review, 'Reply submitted successfully'));
+});
+
+export const deleteVendorReply = asyncHandler(async (req, res) => {
+  const review = await vendorService.deleteVendorReply(req.user._id, req.params.reviewId);
+  return res.status(200).json(new ApiResponse(200, review, 'Reply deleted successfully'));
+});
+
+export const getVendorReviewAnalytics = asyncHandler(async (req, res) => {
+  const analytics = await vendorService.getVendorReviewAnalytics(req.user._id);
+  return res.status(200).json(new ApiResponse(200, analytics, 'Review analytics fetched successfully'));
+});
+
+
+// ===== VENDOR: Analytics =====
+
+export const getVendorRevenueAnalytics = asyncHandler(async (req, res) => {
+  const result = await vendorService.getVendorRevenueAnalytics(req.user._id, req.query);
+  return res.status(200).json(new ApiResponse(200, result, 'Revenue analytics fetched successfully'));
+});
+
+export const getVendorProductAnalytics = asyncHandler(async (req, res) => {
+  const result = await vendorService.getVendorProductAnalytics(req.user._id);
+  return res.status(200).json(new ApiResponse(200, result, 'Product analytics fetched successfully'));
+});
+
+export const getVendorOrderAnalytics = asyncHandler(async (req, res) => {
+  const result = await vendorService.getVendorOrderAnalytics(req.user._id);
+  return res.status(200).json(new ApiResponse(200, result, 'Order analytics fetched successfully'));
+});
+
+export const getVendorCustomerAnalytics = asyncHandler(async (req, res) => {
+  const result = await vendorService.getVendorCustomerAnalytics(req.user._id);
+  return res.status(200).json(new ApiResponse(200, result, 'Customer analytics fetched successfully'));
+});
+
+export const getVendorSalesAnalytics = asyncHandler(async (req, res) => {
+  const result = await vendorService.getVendorSalesAnalytics(req.user._id);
+  return res.status(200).json(new ApiResponse(200, result, 'Sales analytics fetched successfully'));
+});

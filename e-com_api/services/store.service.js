@@ -1,4 +1,5 @@
 import { Store } from '../models/Store.js';
+import { Product } from '../models/Product.js';
 import { ApiError } from '../utils/ApiError.js';
 
 export const getAllStores = async (query, userId, userRole) => {
@@ -134,4 +135,72 @@ export const deleteStore = async (storeId, userId, userRole) => {
 
   await Store.findByIdAndDelete(storeId);
   return true;
+};
+
+
+// ===== PUBLIC: Get all active stores for customers =====
+export const getPublicStores = async (query) => {
+  const { page = 1, limit = 12, search } = query;
+  const skip = (page - 1) * limit;
+  
+  const filter = { status: 'active' }; // Sirf active stores
+  
+  if (search) {
+    filter.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } }
+    ];
+  }
+
+  const stores = await Store.find(filter)
+    .populate('vendor', 'name')
+    .skip(skip)
+    .limit(Number(limit))
+    .sort({ createdAt: -1 });
+
+  const totalStores = await Store.countDocuments(filter);
+
+  return {
+    stores,
+    totalPages: Math.ceil(totalStores / limit),
+    currentPage: Number(page),
+    totalStores
+  };
+};
+
+// ===== PUBLIC: Get single store details =====
+export const getPublicStore = async (storeId) => {
+  const store = await Store.findOne({ _id: storeId, status: 'active' })
+    .populate('vendor', 'name email');
+  
+  if (!store) {
+    throw new ApiError(404, 'Store not found or is no longer active');
+  }
+  return store;
+};
+
+// ===== PUBLIC: Get products from a specific store =====
+export const getStoreProducts = async (storeId, query) => {
+  const { page = 1, limit = 12 } = query;
+  const skip = (page - 1) * limit;
+  
+  const filter = { 
+    store: storeId, 
+    status: 'active' // Sirf active products
+  };
+
+  const products = await Product.find(filter)
+    .populate('category', 'name slug')
+    .skip(skip)
+    .limit(Number(limit))
+    .sort({ createdAt: -1 });
+
+  const totalProducts = await Product.countDocuments(filter);
+
+  return {
+    products,
+    totalPages: Math.ceil(totalProducts / limit),
+    currentPage: Number(page),
+    totalProducts
+  };
 };

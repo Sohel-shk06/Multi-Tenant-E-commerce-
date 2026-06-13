@@ -36,4 +36,26 @@ router.get('/orders', authorizeRoles('vendor', 'admin'), vendorController.getVen
 router.patch('/orders/:orderId/status', authorizeRoles('vendor'), vendorController.updateVendorOrderStatus);
 router.get('/orders/:orderId', authorizeRoles('vendor', 'admin'), vendorController.getVendorOrder);
 
+// ===== VENDOR EARNINGS ROUTES =====
+router.get('/earnings/overview', authorizeRoles('vendor', 'admin'), vendorController.getVendorEarningsOverview);
+router.get('/earnings/payouts', authorizeRoles('vendor', 'admin'), vendorController.getVendorPayoutHistory);
+router.post('/earnings/payouts', authorizeRoles('vendor'), vendorController.requestVendorPayout);
+router.get('/earnings/monthly', authorizeRoles('vendor', 'admin'), vendorController.getVendorMonthlyEarnings);
+
+
+// ===== VENDOR REVIEW ROUTES =====
+router.get('/reviews', authorizeRoles('vendor', 'admin'), vendorController.getVendorReviews);
+router.get('/reviews/analytics', authorizeRoles('vendor', 'admin'), vendorController.getVendorReviewAnalytics);
+router.get('/reviews/:reviewId', authorizeRoles('vendor', 'admin'), vendorController.getVendorReview);
+router.post('/reviews/:reviewId/reply', authorizeRoles('vendor'), vendorController.replyToReview);
+router.delete('/reviews/:reviewId/reply', authorizeRoles('vendor'), vendorController.deleteVendorReply);
+
+
+// ===== VENDOR ANALYTICS ROUTES =====
+router.get('/analytics/revenue', authorizeRoles('vendor', 'admin'), vendorController.getVendorRevenueAnalytics);
+router.get('/analytics/products', authorizeRoles('vendor', 'admin'), vendorController.getVendorProductAnalytics);
+router.get('/analytics/orders', authorizeRoles('vendor', 'admin'), vendorController.getVendorOrderAnalytics);
+router.get('/analytics/customers', authorizeRoles('vendor', 'admin'), vendorController.getVendorCustomerAnalytics);
+router.get('/analytics/sales', authorizeRoles('vendor', 'admin'), vendorController.getVendorSalesAnalytics);
+
 export default router;

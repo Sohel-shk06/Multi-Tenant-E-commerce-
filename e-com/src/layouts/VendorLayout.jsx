@@ -2,15 +2,24 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { 
   LayoutDashboard, Package, ShoppingCart, DollarSign, 
-  Store, Star, Settings, LogOut, Menu, X, BarChart3
+  Store, Star, Settings, LogOut, Menu, X, BarChart3, 
+  ChevronDown, ChevronRight 
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export const VendorLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [earningsOpen, setEarningsOpen] = useState(false);
+
+  // Auto-open earnings menu if user is on any earnings page
+  useEffect(() => {
+    if (location.pathname.startsWith('/vendor/earnings')) {
+      setEarningsOpen(true);
+    }
+  }, [location.pathname]);
 
   const handleLogout = () => {
     logout();
@@ -22,13 +31,24 @@ export const VendorLayout = () => {
     { title: 'My Products', icon: Package, path: '/vendor/products' },
     { title: 'Orders', icon: ShoppingCart, path: '/vendor/orders' },
     { title: 'My Stores', icon: Store, path: '/vendor/stores' },
-    { title: 'Earnings', icon: DollarSign, path: '/vendor/earnings' },
+    { 
+      title: 'Earnings', 
+      icon: DollarSign, 
+      path: '/vendor/earnings',
+      subItems: [
+        { title: 'Overview', path: '/vendor/earnings' },
+        { title: 'Payout History', path: '/vendor/earnings/payouts' },
+        { title: 'Transactions', path: '/vendor/earnings/transactions' },
+        { title: 'Commission', path: '/vendor/earnings/commission' },
+      ]
+    },
     { title: 'Reviews', icon: Star, path: '/vendor/reviews' },
     { title: 'Analytics', icon: BarChart3, path: '/vendor/analytics' },
     { title: 'Settings', icon: Settings, path: '/vendor/settings' },
   ];
 
   const isActive = (path) => location.pathname === path;
+  const isAnySubActive = (subItems) => subItems?.some(sub => location.pathname === sub.path);
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -78,22 +98,69 @@ export const VendorLayout = () => {
           <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
             {menuItems.map((item) => {
               const Icon = item.icon;
+              const hasSubItems = item.subItems && item.subItems.length > 0;
+              const active = isActive(item.path) || isAnySubActive(item.subItems);
+
               return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`
-                    flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors
-                    ${isActive(item.path)
-                      ? 'bg-green-600 text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                    }
-                  `}
-                >
-                  <Icon className={`w-5 h-5 ${isActive(item.path) ? 'text-white' : 'text-gray-500'}`} />
-                  <span className="text-sm font-medium">{item.title}</span>
-                </Link>
+                <div key={item.path}>
+                  {hasSubItems ? (
+                    <>
+                      <button
+                        onClick={() => setEarningsOpen(!earningsOpen)}
+                        className={`
+                          w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors
+                          ${active ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-100'}
+                        `}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <Icon className={`w-5 h-5 ${active ? 'text-green-600' : 'text-gray-500'}`} />
+                          <span className="text-sm font-medium">{item.title}</span>
+                        </div>
+                        {earningsOpen ? (
+                          <ChevronDown className="w-4 h-4 text-gray-400" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 text-gray-400" />
+                        )}
+                      </button>
+                      
+                      {earningsOpen && (
+                        <div className="mt-1 ml-4 space-y-1 border-l-2 border-gray-100 pl-4">
+                          {item.subItems.map((sub) => (
+                            <Link
+                              key={sub.path}
+                              to={sub.path}
+                              onClick={() => setSidebarOpen(false)}
+                              className={`
+                                block px-3 py-2 text-sm rounded-md transition-colors
+                                ${isActive(sub.path)
+                                  ? 'text-green-700 bg-green-50 font-medium'
+                                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                }
+                              `}
+                            >
+                              {sub.title}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <Link
+                      to={item.path}
+                      onClick={() => setSidebarOpen(false)}
+                      className={`
+                        flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors
+                        ${isActive(item.path)
+                          ? 'bg-green-600 text-white'
+                          : 'text-gray-700 hover:bg-gray-100'
+                        }
+                      `}
+                    >
+                      <Icon className={`w-5 h-5 ${isActive(item.path) ? 'text-white' : 'text-gray-500'}`} />
+                      <span className="text-sm font-medium">{item.title}</span>
+                    </Link>
+                  )}
+                </div>
               );
             })}
           </nav>
@@ -124,7 +191,9 @@ export const VendorLayout = () => {
             </button>
 
             <div className="flex-1 lg:flex-none">
-              <h2 className="text-lg font-semibold text-gray-900">Vendor Dashboard</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                {location.pathname.includes('/earnings') ? 'Earnings Management' : 'Vendor Dashboard'}
+              </h2>
             </div>
 
             <div className="flex items-center space-x-4">
@@ -139,7 +208,7 @@ export const VendorLayout = () => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
           <Outlet />
         </main>
       </div>

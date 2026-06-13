@@ -3,6 +3,23 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/env.js';
 
+// ✅ Address sub-schema
+const addressSchema = new mongoose.Schema({
+  label: { 
+    type: String, 
+    default: 'Home',
+    enum: ['Home', 'Work', 'Other']
+  },
+  fullName: { type: String, required: true },
+  phone: { type: String, required: true },
+  address: { type: String, required: true },
+  city: { type: String, required: true },
+  state: { type: String, required: true },
+  zipCode: { type: String, required: true },
+  country: { type: String, default: 'India' },
+  isDefault: { type: Boolean, default: false }
+}, { timestamps: true });
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
@@ -14,6 +31,10 @@ const userSchema = new mongoose.Schema({
   },
   isVerified: { type: Boolean, default: false },
   avatar: { type: String, default: '' },
+  phone: { type: String, default: '' }, // ✅ Added phone field
+  
+  // ✅ Address book
+  addresses: [addressSchema],
   
   // Password Reset Tokens
   resetPasswordToken: String,
@@ -25,21 +46,15 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // 🔥 FIX: Mongoose 8+ mein async function mein 'next' pass nahi hota.
-// Hum sirf 'return' use karenge.
 userSchema.pre('save', async function() {
-  // Agar password modify nahi hua hai, toh aage mat jao
   if (!this.isModified('password')) return;
-  
-  // Password ko Bcrypt se hash karein (SRS ke mutabiq >= 10 salt rounds)
   this.password = await bcrypt.hash(this.password, 12);
 });
 
-// Compare entered password with hashed password
 userSchema.methods.comparePassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Generate JWT Token
 userSchema.methods.getJwtToken = function() {
   return jwt.sign({ id: this._id, role: this.role }, config.JWT_SECRET, {
     expiresIn: config.JWT_EXPIRE,
