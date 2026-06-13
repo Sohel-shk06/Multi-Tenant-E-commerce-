@@ -165,3 +165,115 @@ export const deleteAddress = async (userId, addressId) => {
   await user.save();
   return user.addresses;
 };
+
+
+// ===== Get Vendor Settings (Complete) =====
+export const getVendorSettings = async (userId) => {
+  const user = await User.findById(userId)
+    .select('-password -resetPasswordToken -resetPasswordExpire -verifyEmailToken -verifyEmailExpire');
+  
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  return {
+  profile: {
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    avatar: user.avatar,
+    role: user.role
+  },
+  businessInfo: user.businessInfo || {},
+  notificationPreferences: user.notificationPreferences || {},
+  createdAt: user.createdAt,
+  isVerified: user.isVerified,
+  status: user.status || 'active'  // ✅ Ye add kiya
+};
+};
+
+// ===== Update Business Info =====
+export const updateBusinessInfo = async (userId, businessData) => {
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, 'User not found');
+
+  // Validate GST number format if provided
+  if (businessData.gstNumber && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(businessData.gstNumber)) {
+    throw new ApiError(400, 'Invalid GST number format');
+  }
+
+  // Validate PAN number format if provided
+  if (businessData.panNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(businessData.panNumber)) {
+    throw new ApiError(400, 'Invalid PAN number format');
+  }
+
+  user.businessInfo = {
+    ...user.businessInfo,
+    ...businessData
+  };
+
+  await user.save();
+  return user.businessInfo;
+};
+
+// ===== Update Notification Preferences =====
+export const updateNotificationPreferences = async (userId, preferences) => {
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, 'User not found');
+
+  user.notificationPreferences = {
+    ...user.notificationPreferences,
+    ...preferences
+  };
+
+  await user.save();
+  return user.notificationPreferences;
+};
+
+// ===== Update Bank Details =====
+export const updateBankDetails = async (userId, bankData) => {
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, 'User not found');
+
+  // Validate IFSC code format if provided
+  if (bankData.ifscCode && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(bankData.ifscCode)) {
+    throw new ApiError(400, 'Invalid IFSC code format');
+  }
+
+  user.businessInfo = {
+    ...user.businessInfo,
+    bankDetails: {
+      ...user.businessInfo?.bankDetails,
+      ...bankData
+    }
+  };
+
+  await user.save();
+  return user.businessInfo.bankDetails;
+};
+
+// ===== Delete Account =====
+export const deleteVendorAccount = async (userId, password) => {
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, 'User not found');
+
+  // Verify password
+  const isMatch = await user.comparePassword(password);
+  if (!isMatch) {
+    throw new ApiError(401, 'Incorrect password');
+  }
+
+  // Check if vendor has active orders
+  const { Order } = await import('../models/Order.js');
+  const activeOrders = await Order.countDocuments({
+    vendor: userId,
+    status: { $in: ['pending', 'confirmed', 'shipped'] }
+  });
+
+  if (activeOrders > 0) {
+    throw new ApiError(400, `Cannot delete account. You have ${activeOrders} active orders.`);
+  }
+
+  await User.findByIdAndDelete(userId);
+  return true;
+};

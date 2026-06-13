@@ -3,6 +3,7 @@ import { categoryService } from '../../services/category.service';
 
 const initialState = {
   categories: [],
+  currentCategory: null,  // ✅ YE ADD KIYA
   totalPages: 1,
   currentPage: 1,
   totalCategories: 0,
@@ -22,6 +23,18 @@ export const fetchCategories = createAsyncThunk(
   }
 );
 
+export const fetchCategory = createAsyncThunk(  // ✅ YE ADD KIYA
+  'categories/fetchCategory',
+  async (categoryId, { rejectWithValue }) => {
+    try {
+      const data = await categoryService.getCategory(categoryId);
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch category');
+    }
+  }
+);
+
 export const createCategory = createAsyncThunk(
   'categories/createCategory',
   async (categoryData, { rejectWithValue, dispatch }) => {
@@ -31,6 +44,19 @@ export const createCategory = createAsyncThunk(
       return category;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create category');
+    }
+  }
+);
+
+export const updateCategory = createAsyncThunk(  // ✅ YE ADD KIYA
+  'categories/updateCategory',
+  async ({ categoryId, categoryData }, { rejectWithValue, dispatch }) => {
+    try {
+      const category = await categoryService.updateCategory(categoryId, categoryData);
+      dispatch(fetchCategories({ page: 1 }));
+      return category;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update category');
     }
   }
 );
@@ -54,6 +80,7 @@ const categorySlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      // fetchCategories
       .addCase(fetchCategories.pending, (state) => { state.isLoading = true; })
       .addCase(fetchCategories.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -63,6 +90,27 @@ const categorySlice = createSlice({
         state.totalCategories = action.payload.totalCategories;
       })
       .addCase(fetchCategories.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      
+      // ✅ fetchCategory (single)
+      .addCase(fetchCategory.pending, (state) => { state.isLoading = true; })
+      .addCase(fetchCategory.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentCategory = action.payload;
+      })
+      .addCase(fetchCategory.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      
+      // ✅ updateCategory
+      .addCase(updateCategory.pending, (state) => { state.isLoading = true; })
+      .addCase(updateCategory.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(updateCategory.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       });

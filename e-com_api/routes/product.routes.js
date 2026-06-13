@@ -7,13 +7,18 @@ const router = Router();
 
 // ===== PUBLIC ROUTES (No Authentication Required) =====
 router.get('/', productController.getPublicProducts);
+
+// ✅ ✅ ✅ YE 2 ROUTES /:productId SE PEHLE HONE CHAHIYE ✅ ✅ ✅
+router.get('/all', verifyJWT, authorizeRoles('admin'), productController.getProducts);
+router.get('/moderation/pending', verifyJWT, authorizeRoles('admin'), productController.getProductsForModeration);
+
+// ✅ Ab /:productId aayega (LAST)
 router.get('/:productId', productController.getPublicProduct);
 
 // ===== PROTECTED ROUTES (Authentication Required) =====
 router.use(verifyJWT);
 
-// Moderation routes (Admin only)
-router.get('/moderation/pending', authorizeRoles('admin'), productController.getProductsForModeration);
+// Moderation action
 router.patch('/:productId/moderate', authorizeRoles('admin'), productController.moderateProduct);
 
 // Vendor/Admin routes
