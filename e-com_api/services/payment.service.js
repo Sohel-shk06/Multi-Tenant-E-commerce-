@@ -1,6 +1,6 @@
 // ===== ADMIN: Payment Management Functions =====
-import { Payout } from '../models/Payment.js';
-// import { Payout } from '../models/Payout.js';
+import { Payment } from '../models/Payment.js';
+import { Payout } from '../models/Payout.js';
 
 import { ApiError } from '../utils/ApiError.js';
 
@@ -74,7 +74,31 @@ export const updatePayoutStatus = async (payoutId, status, notes) => {
   if (!payout) throw new ApiError(404, 'Payout not found');
 
   payout.status = status;
-  if (status === 'processed') payout.processedAt = new Date();
+  if (status === 'processed') {
+    payout.processedAt = new Date();
+    
+    // ✅ NEW: Vendor ki saari "earned" commissions ko "collected" mark karein
+    try {
+      const { Commission } = await import('../models/Commission.js');
+      
+      const result = await Commission.updateMany(
+        { 
+          vendor: payout.vendor, 
+          status: 'earned' 
+        },
+        { 
+          status: 'collected',
+          collectedAt: new Date(),
+          notes: `Collected via payout #${payout._id}`
+        }
+      );
+      
+      console.log(`✅ ${result.modifiedCount} commissions marked as collected for vendor: ${payout.vendor}`);
+    } catch (error) {
+      console.error('⚠️  Commission auto-collect failed:', error.message);
+    }
+  }
+  
   if (notes) payout.adminNotes = notes;
   
   await payout.save();

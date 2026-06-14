@@ -30,6 +30,12 @@ import { Payouts } from '../../pages/payments/Payouts';
 import { Refunds } from '../../pages/payments/Refunds';
 import { FailedPayments } from '../../pages/payments/FailedPayments';
 import { PaymentAnalytics } from '../../pages/payments/PaymentAnalytics';
+import { CommissionList } from '../../pages/commissions/CommissionList';
+import { CommissionDetails } from '../../pages/commissions/CommissionDetails';
+import { DisputeList } from '../../pages/disputes/DisputeList';
+import { DisputeDetails } from '../../pages/disputes/DisputeDetails';
+import { OpenDisputes } from '../../pages/disputes/OpenDisputes';
+import { ClosedDisputes } from '../../pages/disputes/ClosedDisputes';
 
 // Error Pages
 import { NotFound } from '../../pages/errors/NotFound';
@@ -84,6 +90,12 @@ export const AppRouter = () => {
               <Route path="/admin/payments/failed" element={<FailedPayments />} />
               <Route path="/admin/payments/analytics" element={<PaymentAnalytics />} />
               <Route path="/admin/payments/:paymentId" element={<PaymentDetails />} />
+              <Route path="/admin/commissions" element={<CommissionList />} />
+              <Route path="/admin/commissions/:commissionId" element={<CommissionDetails />} />
+              <Route path="/admin/disputes" element={<DisputeList />} />
+              <Route path="/admin/disputes/open" element={<OpenDisputes />} />
+              <Route path="/admin/disputes/closed" element={<ClosedDisputes />} />
+              <Route path="/admin/disputes/:disputeId" element={<DisputeDetails />} />
 
               {/* Stores */}
               <Route path="/admin/stores" element={<StoreList />} />

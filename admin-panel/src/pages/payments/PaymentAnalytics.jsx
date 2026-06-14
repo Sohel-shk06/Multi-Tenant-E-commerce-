@@ -13,11 +13,29 @@ export const PaymentAnalytics = () => {
     dispatch(fetchPaymentAnalytics());
   }, [dispatch]);
 
+  // ✅ FIX: Error ko pehle check karein
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="p-4 bg-red-50 text-red-700 rounded-lg text-sm border border-red-200">
+          <p className="font-semibold">Failed to load analytics</p>
+          <p className="text-xs mt-1">{error}</p>
+          <button 
+            onClick={() => dispatch(fetchPaymentAnalytics())}
+            className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ Loading state
   if (isLoading || !analytics) return <PageLoader />;
 
   const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'];
 
-  // Prepare chart data
   const statusData = analytics.statusBreakdown?.map(item => ({
     name: item._id?.charAt(0).toUpperCase() + item._id?.slice(1),
     value: item.count
@@ -41,8 +59,6 @@ export const PaymentAnalytics = () => {
         <p className="text-sm text-gray-500 mt-1">Overview of payment performance and trends.</p>
       </div>
 
-      {error && <div className="p-4 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}
-
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
@@ -50,14 +66,18 @@ export const PaymentAnalytics = () => {
             <span className="text-sm text-gray-500">Total Amount</span>
             <DollarSign className="w-5 h-5 text-green-600" />
           </div>
-          <p className="text-2xl font-bold text-gray-900">₹{analytics.totalStats?.totalAmount?.toLocaleString() || 0}</p>
+          <p className="text-2xl font-bold text-gray-900">
+            ₹{analytics.totalStats?.totalAmount?.toLocaleString() || 0}
+          </p>
         </div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-500">Total Transactions</span>
             <TrendingUp className="w-5 h-5 text-blue-600" />
           </div>
-          <p className="text-2xl font-bold text-gray-900">{analytics.totalStats?.count || 0}</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {analytics.totalStats?.count || 0}
+          </p>
         </div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-2">
@@ -87,7 +107,6 @@ export const PaymentAnalytics = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Monthly Trend */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-bold text-gray-900 mb-4">Monthly Payment Trend</h2>
           {trendData.length > 0 ? (
@@ -101,11 +120,15 @@ export const PaymentAnalytics = () => {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[300px] flex items-center justify-center text-gray-500">No data available</div>
+            <div className="h-[300px] flex items-center justify-center text-gray-500">
+              <div className="text-center">
+                <p className="text-lg">No data available</p>
+                <p className="text-xs mt-1">Payments hone ke baad yahan data dikhega</p>
+              </div>
+            </div>
           )}
         </div>
 
-        {/* Payment Methods Pie */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-bold text-gray-900 mb-4">Payment Methods</h2>
           {methodData.length > 0 ? (
@@ -126,6 +149,7 @@ export const PaymentAnalytics = () => {
                   ))}
                 </Pie>
                 <Tooltip />
+                <Legend />
               </PieChart>
             </ResponsiveContainer>
           ) : (
@@ -133,29 +157,34 @@ export const PaymentAnalytics = () => {
           )}
         </div>
 
-        {/* Status Breakdown */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 lg:col-span-2">
           <h2 className="text-lg font-bold text-gray-900 mb-4">Payment Status Breakdown</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {analytics.statusBreakdown?.map((item, idx) => {
-              const icons = {
-                paid: <CheckCircle className="w-6 h-6 text-green-600" />,
-                pending: <Clock className="w-6 h-6 text-yellow-600" />,
-                failed: <XCircle className="w-6 h-6 text-red-600" />,
-                refunded: <CreditCard className="w-6 h-6 text-blue-600" />
-              };
-              return (
-                <div key={idx} className="p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    {icons[item._id] || <CreditCard className="w-6 h-6 text-gray-600" />}
-                    <span className="text-xs text-gray-500 uppercase">{item._id}</span>
+          {analytics.statusBreakdown?.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {analytics.statusBreakdown?.map((item, idx) => {
+                const icons = {
+                  paid: <CheckCircle className="w-6 h-6 text-green-600" />,
+                  pending: <Clock className="w-6 h-6 text-yellow-600" />,
+                  failed: <XCircle className="w-6 h-6 text-red-600" />,
+                  refunded: <CreditCard className="w-6 h-6 text-blue-600" />
+                };
+                return (
+                  <div key={idx} className="p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      {icons[item._id] || <CreditCard className="w-6 h-6 text-gray-600" />}
+                      <span className="text-xs text-gray-500 uppercase">{item._id}</span>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-900">{item.count}</p>
+                    <p className="text-xs text-gray-500">₹{item.amount?.toLocaleString()}</p>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900">{item.count}</p>
-                  <p className="text-xs text-gray-500">₹{item.amount?.toLocaleString()}</p>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="h-[150px] flex items-center justify-center text-gray-500">
+              No payment data available yet
+            </div>
+          )}
         </div>
       </div>
     </div>

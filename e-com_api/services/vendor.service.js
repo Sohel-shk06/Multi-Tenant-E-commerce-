@@ -3,7 +3,8 @@ import { User } from '../models/User.js';
 import { Product } from '../models/Product.js';
 import { Order } from '../models/Order.js';
 import { ApiError } from '../utils/ApiError.js';
-import { Payout } from '../models/Payment.js';
+import { Payment } from '../models/Payment.js';
+import { Payout } from '../models/Payout.js'
 import { Review } from '../models/Review.js';
 
 
@@ -469,10 +470,20 @@ export const getVendorOrderById = async (vendorId, orderId) => {
 };
 
 export const updateVendorOrderStatus = async (vendorId, orderId, newStatus) => {
+  console.log('\n🔍 ========== UPDATE ORDER STATUS DEBUG ==========');
+  console.log('🔍 Input:', { vendorId, orderId, newStatus });
+  
   const order = await Order.findOne({ _id: orderId, vendor: vendorId });
   if (!order) {
     throw new ApiError(404, 'Order not found or you are not authorized');
   }
+
+  console.log('🔍 Order found:', {
+    orderId: order._id.toString(),
+    currentStatus: order.status,
+    paymentMethod: order.paymentMethod,
+    paymentStatus: order.paymentStatus
+  });
 
   // Valid status transitions
   const validTransitions = {
@@ -496,9 +507,121 @@ export const updateVendorOrderStatus = async (vendorId, orderId, newStatus) => {
   else if (newStatus === 'completed') order.completedAt = new Date();
 
   await order.save();
+  console.log('✅ Order status updated to:', newStatus);
+
+  // 🎯 ✅ ROBUST PAYMENT UPDATE - HAR CASE MEIN KAAM KAREGA
+  try {
+    console.log('\n🔍 ========== PAYMENT UPDATE START ==========');
+    
+    // ✅ Pehle Payment document dhundhein (multiple ways try karein)
+    const orderIdString = order._id.toString();
+    console.log('🔍 Searching payment for order ID:', orderIdString);
+    
+    let payment = await Payment.findOne({ order: order._id });
+    
+    if (!payment) {
+      console.log('⚠️  Payment not found with ObjectId, trying with string...');
+      payment = await Payment.findOne({ order: orderIdString });
+    }
+    
+    if (!payment) {
+      console.log('⚠️  Payment still not found, trying with new ObjectId...');
+      payment = await Payment.findOne({ order: new mongoose.Types.ObjectId(orderIdString) });
+    }
+    
+    console.log('🔍 Payment found:', payment ? 'YES ✅' : 'NO ❌');
+    
+    if (payment) {
+      console.log('🔍 Current payment status:', payment.paymentStatus);
+      console.log('🔍 Order paymentMethod:', order.paymentMethod);
+      console.log('🔍 Order paymentStatus:', order.paymentStatus);
+      
+      // ✅ CASE 1: Order delivered/completed ho gaya hai
+      if (newStatus === 'delivered' || newStatus === 'completed') {
+        
+        // COD payment ko "paid" mark karein
+        const isCOD = order.paymentMethod === 'cod' || order.paymentMethod === 'COD';
+        const isPending = payment.paymentStatus === 'pending' || order.paymentStatus === 'pending';
+        
+        console.log('🔍 Is COD?', isCOD, '| Is Pending?', isPending);
+        
+        if (isCOD && isPending) {
+          console.log('🔍 ✅ Updating payment to PAID...');
+          
+          payment.paymentStatus = 'paid';
+          payment.paidAt = new Date();
+          payment.gatewayResponse = {
+            source: 'cod-delivery',
+            note: 'Payment collected on delivery',
+            updatedBy: vendorId,
+            updatedAt: new Date()
+          };
+          
+          await payment.save();
+          console.log('✅✅✅ Payment saved with status: PAID');
+          
+          // Order ka paymentStatus bhi update karein
+          order.paymentStatus = 'paid';
+          await order.save();
+          console.log('✅✅✅ Order paymentStatus updated to: PAID');
+        } else {
+          console.log('🔍 Skipping - not COD or already paid');
+        }
+      }
+      
+      // ✅ CASE 2: Order cancel ho gaya hai aur payment paid hai
+      else if (newStatus === 'cancelled' && payment.paymentStatus === 'paid') {
+        console.log('🔍 ✅ Updating payment to REFUNDED...');
+        
+        payment.paymentStatus = 'refunded';
+        payment.gatewayResponse = {
+          source: 'order-cancelled',
+          note: 'Order cancelled, payment refunded',
+          updatedBy: vendorId,
+          updatedAt: new Date()
+        };
+        
+        await payment.save();
+        console.log('✅✅✅ Payment saved with status: REFUNDED');
+        
+        order.paymentStatus = 'refunded';
+        await order.save();
+        console.log('✅✅✅ Order paymentStatus updated to: REFUNDED');
+      }
+    } else {
+      console.warn('⚠️  No Payment document found for this order!');
+      console.warn('⚠️  Creating new Payment document...');
+      
+      // Agar Payment document hi nahi hai, toh create kar dein
+      const newPayment = await Payment.create({
+        order: order._id,
+        customer: order.customer,
+        vendor: order.vendor,
+        transactionId: `TXN-${order._id.toString().slice(-8)}-${Date.now()}`,
+        amount: order.totalAmount,
+        paymentMethod: order.paymentMethod || 'cod',
+        paymentStatus: (newStatus === 'delivered' || newStatus === 'completed') ? 'paid' : 'pending',
+        paidAt: (newStatus === 'delivered' || newStatus === 'completed') ? new Date() : null
+      });
+      
+      console.log('✅ New Payment document created:', newPayment._id);
+      
+      if (newStatus === 'delivered' || newStatus === 'completed') {
+        order.paymentStatus = 'paid';
+        await order.save();
+        console.log('✅ Order paymentStatus updated to: PAID');
+      }
+    }
+    
+    console.log('🔍 ========== PAYMENT UPDATE END ==========\n');
+  } catch (paymentError) {
+    console.error('❌ ERROR in payment update:', paymentError.message);
+    console.error('❌ Stack:', paymentError.stack);
+  }
+
+  console.log('🔍 ========== END DEBUG ==========\n');
   return order;
 };
-
 
 
 const PLATFORM_COMMISSION_RATE = 0.10; // 10% platform fee
