@@ -1,6 +1,7 @@
 import { Order } from '../models/Order.js';
 import { Product } from '../models/Product.js';
 import { ApiError } from '../utils/ApiError.js';
+import { Payment } from '../models/Payment.js'; 
 
 // Get all orders with filters
 export const getAllOrders = async (query, userId, userRole) => {
@@ -140,6 +141,7 @@ export const updateOrderStatus = async (orderId, status, userId, userRole) => {
 
 
 // Create order
+// Create order
 export const createOrder = async (orderData) => {
   console.log('📥 Creating order with data:', JSON.stringify(orderData, null, 2));
   
@@ -150,7 +152,7 @@ export const createOrder = async (orderData) => {
   if (!store) throw new ApiError(400, 'Store information is required');
   if (!items || items.length === 0) throw new ApiError(400, 'Order must have at least one item');
 
-  // ✅ FIX 1: Vendor fetch karo store se agar nahi mila
+  // ✅ Vendor fetch karo store se agar nahi mila
   let vendorId = vendor;
   if (!vendorId) {
     try {
@@ -159,8 +161,6 @@ export const createOrder = async (orderData) => {
       if (storeData && storeData.vendor) {
         vendorId = storeData.vendor;
         console.log('✅ Vendor auto-fetched from store:', vendorId);
-      } else {
-        console.error('❌ Store not found or vendor missing:', storeData);
       }
     } catch (err) {
       console.error('❌ Error fetching store:', err);
@@ -171,7 +171,7 @@ export const createOrder = async (orderData) => {
     throw new ApiError(400, 'Vendor information required (directly or via store)');
   }
 
-  // ✅ FIX 2: Items process karo aur totals calculate karo
+  // ✅ Items process karo aur totals calculate karo
   let subtotal = 0;
   const enrichedItems = [];
   
@@ -201,7 +201,7 @@ export const createOrder = async (orderData) => {
 
   console.log('📝 Order calculation:', { subtotal, tax, shippingCost, totalAmount });
 
-  // ✅ FIX 3: Order create - orderNumber auto-generate hoga pre-save hook se
+  // ✅ Order create
   try {
     const order = await Order.create({
       customer,
@@ -220,6 +220,31 @@ export const createOrder = async (orderData) => {
 
     console.log('✅ Order created:', order._id, 'Number:', order.orderNumber);
 
+    // 🎯 ✅ YEH NAYA CODE ADD KAREIN - Payment Entry Auto Create
+    try {
+      const isOnlinePayment = paymentMethod && paymentMethod !== 'cod';
+      
+      const payment = await Payment.create({
+        order: order._id,
+        customer: customer,
+        vendor: vendorId,
+        transactionId: `TXN-${order._id.toString().slice(-8)}-${Date.now()}`,
+        amount: totalAmount,
+        paymentMethod: paymentMethod || 'cod',
+        paymentStatus: isOnlinePayment ? 'paid' : 'pending',
+        paidAt: isOnlinePayment ? new Date() : null,
+        gatewayResponse: {
+          source: 'auto-created-with-order',
+          note: 'COD payment - will be marked paid on delivery'
+        }
+      });
+      
+      console.log('✅ Payment entry created:', payment._id, 'Status:', payment.paymentStatus);
+    } catch (paymentError) {
+      // Payment create fail ho toh bhi order chalega (non-critical)
+      console.error('⚠️  Warning: Payment entry create nahi hui:', paymentError.message);
+    }
+
     // ✅ Stock reduce karo
     for (const item of items) {
       await Product.findByIdAndUpdate(item.product, {
@@ -236,4 +261,31 @@ export const createOrder = async (orderData) => {
     }
     throw error;
   }
+
+  // Order create karne ke baad yeh code add karein (Payment entry ke baad)
+
+// ✅ Commission Entry Create
+try {
+  const { Commission } = await import('../models/Commission.js');
+  
+  const commissionRate = 0.10; // 10%
+  const commissionAmount = Math.round(totalAmount * commissionRate * 100) / 100;
+  const vendorAmount = Math.round((totalAmount - commissionAmount) * 100) / 100;
+  
+  await Commission.create({
+    order: order._id,
+    vendor: vendorId,
+    orderAmount: totalAmount,
+    commissionRate: commissionRate,
+    commissionAmount: commissionAmount,
+    vendorAmount: vendorAmount,
+    status: 'pending'
+  });
+  
+  console.log('✅ Commission entry created: ₹' + commissionAmount);
+} catch (commissionError) {
+  console.error('⚠️  Commission entry create nahi hui:', commissionError.message);
+}
 };
+
+

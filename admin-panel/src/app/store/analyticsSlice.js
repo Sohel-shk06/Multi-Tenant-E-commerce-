@@ -4,6 +4,7 @@ import { analyticsService } from '../../services/analytics.service';
 const initialState = {
   stats: null,
   revenueChartData: [],
+  topVendors: [],  // ✅ YEH ADD KIYA
   isLoading: false,
   error: null,
 };
@@ -34,6 +35,19 @@ export const fetchRevenueChartData = createAsyncThunk(
   }
 );
 
+// ✅ NEW: Fetch Top Vendors
+export const fetchTopVendors = createAsyncThunk(
+  'analytics/fetchTopVendors',
+  async (limit, { rejectWithValue }) => {
+    try {
+      const data = await analyticsService.getTopVendors(limit);
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch top vendors');
+    }
+  }
+);
+
 const analyticsSlice = createSlice({
   name: 'analytics',
   initialState,
@@ -42,6 +56,7 @@ const analyticsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Dashboard Stats
       .addCase(fetchAdminDashboardStats.pending, (state) => { state.isLoading = true; })
       .addCase(fetchAdminDashboardStats.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -51,8 +66,21 @@ const analyticsSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+      
+      // Revenue Chart
       .addCase(fetchRevenueChartData.fulfilled, (state, action) => {
         state.revenueChartData = action.payload;
+      })
+      
+      // ✅ NEW: Top Vendors
+      .addCase(fetchTopVendors.pending, (state) => { state.isLoading = true; })
+      .addCase(fetchTopVendors.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.topVendors = action.payload;
+      })
+      .addCase(fetchTopVendors.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
       });
   }
 });

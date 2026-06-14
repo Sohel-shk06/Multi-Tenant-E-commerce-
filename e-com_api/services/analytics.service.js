@@ -4,10 +4,11 @@ import { Subscription } from '../models/Subscription.js';
 import { Commission } from '../models/Commission.js';
 
 // Get Admin Dashboard Stats
+// Get Admin Dashboard Stats
 export const getAdminDashboardStats = async () => {
   // Total Revenue (from completed orders)
   const revenueResult = await Order.aggregate([
-    { $match: { status: 'completed' } },
+    { $match: { status: { $in: ['delivered', 'completed'] } } }, // ✅ delivered bhi add kiya
     { $group: { _id: null, total: { $sum: '$totalAmount' } } }
   ]);
   const totalRevenue = revenueResult[0]?.total || 0;
@@ -28,9 +29,19 @@ export const getAdminDashboardStats = async () => {
   ]);
   const subscriptionMRR = subscriptionResult[0]?.total || 0;
 
-  // Commission Earned
+  // ✅ FIXED: Commission Earned
   const commissionResult = await Commission.aggregate([
-    { $group: { _id: null, total: { $sum: '$amount' } } }
+    { 
+      $match: { 
+        status: { $in: ['earned', 'collected'] }
+      } 
+    },
+    { 
+      $group: { 
+        _id: null, 
+        total: { $sum: '$commissionAmount' }
+      } 
+    }
   ]);
   const commissionEarned = commissionResult[0]?.total || 0;
 
@@ -89,4 +100,38 @@ export const getRevenueChartData = async (timeframe = 'monthly') => {
   }
 
   return revenueData;
+};
+
+
+// Top Vendors by Revenue (Current Month)
+export const getTopVendors = async (limit = 5) => {
+  const currentMonth = new Date();
+  currentMonth.setDate(1);
+  currentMonth.setHours(0, 0, 0, 0);
+
+  const topVendors = await Order.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: currentMonth },
+        status: { $in: ['delivered', 'completed'] }
+      }
+    },
+    {
+      $group: {
+        _id: '$vendor',
+        totalSales: { $sum: '$totalAmount' },
+        totalOrders: { $sum: 1 }
+      }
+    },
+    { $sort: { totalSales: -1 } },
+    { $limit: limit }
+  ]);
+
+  // Vendor details populate karein
+  const topVendorsWithDetails = await User.populate(topVendors, {
+    path: '_id',
+    select: 'name email'
+  });
+
+  return topVendorsWithDetails;
 };

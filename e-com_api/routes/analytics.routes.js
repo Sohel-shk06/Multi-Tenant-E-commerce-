@@ -11,5 +11,6 @@ router.use(authorizeRoles('admin'));
 
 router.get('/admin/dashboard', analyticsController.getAdminDashboardStats);
 router.get('/admin/revenue-chart', analyticsController.getRevenueChartData);
+router.get('/admin/dashboard/top-vendors', analyticsController.getTopVendors);
 
 export default router;
