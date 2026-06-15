@@ -4,7 +4,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { createVendorProduct } from '../../../app/store/vendorProductSlice';
 import { vendorService } from '../../../services/vendor.service';
 import { categoryService } from '../../../services/category.service';
-import { ArrowLeft, Plus, X, Store, RefreshCw } from 'lucide-react';
+import { productService } from '../../../services/product.service';
+import { ArrowLeft, Plus, X, Store, RefreshCw, Upload, Image as ImageIcon } from 'lucide-react';
 
 export const CreateProduct = () => {
   const dispatch = useDispatch();
@@ -25,10 +26,12 @@ export const CreateProduct = () => {
     sku: '',
     tags: '',
     variants: [],
+    images: [],
   });
   
   const [localError, setLocalError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   // ✅ Direct API calls (no Redux dependency)
   useEffect(() => {
@@ -61,6 +64,69 @@ export const CreateProduct = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setLocalError('');
+  };
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    if (formData.images.length + files.length > 5) {
+      setLocalError('You can upload a maximum of 5 images');
+      return;
+    }
+
+    setUploading(true);
+    setLocalError('');
+
+    try {
+      const uploadFormData = new FormData();
+      files.forEach((file) => {
+        uploadFormData.append('images', file);
+      });
+
+      const uploadedImages = await productService.uploadImages(uploadFormData);
+      const normalizedUploaded = Array.isArray(uploadedImages) ? uploadedImages : [uploadedImages];
+      
+      const newImages = normalizedUploaded.map((img, index) => ({
+        url: img.url,
+        publicId: img.publicId,
+        isPrimary: formData.images.length === 0 && index === 0,
+      }));
+
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, ...newImages],
+      }));
+    } catch (error) {
+      console.error('Upload failed:', error);
+      setLocalError(error.response?.data?.message || 'Failed to upload images. Please check your Cloudinary configuration.');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const removeImage = (indexToRemove) => {
+    setFormData((prev) => {
+      const updatedImages = prev.images.filter((_, i) => i !== indexToRemove);
+      if (prev.images[indexToRemove]?.isPrimary && updatedImages.length > 0) {
+        updatedImages[0].isPrimary = true;
+      }
+      return {
+        ...prev,
+        images: updatedImages,
+      };
+    });
+  };
+
+  const setPrimaryImage = (indexToSet) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.map((img, i) => ({
+        ...img,
+        isPrimary: i === indexToSet,
+      })),
+    }));
   };
 
   const addVariant = () => {
@@ -214,6 +280,70 @@ export const CreateProduct = () => {
                   placeholder="e.g., WBH-001" />
               </div>
             </div>
+          </div>
+
+          {/* Images Section */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Product Images (Max 5)</h2>
+            
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {formData.images.map((img, index) => (
+                <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group bg-gray-50">
+                  <img src={img.url} alt={`Preview ${index}`} className="w-full h-full object-cover" />
+                  
+                  {/* Primary Badge or Setter */}
+                  {img.isPrimary ? (
+                    <span className="absolute top-2 left-2 px-2 py-0.5 bg-green-600 text-white text-xs font-semibold rounded-full shadow-sm">
+                      Primary
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setPrimaryImage(index)}
+                      className="absolute top-2 left-2 px-2 py-0.5 bg-black/65 hover:bg-black/80 text-white text-xs font-medium rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      Set Primary
+                    </button>
+                  )}
+
+                  {/* Remove Button */}
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute top-2 right-2 p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+
+              {formData.images.length < 5 && (
+                <label className="flex flex-col items-center justify-center aspect-square rounded-lg border-2 border-dashed border-gray-300 hover:border-green-500 hover:bg-green-50/10 cursor-pointer transition-colors group">
+                  {uploading ? (
+                    <div className="flex flex-col items-center space-y-2">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                      <span className="text-xs text-gray-500 font-medium">Uploading...</span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center space-y-1 text-gray-400 group-hover:text-green-500">
+                      <Upload className="w-8 h-8" />
+                      <span className="text-xs font-medium text-gray-500">Upload Image</span>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploading}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+            <p className="text-xs text-gray-400">
+              * Upload up to 5 images. JPEG, PNG, WEBP allowed. First image is primary by default.
+            </p>
           </div>
 
           {/* Category & Store */}

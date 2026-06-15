@@ -37,5 +37,14 @@ export const productService = {
   moderateProduct: async (productId, action, notes = '') => {
     const response = await api.patch(`/products/${productId}/moderate`, { action, notes });
     return response.data.data;
+  },
+
+  uploadImages: async (formData) => {
+    const response = await api.post('/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data.data;
   }
 };
