@@ -94,7 +94,7 @@ export const Dashboard = () => {
   }, [dispatch]);
 
   // Loading state
-  if (isLoading && !stats) {
+  if (isLoading && !stats && !chartData && !recentOrders) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
