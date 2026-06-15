@@ -58,7 +58,7 @@ export const TrendingProducts = () => {
     };
 
     dispatch(addToCart(cartItem));
-    alert(`🔥 Added "${product.title}" to cart!`);
+    alert(`Added "${product.title}" to cart!`);
   };
 
   const handleWishlistToggle = (e, product) => {
@@ -149,7 +149,7 @@ export const TrendingProducts = () => {
                   <div className="relative h-64 bg-gray-50 overflow-hidden flex items-center justify-center">
                     {/* 🔥 Trending Badge */}
                     <span className="absolute top-3 left-3 z-10 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-                      🔥 Trending
+                       Trending
                     </span>
 
                     {/* Wishlist Button */}

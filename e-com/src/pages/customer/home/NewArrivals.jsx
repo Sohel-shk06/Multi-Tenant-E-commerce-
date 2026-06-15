@@ -143,7 +143,7 @@ export const NewArrivals = () => {
                       <div className="relative h-56 bg-gray-50 overflow-hidden flex items-center justify-center">
                         {/* ✨ New Badge */}
                         <span className="absolute top-3 left-3 z-10 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-                          ✨ New
+                           New
                         </span>
 
                         {/* Wishlist Button */}
