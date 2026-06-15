@@ -2,6 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 const TopProducts = ({ products = [] }) => {
+
+  console.log("TopProducts component rendered with products:", products);
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full">
       <div className="flex items-center justify-between mb-6">
@@ -15,9 +17,10 @@ const TopProducts = ({ products = [] }) => {
           View All
         </Link>
       </div>
-
+    
       <div className="space-y-5">
         {products.map((product) => (
+
           <div
             key={product._id}
             className="flex items-center gap-4"
@@ -33,11 +36,11 @@ const TopProducts = ({ products = [] }) => {
             <div className="flex-1">
               <div className="flex justify-between mb-1">
                 <h3 className="text-sm font-medium text-gray-800">
-                  {product.name}
+                  {product.title}
                 </h3>
 
                 <span className="text-sm font-semibold text-gray-900">
-                  ₹{product.revenue?.toLocaleString()}
+                  ₹{product.price?.toLocaleString()}
                 </span>
               </div>
 

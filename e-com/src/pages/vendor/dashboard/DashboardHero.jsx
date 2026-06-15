@@ -1,8 +1,4 @@
-const DashboardHero = ({
-  user,
-  recentOrders = [],
-}) => {
-    
+const DashboardHero = ({ user, recentOrders = [] }) => {
   // Today Analytics
   const today = new Date().toDateString();
 
@@ -46,9 +42,9 @@ const DashboardHero = ({
         ? 100
         : 0;
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-emerald-700 via-green-600 to-teal-500 p-8 text-white shadow-xl">
+    <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-purple-700 via-violet-600 to-fuchsia-500 p-8 text-white shadow-xl">
       {/* Background Glow */}
-      <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-emerald-400/15 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-purple-400/15 rounded-full blur-3xl"></div>
 
       <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
         {/* Left Content */}
@@ -86,7 +82,7 @@ const DashboardHero = ({
         <div className="hidden lg:flex items-center justify-center">
           <div className="relative">
             <div className="relative w-44 h-44 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl flex items-center justify-center">
-              <div className="absolute inset-0 bg-linear-to-br from-emerald-300/20 to-green-400/20 rounded-3xl"></div>
+              <div className="absolute -right-5 top-6 w-14 h-14 rounded-full bg-purple-400/20 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-lg"></div>
 
               <svg
                 className="relative z-10"
@@ -123,7 +119,7 @@ const DashboardHero = ({
             </div>
 
             <div className="absolute -left-6 bottom-5 px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg">
-              <p className="text-xs text-white/70">Revenue</p>
+              <p className="text-xs text-white">Revenue</p>
 
               <p
                 className={`text-xs font-medium ${
@@ -135,7 +131,7 @@ const DashboardHero = ({
               </p>
             </div>
 
-            <div className="absolute left-1/2 -translate-x-1/2 -bottom-8 w-32 h-8 bg-emerald-400/40 blur-2xl rounded-full"></div>
+            <div className="absolute left-1/2 -translate-x-1/2 -bottom-8 w-32 h-8 bg-purple-400/40 blur-2xl rounded-full"></div>
           </div>
         </div>
       </div>

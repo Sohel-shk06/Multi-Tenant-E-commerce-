@@ -62,7 +62,7 @@ const RevenueChart = ({ chartData }) => {
 
               <Bar
                 dataKey="revenue"
-                fill="#16a34a"
+                fill="#7c3aed"
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>

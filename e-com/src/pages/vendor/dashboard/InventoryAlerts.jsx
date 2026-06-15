@@ -18,7 +18,7 @@ const InventoryAlerts = ({ products = [] }) => {
 
         <Link
           to="/vendor/products"
-          className="text-sm font-medium text-green-600 hover:text-green-700"
+          className="text-sm font-medium text-blue-600 hover:text-blue-700"
         >
           View All
         </Link>

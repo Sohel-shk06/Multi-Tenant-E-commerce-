@@ -27,7 +27,7 @@ const RecentOrders = ({ orders = [] }) => {
 
         <Link
           to="/vendor/orders"
-          className="text-sm font-medium text-green-600 hover:text-green-700"
+          className="text-sm font-medium text-blue-600 hover:text-blue-700"
         >
           View All
         </Link>
@@ -77,7 +77,7 @@ const RecentOrders = ({ orders = [] }) => {
                 </td>
 
                 <td className="py-4 font-medium text-gray-800">
-                  ₹{order.totalPrice?.toLocaleString()}
+                  ₹{order.totalAmount?.toLocaleString()}
                 </td>
 
                 <td className="py-4">
