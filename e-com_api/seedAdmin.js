@@ -48,111 +48,207 @@
 // seedAdmin();
 
 
-
 // import mongoose from 'mongoose';
 // import dotenv from 'dotenv';
-// import { User } from './models/User.js';
-// import { Store } from './models/Store.js';
-// import { config } from './config/env.js';
+// import { Order } from './models/Order.js';
+// import { Payment } from './models/Payment.js';
 
 // dotenv.config();
 
-// const seedVendor = async () => {
+// const fixPendingPayments = async () => {
 //   try {
-//     // 1. Database connect karein
-//     await mongoose.connect(config.MONGO_URI);
-//     console.log('✅ Database connected successfully.');
+//     await mongoose.connect(process.env.MONGO_URI);
+//     console.log('✅ Connected to MongoDB\n');
 
-//     // 2. Vendor details
-//     const vendorData = {
-//       name: 'TechStore Pro',
-//       email: 'vendor@marketplace.com',
-//       password: 'vendor@12345',
-//       role: 'vendor',
-//       isVerified: true,
-//       status: 'active'
-//     };
+//     // Saare delivered/completed orders dhundhein jinki payment pending hai
+//     const orders = await Order.find({
+//       status: { $in: ['delivered', 'completed'] },
+//       paymentStatus: 'pending',
+//       paymentMethod: 'cod'
+//     });
 
-//     // 3. Check karein ki vendor pehle se exist toh nahi karta
-//     let vendor = await User.findOne({ email: vendorData.email });
-    
-//     if (vendor) {
-//       console.log('⚠️  Vendor already exists!');
-//       console.log(`📧 Email: ${vendor.email}`);
-//       console.log('🔑 Password: vendor@12345');
-//     } else {
-//       // 4. Naya Vendor create karein
-//       vendor = await User.create(vendorData);
-//       console.log('🎉 Vendor account created successfully!');
+//     console.log(`🔍 Found ${orders.length} orders with pending payment\n`);
+
+//     let fixed = 0;
+
+//     for (const order of orders) {
+//       console.log(`\n📦 Processing order: ${order.orderNumber}`);
+
+//       // Payment document dhundhein
+//       let payment = await Payment.findOne({ order: order._id });
+
+//       if (payment) {
+//         // Payment document hai, update karein
+//         payment.paymentStatus = 'paid';
+//         payment.paidAt = order.deliveredAt || order.completedAt || new Date();
+//         payment.gatewayResponse = {
+//           source: 'cod-delivery-fixed',
+//           note: 'Fixed by script - payment collected on delivery',
+//           fixedAt: new Date()
+//         };
+//         await payment.save();
+//         console.log('✅ Payment document updated to PAID');
+//       } else {
+//         // Payment document nahi hai, create karein
+//         payment = await Payment.create({
+//           order: order._id,
+//           customer: order.customer,
+//           vendor: order.vendor,
+//           transactionId: `TXN-${order._id.toString().slice(-8)}-${Date.now()}`,
+//           amount: order.totalAmount,
+//           paymentMethod: 'cod',
+//           paymentStatus: 'paid',
+//           paidAt: order.deliveredAt || order.completedAt || new Date(),
+//           gatewayResponse: {
+//             source: 'cod-delivery-created',
+//             note: 'Created by script - payment collected on delivery'
+//           }
+//         });
+//         console.log('✅ New Payment document created with status PAID');
+//       }
+
+//       // Order ka paymentStatus bhi update karein
+//       order.paymentStatus = 'paid';
+//       await order.save();
+//       console.log('✅ Order paymentStatus updated to PAID');
+
+//       fixed++;
 //     }
 
-//     // 5. Vendor ka Store create karein (agar nahi hai)
-//     let store = await Store.findOne({ vendor: vendor._id });
-    
-//     if (!store) {
-//       store = await Store.create({
-//         name: 'TechStore Pro Official',
-//         slug: 'techstore-pro',
-//         description: 'Premium electronics and gadgets store',
-//         vendor: vendor._id,
-//         status: 'active',
-//         isActive: true
-//       });
-//       console.log('🏪 Vendor store created successfully!');
-//     } else {
-//       console.log('⚠️  Vendor store already exists!');
-//     }
+//     console.log(`\n🎉 Done! Fixed ${fixed} orders.`);
+//     console.log('✅ Ab admin panel refresh karein - sab paid dikh jayega!\n');
 
-//     console.log('\n===========================================');
-//     console.log('📋 VENDOR CREDENTIALS:');
-//     console.log('===========================================');
-//     console.log(`📧 Email:    vendor@marketplace.com`);
-//     console.log(`🔑 Password: vendor@12345`);
-//     console.log(`🏪 Store ID: ${store._id}`);
-//     console.log(`👤 Vendor ID: ${vendor._id}`);
-//     console.log('===========================================\n');
-    
-//     console.log('💡 TIP: Product create karte time ye Store ID use karein!');
-    
 //     process.exit(0);
 //   } catch (error) {
-//     console.error('❌ Error seeding vendor:', error.message);
+//     console.error('❌ Error:', error.message);
+//     console.error('❌ Stack:', error.stack);
 //     process.exit(1);
 //   }
 // };
 
-// seedVendor();
+// fixPendingPayments();
 
 
 import mongoose from 'mongoose';
-import { config } from './config/env.js';
+import dotenv from 'dotenv';
+import { Dispute } from './models/Dispute.js';
+import { Order } from './models/Order.js';
 import { User } from './models/User.js';
 
-const fixVendors = async () => {
+dotenv.config();
+
+const seedDisputes = async () => {
   try {
-    await mongoose.connect(config.MONGO_URI);
-    console.log('✅ Connected to MongoDB');
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('✅ Connected to MongoDB\n');
 
-    // Find all vendors without status field
-    const vendors = await User.find({ 
-      role: 'vendor', 
-      status: { $exists: false } 
-    });
+    // 1. Ek Customer aur Vendor dhundho
+    const customer = await User.findOne({ role: 'customer' });
+    const vendor = await User.findOne({ role: 'vendor' });
 
-    console.log(`📊 Found ${vendors.length} vendors to update`);
-
-    for (const vendor of vendors) {
-      vendor.status = vendor.isVerified ? 'active' : 'pending';
-      await vendor.save();
-      console.log(`✅ Updated: ${vendor.name} → ${vendor.status}`);
+    if (!customer || !vendor) {
+      console.log('❌ Error: Pehle database mein kam se kam 1 Customer aur 1 Vendor create karo.');
+      process.exit(1);
     }
 
-    console.log('🎉 All vendors updated successfully!');
+    // 2. Existing orders dhundho (jinpe dispute raise ho sake)
+    const orders = await Order.find({}).limit(5);
+
+    if (orders.length === 0) {
+      console.log('⚠️  Database mein koi Order nahi mila.');
+      console.log('💡 Pehle customer account se 1-2 test orders place karo, phir yeh script run karo.');
+      process.exit(0);
+    }
+
+    console.log(`🔍 Found ${orders.length} orders. Creating test disputes...\n`);
+
+    // 3. Test Disputes ka data
+    const disputeTemplates = [
+      {
+        subject: 'Product damaged during delivery',
+        reason: 'product_damaged',
+        description: 'The product box was completely crushed and the item inside is broken. I need a replacement or full refund.',
+        priority: 'high',
+        status: 'open'
+      },
+      {
+        subject: 'Received wrong product variant',
+        reason: 'wrong_product',
+        description: 'I ordered a Blue color variant, but I received a Red one. Please arrange a pickup and send the correct item.',
+        priority: 'medium',
+        status: 'under_review'
+      },
+      {
+        subject: 'Order delivered but item missing',
+        reason: 'product_not_received',
+        description: 'The tracking shows delivered, but the package was empty. The delivery boy handed over an empty box.',
+        priority: 'urgent',
+        status: 'vendor_responded'
+      },
+      {
+        subject: 'Poor quality material',
+        reason: 'quality_issue',
+        description: 'The material quality is very poor and does not match the product description on the website.',
+        priority: 'low',
+        status: 'resolved_customer'
+      },
+      {
+        subject: 'Late delivery beyond promised date',
+        reason: 'late_delivery',
+        description: 'The order was promised in 3 days but it took 10 days to arrive. I want compensation for the delay.',
+        priority: 'medium',
+        status: 'closed'
+      }
+    ];
+
+    let createdCount = 0;
+
+    for (let i = 0; i < orders.length; i++) {
+      const order = orders[i];
+      const template = disputeTemplates[i % disputeTemplates.length];
+
+      // Check karo ki is order pe pehle se dispute toh nahi hai
+      const existingDispute = await Dispute.findOne({ order: order._id });
+      if (existingDispute) {
+        console.log(`⏭️  Dispute already exists for Order: ${order.orderNumber}`);
+        continue;
+      }
+
+      // Naya dispute create karo
+      await Dispute.create({
+        order: order._id,
+        raisedBy: customer._id,
+        vendor: order.vendor || vendor._id,
+        customer: customer._id,
+        subject: template.subject,
+        reason: template.reason,
+        description: template.description,
+        priority: template.priority,
+        status: template.status,
+        openedAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000), // Purane dates ke liye
+        messages: [
+          {
+            sender: customer._id,
+            senderRole: 'customer',
+            message: template.description,
+            createdAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000)
+          }
+        ]
+      });
+
+      console.log(`✅ Dispute created [${template.status.toUpperCase()}] for Order: ${order.orderNumber}`);
+      createdCount++;
+    }
+
+    console.log(`\n🎉 Success! Created ${createdCount} test disputes.`);
+    console.log('✅ Ab Admin Panel refresh karo (Ctrl + Shift + R) - Numbers dikhne lagenge!\n');
+
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error('\n❌ Error seeding disputes:', error.message);
+    console.error('Stack:', error.stack);
     process.exit(1);
-  }
+    }
 };
 
-fixVendors();
+seedDisputes();

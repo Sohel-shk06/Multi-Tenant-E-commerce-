@@ -82,6 +82,7 @@ e-com_api/
 │   ├── Cart.js
 │   ├── Wishlist.js
 │   ├── Order.js
+|   |-- Payout.js
 │   ├── Payment.js
 │   ├── Review.js
 │   ├── Subscription.js

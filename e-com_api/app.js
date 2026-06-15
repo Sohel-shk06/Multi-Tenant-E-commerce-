@@ -12,6 +12,8 @@ import userRoutes from './routes/user.routes.js';
 import reviewRoutes from './routes/review.routes.js';
 import { errorMiddleware } from './middlewares/error.middleware.js';
 import paymentRoutes from './routes/payment.routes.js';
+import commissionRoutes from './routes/commission.routes.js';
+import disputeRoutes from './routes/dispute.routes.js';
 
 
 const app = express();
@@ -55,6 +57,8 @@ app.use('/api/stores', storeRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/commissions', commissionRoutes);
+app.use('/api/disputes', disputeRoutes);
 
 // Health Check
 app.get('/health', (req, res) => res.status(200).json({ status: 'OK', message: 'Server is running' }));
