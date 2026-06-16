@@ -1,0 +1,45 @@
+import api from './api';
+
+export const authService = {
+  // User Login
+  login: async (credentials) => {
+    const response = await api.post('/auth/login', credentials);
+    return response.data;
+  },
+
+  // User Registration (Customer/Vendor)
+  register: async (userData) => {
+    const response = await api.post('/auth/register', userData);
+    return response.data;
+  },
+
+  // Get Current Logged-in User
+  getCurrentUser: async () => {
+    const response = await api.get('/auth/me');
+    return response.data;
+  },
+
+  // Forgot Password (Initiate email flow)
+  forgotPassword: async (email) => {
+    const response = await api.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  // Reset Password (With token from email)
+  resetPassword: async (token, newPassword) => {
+    const response = await api.post(`/auth/reset-password/${token}`, { newPassword });
+    return response.data;
+  },
+
+  // Verify Email (Email verification link)
+  verifyEmail: async (token) => {
+    const response = await api.get(`/auth/verify-email/${token}`);
+    return response.data;
+  },
+
+  // Logout
+  logout: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  },
+};
