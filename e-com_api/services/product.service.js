@@ -78,7 +78,7 @@ export const getProductById = async (productId) => {
 export const createProduct = async (productData, vendorId, storeId) => {
   console.log('🔧 Creating product with:', { productData, vendorId, storeId }); // Debug log
 
-  const { title, description, price, comparePrice, category, variants, tags, stock, sku } = productData;
+  const { title, description, price, comparePrice, category, variants, tags, stock, sku, images } = productData;
 
   // Validation
   if (!title || !title.trim()) {
@@ -106,6 +106,7 @@ export const createProduct = async (productData, vendorId, storeId) => {
       category,
       vendor: vendorId,
       store: storeId,
+      images: images || [],
       variants: variants || [],
       tags: tags || [],
       stock: stock || 0,
