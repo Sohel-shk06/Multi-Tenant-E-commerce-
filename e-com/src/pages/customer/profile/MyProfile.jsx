@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { userService } from '../../../services/user.service';
+import { ChangePassword } from './ChangePassword';
 import { 
   User as UserIcon, MapPin, Lock, Save, Plus, Edit, Trash2, 
   Check, Mail, Phone, Shield, Home as HomeIcon, Star 
@@ -21,13 +22,6 @@ export const Profile = () => {
     email: '',
     phone: '',
     avatar: ''
-  });
-
-  // Password state
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
   });
 
   // Addresses state
@@ -92,29 +86,6 @@ export const Profile = () => {
       showMessage('success', 'Profile updated successfully!');
     } catch (error) {
       showMessage('error', error.response?.data?.message || 'Failed to update profile');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ===== Password Change =====
-  const handlePasswordChange = async (e) => {
-    e.preventDefault();
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      showMessage('error', 'New passwords do not match');
-      return;
-    }
-    if (passwordData.newPassword.length < 6) {
-      showMessage('error', 'Password must be at least 6 characters');
-      return;
-    }
-    setLoading(true);
-    try {
-      await userService.changePassword(passwordData.currentPassword, passwordData.newPassword);
-      showMessage('success', 'Password changed successfully!');
-      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    } catch (error) {
-      showMessage('error', error.response?.data?.message || 'Failed to change password');
     } finally {
       setLoading(false);
     }
@@ -513,60 +484,7 @@ export const Profile = () => {
 
             {/* ===== PASSWORD TAB ===== */}
             {activeTab === 'password' && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-2 flex items-center">
-                  <Lock className="w-5 h-5 mr-2 text-gray-500" />
-                  Change Password
-                </h2>
-                <p className="text-sm text-gray-500 mb-6">
-                  Update your password to keep your account secure
-                </p>
-                <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-                    <input
-                      type="password"
-                      value={passwordData.currentPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-                    <input
-                      type="password"
-                      value={passwordData.newPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                      required
-                      minLength="6"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-                    <input
-                      type="password"
-                      value={passwordData.confirmPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                      required
-                      minLength="6"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div className="pt-4">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
-                    >
-                      <Shield className="w-4 h-4" />
-                      <span>{loading ? 'Changing...' : 'Change Password'}</span>
-                    </button>
-                  </div>
-                </form>
-              </div>
+              <ChangePassword />
             )}
 
             {/* ===== ✅ REVIEWS TAB (NEW) ===== */}
