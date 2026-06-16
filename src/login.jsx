@@ -1,266 +1,339 @@
-import { useState } from "react";
+mport { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import {
+Eye,
+EyeOff,
+Mail,
+Lock,
+ShieldCheck,
+} from 'lucide-react';
 
-const AdminLogin = () => {
-  const [step, setStep] = useState(1); // 1 = login, 2 = OTP
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [loading, setLoading] = useState(false);
+export const Login = () => {
+const [formData, setFormData] = useState({
+email: '',
+password: '',
+});
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setStep(2);
-    }, 1500);
-  };
+const { login, isLoading, error } = useAuth();
+const navigate = useNavigate();
 
-  const handleOtpChange = (value, index) => {
-    if (!/^\d*$/.test(value)) return;
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-    if (value && index < 5) {
-      document.getElementById(`otp-${index + 1}`).focus();
-    }
-  };
-
-  const handleVerify = (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      alert("Login Successful!");
-    }, 1500);
-  };
-
-  return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        
-        {/* Logo / Title */}
-        <div style={styles.logoArea}>
-          <div style={styles.logoIcon}>🛒</div>
-          <h1 style={styles.title}>Admin Portal</h1>
-          <p style={styles.subtitle}>
-            {step === 1 ? "Sign in to your account" : "Verify your identity"}
-          </p>
-        </div>
-
-        {/* Step 1 - Login Form */}
-        {step === 1 && (
-          <form onSubmit={handleLogin} style={styles.form}>
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Email Address</label>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="admin@example.com"
-                style={styles.input}
-                required
-              />
-            </div>
-
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Password</label>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="Enter your password"
-                style={styles.input}
-                required
-              />
-            </div>
-
-            <div style={styles.forgotRow}>
-              <span style={styles.forgotLink}>Forgot Password?</span>
-            </div>
-
-            <button type="submit" style={styles.btn} disabled={loading}>
-              {loading ? "Please wait..." : "Continue →"}
-            </button>
-          </form>
-        )}
-
-        {/* Step 2 - OTP Form */}
-        {step === 2 && (
-          <form onSubmit={handleVerify} style={styles.form}>
-            <p style={styles.otpInfo}>
-              📱 OTP sent to your registered phone number
-            </p>
-
-            <div style={styles.otpRow}>
-              {otp.map((val, i) => (
-                <input
-                  key={i}
-                  id={`otp-${i}`}
-                  type="text"
-                  maxLength={1}
-                  value={val}
-                  onChange={(e) => handleOtpChange(e.target.value, i)}
-                  style={styles.otpBox}
-                />
-              ))}
-            </div>
-
-            <p style={styles.resend}>
-              Didn't receive?{" "}
-              <span style={styles.forgotLink}>Resend OTP</span>
-            </p>
-
-            <button type="submit" style={styles.btn} disabled={loading}>
-              {loading ? "Verifying..." : "Verify & Login"}
-            </button>
-
-            <p
-              style={styles.backBtn}
-              onClick={() => setStep(1)}
-            >
-              ← Back to Login
-            </p>
-          </form>
-        )}
-        <p style={{textAlign:"center", marginTop:"10px", fontSize:"13px", color:"#6366f1", cursor:"pointer"}}
-onClick={() => window.location.href = "/setpassword"}>
-First time? Set your password
-</p>
-      </div>
-
-    </div>
-  );
+const handleChange = (e) => {
+setFormData({
+...formData,
+[e.target.name]: e.target.value,
+});
 };
 
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background: "linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontFamily: "'Segoe UI', sans-serif",
-    padding: "20px",
-  },
-  card: {
-    background: "#ffffff",
-    borderRadius: "20px",
-    padding: "40px",
-    width: "100%",
-    maxWidth: "420px",
-    boxShadow: "0 10px 40px rgba(0,0,0,0.08)",
-  },
-  logoArea: {
-    textAlign: "center",
-    marginBottom: "32px",
-  },
-  logoIcon: {
-    fontSize: "40px",
-    marginBottom: "8px",
-  },
-  title: {
-    fontSize: "24px",
-    fontWeight: "700",
-    color: "#1e293b",
-    margin: "0 0 6px 0",
-  },
-  subtitle: {
-    fontSize: "14px",
-    color: "#64748b",
-    margin: 0,
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "16px",
-  },
-  inputGroup: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "6px",
-  },
-  label: {
-    fontSize: "13px",
-    fontWeight: "600",
-    color: "#374151",
-  },
-  input: {
-    padding: "12px 16px",
-    borderRadius: "10px",
-    border: "1.5px solid #e2e8f0",
-    fontSize: "14px",
-    color: "#1e293b",
-    outline: "none",
-    background: "#f8fafc",
-    transition: "border 0.2s",
-  },
-  forgotRow: {
-    textAlign: "right",
-    marginTop: "-8px",
-  },
-  forgotLink: {
-    fontSize: "13px",
-    color: "#6366f1",
-    cursor: "pointer",
-    fontWeight: "600",
-  },
-  btn: {
-    padding: "13px",
-    background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-    color: "#fff",
-    border: "none",
-    borderRadius: "10px",
-    fontSize: "15px",
-    fontWeight: "700",
-    cursor: "pointer",
-    marginTop: "4px",
-  },
-  otpInfo: {
-    textAlign: "center",
-    fontSize: "13px",
-    color: "#64748b",
-    background: "#f1f5f9",
-    padding: "10px",
-    borderRadius: "8px",
-    margin: 0,
-  },
-  otpRow: {
-    display: "flex",
-    gap: "10px",
-    justifyContent: "center",
-  },
-  otpBox: {
-    width: "45px",
-    height: "50px",
-    textAlign: "center",
-    fontSize: "20px",
-    fontWeight: "700",
-    border: "1.5px solid #e2e8f0",
-    borderRadius: "10px",
-    background: "#f8fafc",
-    color: "#1e293b",
-    outline: "none",
-  },
-  resend: {
-    textAlign: "center",
-    fontSize: "13px",
-    color: "#64748b",
-    margin: 0,
-  },
-  backBtn: {
-    textAlign: "center",
-    fontSize: "13px",
-    color: "#6366f1",
-    cursor: "pointer",
-    fontWeight: "600",
-    margin: 0,
-  },
+const handleSubmit = async (e) => {
+e.preventDefault();
+
+const resultAction = await login(formData);  
+
+if (resultAction.type === 'auth/login/fulfilled') {  
+  const role = resultAction.payload.user.role;  
+
+  if (role === 'admin') {  
+    navigate('/admin/dashboard', {  
+      replace: true,  
+    });  
+  } else if (role === 'vendor') {  
+    navigate('/vendor/dashboard', {  
+      replace: true,  
+    });  
+  } else {  
+    navigate('/customer/dashboard', {  
+      replace: true,  
+    });  
+  }  
+}
+
 };
 
-export default AdminLogin;
+return (
+<div
+className="min-h-screen w-screen flex items-center justify-center px-6 py-10 overflow-hidden relative"
+style={{
+background:
+'linear-gradient(135deg,#EEF2FF 0%,#E0E7FF 45%,#DDE5FF 100%)',
+}}
+>
+{/* Background Glow */}
+<div
+className="absolute rounded-full animate-pulse"
+style={{
+width: '500px',
+height: '500px',
+top: '-150px',
+left: '-150px',
+background: 'rgba(99,102,241,.20)',
+filter: 'blur(150px)',
+}}
+/>
+
+<div  
+    className="absolute rounded-full animate-pulse"  
+    style={{  
+      width: '450px',  
+      height: '450px',  
+      bottom: '-120px',  
+      right: '-120px',  
+      background: 'rgba(129,140,248,.18)',  
+      filter: 'blur(150px)',  
+    }}  
+  />  
+
+  {/* Grid */}  
+  <div  
+    className="absolute inset-0 opacity-[0.05]"  
+    style={{  
+      backgroundImage:  
+        'linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px)',  
+      backgroundSize: '40px 40px',  
+    }}  
+  />  
+
+  <div className="relative z-10 max-w-7xl w-full grid lg:grid-cols-2 gap-20 items-center">  
+
+    {/* LEFT */}  
+    <div className="hidden lg:block">  
+
+      <div className="inline-flex items-center gap-2 rounded-full border border-[#818CF8] bg-[#EEF2FF] px-4 py-2 text-[#4338CA] text-sm mb-6">  
+        <ShieldCheck size={16} />  
+        Enterprise Security  
+      </div>  
+
+      <h1 className="text-6xl font-bold leading-tight text-[#1E1B4B]">  
+        Manage Your  
+        <br />  
+        <span className="bg-gradient-to-r from-[#6366F1] to-[#4338CA] bg-clip-text text-transparent">  
+          E-Commerce  
+        </span>  
+        <br />  
+        Platform  
+      </h1>  
+
+      <p className="mt-8 text-[#4338CA] text-lg leading-relaxed max-w-xl">  
+        Securely manage customers, vendors, products and orders  
+        with an elegant and powerful admin dashboard.  
+      </p>  
+
+      <div className="flex gap-6 mt-10">  
+
+        <div className="rounded-2xl border border-[#818CF8] bg-white shadow-xl px-8 py-5">  
+          <h3 className="text-[#312E81] text-3xl font-bold">24/7</h3>  
+          <p className="text-[#4338CA] text-sm mt-1 font-medium">  
+            Monitoring  
+          </p>  
+        </div>  
+
+        <div className="rounded-2xl border border-[#818CF8] bg-white shadow-xl px-8 py-5">  
+          <h3 className="text-[#312E81] text-3xl font-bold">99.9%</h3>  
+          <p className="text-[#4338CA] text-sm mt-1 font-medium">  
+            Uptime  
+          </p>  
+        </div>  
+
+        <div className="rounded-2xl border border-[#818CF8] bg-white shadow-xl px-8 py-5">  
+          <h3 className="text-[#312E81] text-3xl font-bold">100%</h3>  
+          <p className="text-[#4338CA] text-sm mt-1 font-medium">  
+            Secure  
+          </p>  
+        </div>  
+
+      </div>  
+
+    </div>  
+    {/* RIGHT CARD */}  
+    <div  
+      className="rounded-[35px] p-10 transition-all duration-500 hover:-translate-y-2"  
+      style={{  
+        background: 'rgba(255,255,255,.85)',  
+        border: '1px solid rgba(99,102,241,.15)',  
+        backdropFilter: 'blur(35px)',  
+        boxShadow:  
+          '0 25px 80px rgba(67,56,202,.18), 0 8px 30px rgba(99,102,241,.10)',  
+      }}  
+    >  
+      <div className="flex justify-center mb-8">  
+
+        <div  
+          className="flex items-center justify-center"  
+          style={{  
+            width: 90,  
+            height: 90,  
+            borderRadius: 30,  
+            background: 'rgba(255,255,255,.05)',  
+            border: '1px solid rgba(255,255,255,.08)',  
+          }}  
+        >  
+          <ShieldCheck  
+            size={40}  
+            color="#6366F1"  
+          />  
+        </div>  
+
+      </div>  
+
+      <h2 className="text-3xl font-bold text-[#1E1B4B] text-center">  
+        Welcome Back  
+      </h2>  
+
+      <p className="text-[#4338CA] text-center mt-3 mb-8">  
+        Sign in to access your dashboard  
+      </p>  
+
+      <div className="flex justify-center gap-3 mt-5 mb-8">  
+
+        <div className="rounded-full bg-white border border-[#818CF8] px-5 py-2 text-sm font-medium text-[#4338CA] shadow-md hover:shadow-lg transition-all duration-300">  
+          🛡️ Secure  
+        </div>  
+
+        <div className="rounded-full bg-white border border-[#818CF8] px-5 py-2 text-sm font-medium text-[#4338CA] shadow-md hover:shadow-lg transition-all duration-300">  
+          ⚡ Fast  
+        </div>  
+
+        <div className="rounded-full bg-white border border-[#818CF8] px-5 py-2 text-sm font-medium text-[#4338CA] shadow-md hover:shadow-lg transition-all duration-300">  
+          ✅ Reliable  
+        </div>  
+
+      </div>  
+
+      {error && (  
+        <div className="mb-5 rounded-xl border border-red-500/30 bg-red-500/10 p-4">  
+          <p className="text-red-300 text-sm">  
+            {error}  
+          </p>  
+        </div>  
+      )}  
+
+      <form  
+        onSubmit={handleSubmit}  
+        className="space-y-6"  
+      >  
+
+        {/* Email */}  
+        <div>  
+
+          <label className="text-sm text-[#4338CA] mb-2 block font-medium">  
+            Email Address  
+          </label>  
+
+          <div className="relative">  
+
+            <Mail  
+              size={18}  
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400"  
+            />  
+
+            <input  
+              type="email"  
+              name="email"  
+              required  
+              value={formData.email}  
+              onChange={handleChange}  
+              placeholder="you@example.com"  
+              className="w-full h-14 rounded-2xl bg-white border-2 border-[#C7D2FE] text-[#1E1B4B] pl-12 pr-4 outline-none transition-all duration-300 hover:border-[#818CF8] focus:ring-4 focus:ring-[#6366F1]/20"  
+            />  
+
+          </div>  
+
+        </div>  
+
+        {/* Password */}  
+        <div>  
+
+          <label className="text-sm text-[#4338CA] mb-2 block font-medium">  
+            Password  
+          </label>  
+
+          <div className="relative">  
+
+            <Lock  
+              size={18}  
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400"  
+            />  
+
+            <input  
+              type={showPassword ? 'text' : 'password'}  
+              name="password"  
+              required  
+              value={formData.password}  
+              onChange={handleChange}  
+              placeholder="••••••••"  
+              className="w-full h-14 rounded-2xl bg-white border-2 border-[#C7D2FE] text-[#1E1B4B] pl-12 pr-14 outline-none transition-all duration-300 hover:border-[#818CF8] focus:ring-4 focus:ring-[#6366F1]/20"  
+            />  
+
+            <button  
+              type="button"  
+              onClick={() => setShowPassword(!showPassword)}  
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6366F1]"  
+            >  
+              {showPassword ? (  
+                <EyeOff size={18} />  
+              ) : (  
+                <Eye size={18} />  
+              )}  
+            </button>  
+
+          </div>  
+
+        </div>  
+
+        <div className="flex justify-between items-center">  
+
+          <label className="flex gap-2 items-center text-[#4338CA] text-sm">  
+            <input  
+              type="checkbox"  
+              style={{  
+                accentColor: '#6366F1',  
+              }}  
+            />  
+            Remember me  
+          </label>  
+
+          <Link  
+            to="/forgot-password"  
+            className="text-[#4338CA] text-sm hover:text-[#312E81]"  
+          >  
+            Forgot Password?  
+          </Link>  
+
+        </div>  
+
+        <button  
+          type="submit"  
+          disabled={isLoading}  
+          className="w-full h-14 rounded-2xl text-white font-semibold transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-2xl"  
+          style={{  
+            background:  
+              'linear-gradient(135deg,#6366F1 0%,#4338CA 100%)',  
+            boxShadow:  
+              '0 15px 40px rgba(99,102,241,.4)',  
+          }}  
+        > 
+        {isLoading ? (  
+            'Signing In...'  
+          ) : (  
+            <span className="flex items-center justify-center gap-2">  
+              Sign In  
+              <span className="text-xl">→</span>  
+            </span>  
+          )}  
+        </button>  
+
+        <p className="text-center text-[#6366F1] text-xs pt-5">  
+          © 2025 Admin Portal • Multi-Tenant E-Commerce Platform  
+        </p>  
+
+      </form>  
+
+    </div>  
+  </div>  
+</div>
+
+);
+};
+
