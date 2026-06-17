@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect,useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuth } from "../../../hooks/useAuth";
 import { Link } from "react-router-dom";
@@ -23,6 +23,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { vendorService } from '../../../services/vendor.service';
 //component
 import OrderStatusChart from "./OrderStatusChart";
 import RevenueChart from "./RevenueChart";
@@ -30,67 +31,33 @@ import TopProducts from "./TopProducts";
 import InventoryAlerts from "./InventoryAlerts";
 import DashboardHero from "./DashboardHero";
 import RecentOrders from "./RecentOrders";
-// import { fetchVendorOrders } from "../../../app/store/vendorOrderSlice";
-
-// const topProducts = [
-//   {
-//     _id: 1,
-//     name: "Wireless Headphones",
-//     image: "/images/headphone.jpg",
-//     revenue: 12580,
-//     sold: 632,
-//     percentage: 90,
-//   },
-//   {
-//     _id: 2,
-//     name: "Smart Watch",
-//     image: "/images/watch.jpg",
-//     revenue: 8450,
-//     sold: 423,
-//     percentage: 70,
-//   },
-//   {
-//     _id: 3,
-//     name: "Premium Sneakers",
-//     image: "/images/shoes.jpg",
-//     revenue: 6890,
-//     sold: 345,
-//     percentage: 55,
-//   },
-// ];
-
-// const products = [
-//   {
-//     _id: 1,
-//     name: "Wireless Mouse",
-//     sku: "WM-101",
-//     stock: 3,
-//   },
-//   {
-//     _id: 2,
-//     name: "Gaming Keyboard",
-//     sku: "GK-202",
-//     stock: 5,
-//   },
-//   {
-//     _id: 3,
-//     name: "USB Cable",
-//     sku: "UC-303",
-//     stock: 2,
-//   },
-// ];
 
 export const Dashboard = () => {
+  
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true)
   const { user } = useAuth();
   const dispatch = useDispatch();
   const { stats, chartData, recentOrders, isLoading, error } = useSelector(
     (state) => state.vendorDashboard,
   );
 
+  const loadData = async () => {
+    try {
+      const result = await vendorService.getProductAnalytics();
+      setData(result);
+    } catch (error) {
+      console.error('Failed to load product analytics', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     dispatch(fetchVendorStats());
     dispatch(fetchVendorRevenueChart());
     dispatch(fetchVendorRecentOrders());
+    loadData();
   }, [dispatch]);
 
   // Loading state
@@ -118,7 +85,8 @@ export const Dashboard = () => {
   }
 
   // Access products from vendorProducts slice for InventoryAlerts
-  const { products } = useSelector((state) => state.vendorProducts);
+  console.log("data:-",data);
+const { products } = useSelector((state) => state.vendorProducts);
 
   const lowStockProducts = products.filter((product) => product.stock <= 10);
 
@@ -202,23 +170,23 @@ export const Dashboard = () => {
       </div>
 
       {/* Charts & Recent Orders Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-3">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="lg:col-span-1">
           <RevenueChart chartData={chartData} />
         </div>
 
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-1">
           <OrderStatusChart />
         </div>
       </div>
 
       {/* Top Products & Inventory Alerts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mt-6">
-        <div className="lg:col-span-3">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <div className="lg:col-span-1">
           <TopProducts products={topProducts} />
         </div>
 
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-1">
           <InventoryAlerts products={lowStockProducts} />
         </div>
       </div>

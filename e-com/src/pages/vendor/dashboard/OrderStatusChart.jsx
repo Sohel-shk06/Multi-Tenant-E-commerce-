@@ -1,71 +1,69 @@
-import { useMemo } from "react";
-import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
 import {
   PieChart,
   Pie,
   Cell,
   ResponsiveContainer,
 } from "recharts";
+import { vendorService } from "../../../services/vendor.service";
 
 const COLORS = {
   delivered: "#22C55E",
   pending: "#FACC15",
-  processing: "#3B82F6",
-  cancelled: "#EF4444",
+  confirmed: "#3B82F6",
+  completed: "#EF4444",
 };
 
 const OrderStatusChart = () => {
-  const { orders = [] } = useSelector((state) => state.vendorOrders);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const chartData = useMemo(() => {
-    const counts = {
-      delivered: 0,
-      pending: 0,
-      processing: 0,
-      cancelled: 0,
-    };
+  useEffect(() => {
+    loadData();
+  }, []);
 
-    orders.forEach((order) => {
-      const status = order.status?.toLowerCase();
+  const loadData = async () => {
+    try {
+      const result = await vendorService.getOrderAnalytics();
+      setData(result.statusBreakdown);
+      console.log("Order Analytics Data:", result.statusBreakdown);
+    } catch (error) {
+      console.error("Failed to load order analytics", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      if (status === "completed" || status === "delivered") {
-        counts.delivered++;
-      } else if (status === "pending") {
-        counts.pending++;
-      } else if (
-        status === "confirmed" ||
-        status === "shipped" ||
-        status === "processing"
-      ) {
-        counts.processing++;
-      } else if (status === "cancelled") {
-        counts.cancelled++;
-      }
-    });
+  if (loading) {
+    return (
+      <div className="bg-white rounded-3xl p-6 shadow-sm border">
+        Loading...
+      </div>
+    );
+  }
 
-    return [
-      {
-        name: "Delivered",
-        value: counts.delivered,
-        color: COLORS.delivered,
-      },
-      {
-        name: "Pending",
-        value: counts.pending,
-        color: COLORS.pending,
-      },
-      {
-        name: "Processing",
-        value: counts.processing,
-        color: COLORS.processing,
-      },
-      {
-        name: "Cancelled",
-        value: counts.cancelled,
-        color: COLORS.cancelled,
-      },
-    ];
-  }, [orders]);
+  const chartData = [
+    {
+      name: "Delivered",
+      value: data[0].count || 0,
+      color: COLORS.delivered,
+    },
+    {
+      name: "Pending",
+      value: data[3].count || 0,
+      color: COLORS.pending,
+    },
+    {
+      name: "confirmed",
+      value: data[2].count || 0,
+      color: COLORS.confirmed,
+    },
+    {
+      name: "Completed",
+      value: data[1].count || 0,
+      color: COLORS.completed,
+    },
+  ];
 
   const totalOrders = chartData.reduce(
     (sum, item) => sum + item.value,
@@ -73,22 +71,26 @@ const OrderStatusChart = () => {
   );
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 h-full">
-      <h2 className="text-lg font-semibold text-gray-800 mb-6">
-        Order Status
+    <div className="relative overflow-hidden bg-white rounded-3xl p-6 shadow-sm border border-slate-200 h-full">
+
+      <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-100 blur-3xl opacity-50"></div>
+
+      <h2 className="text-lg font-bold text-slate-900 mb-6">
+        📊 Order Status
       </h2>
-    
-      <div className="flex items-center justify-between">
-        {/* Chart */}
-        <div className="relative w-[220px] h-[220px]">
+
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+
+        {/* Donut Chart */}
+        <div className="relative w-full max-w-sm h-64">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={chartData}
                 dataKey="value"
-                innerRadius={65}
-                outerRadius={95}
-                paddingAngle={3}
+                innerRadius={70}
+                outerRadius={100}
+                paddingAngle={4}
               >
                 {chartData.map((entry) => (
                   <Cell
@@ -100,19 +102,19 @@ const OrderStatusChart = () => {
             </PieChart>
           </ResponsiveContainer>
 
-          {/* Center Text */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <h3 className="text-3xl font-bold text-gray-900">
+            <h3 className="text-4xl font-bold text-slate-900">
               {totalOrders}
             </h3>
-            <p className="text-sm text-gray-500">
-              Total Orders
+
+            <p className="text-sm text-slate-500">
+              Orders
             </p>
           </div>
         </div>
 
         {/* Legend */}
-        <div className="space-y-4">
+        <div className="w-full max-w-xs space-y-3">
           {chartData.map((item) => {
             const percentage =
               totalOrders > 0
@@ -122,26 +124,35 @@ const OrderStatusChart = () => {
             return (
               <div
                 key={item.name}
-                className="flex items-center gap-3"
+                className="flex items-center justify-between p-3 rounded-2xl bg-slate-50"
               >
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                />
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{
+                      backgroundColor: item.color,
+                    }}
+                  />
 
-                <div>
-                  <p className="text-sm font-medium text-gray-700">
+                  <span className="font-medium text-slate-700">
                     {item.name}
+                  </span>
+                </div>
+
+                <div className="text-right">
+                  <p className="font-semibold text-slate-900">
+                    {item.value}
                   </p>
 
-                  <p className="text-xs text-gray-500">
-                    {item.value} ({percentage}%)
+                  <p className="text-xs text-slate-500">
+                    {percentage}%
                   </p>
                 </div>
               </div>
             );
           })}
         </div>
+
       </div>
     </div>
   );

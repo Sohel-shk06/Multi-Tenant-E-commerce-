@@ -36,19 +36,19 @@ const InventoryAlerts = ({ products = [] }) => {
               className="flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
-                {/* <img
+                <img
                   src={
                     product.images?.[0]?.url ||
                     product.image ||
                     "/placeholder-product.png"
                   }
-                  alt={product.name}
+                  alt={product.title}
                   className="w-12 h-12 rounded-lg object-cover border border-gray-200"
-                /> */}
+                />
 
                 <div>
                   <h3 className="text-sm font-medium text-gray-800">
-                    {product.name}
+                    {product.title}
                   </h3>
 
                   <p className="text-xs text-gray-500">

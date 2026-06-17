@@ -1,6 +1,12 @@
-import { useEffect, useState } from 'react';
-import { vendorService } from '../../../services/vendor.service';
-import { TrendingUp, TrendingDown, DollarSign, ShoppingBag, Calendar } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { vendorService } from "../../../services/vendor.service";
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  ShoppingBag,
+  Calendar,
+} from "lucide-react";
 
 export const SalesAnalytics = () => {
   const [data, setData] = useState(null);
@@ -15,98 +21,157 @@ export const SalesAnalytics = () => {
       const result = await vendorService.getSalesAnalytics();
       setData(result);
     } catch (error) {
-      console.error('Failed to load sales analytics', error);
+      console.error("Failed to load sales analytics", error);
     } finally {
       setLoading(false);
     }
   };
 
   if (loading) {
-    return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div></div>;
+    return (
+      <div className="flex justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    );
   }
 
-  if (!data) return <div className="p-6 text-gray-500">Failed to load data.</div>;
+  if (!data)
+    return <div className="p-6 text-gray-500">Failed to load data.</div>;
 
   const GrowthBadge = ({ value }) => (
-    <span className={`inline-flex items-center text-xs font-medium ${value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-      {value >= 0 ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
-      {value >= 0 ? '+' : ''}{value}% vs last month
+    <span
+      className={`inline-flex items-center text-xs font-medium ${value >= 0 ? "text-green-600" : "text-red-600"}`}
+    >
+      {value >= 0 ? (
+        <TrendingUp className="w-3 h-3 mr-1" />
+      ) : (
+        <TrendingDown className="w-3 h-3 mr-1" />
+      )}
+      {value >= 0 ? "+" : ""}
+      {value}% vs last month
     </span>
   );
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 bg-slate-50 min-h-screen">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Sales Overview</h1>
-        <p className="text-sm text-gray-500 mt-1">Quick snapshot of your sales performance.</p>
+        <h1 className="text-3xl font-bold text-slate-900">
+          Sales Analytics 📈
+        </h1>
+        <p className="text-slate-500 mt-1">
+          Track revenue, orders and store performance.
+        </p>
       </div>
 
-      {/* Today's Stats */}
-      <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl p-6 text-white">
-        <div className="flex items-center justify-between mb-4">
+      {/* Hero Card */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-8 text-white shadow-xl">
+        <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10"></div>
+        <div className="absolute bottom-0 left-1/3 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
+
+        <div className="relative flex items-center justify-between">
           <div>
-            <p className="text-blue-100 text-sm">Today's Sales</p>
-            <p className="text-3xl font-bold mt-1">₹{data.today.revenue.toLocaleString()}</p>
-          </div>
-          <div className="p-3 bg-white/20 rounded-lg">
-            <Calendar className="w-8 h-8" />
-          </div>
-        </div>
-        <p className="text-blue-100 text-sm">{data.today.orders} orders today</p>
-      </div>
+            <p className="text-blue-100 text-sm">Today's Revenue</p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* This Month */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900">This Month</h3>
-            <div className="p-2 bg-green-50 rounded-lg">
-              <DollarSign className="w-5 h-5 text-green-600" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold text-gray-900 mb-2">₹{data.thisMonth.revenue.toLocaleString()}</p>
-          <p className="text-sm text-gray-500 mb-3">{data.thisMonth.orders} orders</p>
-          <GrowthBadge value={data.growth.revenue} />
-        </div>
+            <h2 className="text-5xl font-bold mt-2">
+              ₹{data.today.revenue.toLocaleString()}
+            </h2>
 
-        {/* Last Month Comparison */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900">Last Month</h3>
-            <div className="p-2 bg-gray-50 rounded-lg">
-              <ShoppingBag className="w-5 h-5 text-gray-600" />
-            </div>
+            <p className="text-blue-100 mt-3">
+              {data.today.orders} Orders Today
+            </p>
           </div>
-          <p className="text-3xl font-bold text-gray-900 mb-2">₹{data.lastMonth.revenue.toLocaleString()}</p>
-          <p className="text-sm text-gray-500 mb-3">{data.lastMonth.orders} orders</p>
-          <GrowthBadge value={data.growth.orders} />
+
+          <div className="h-20 w-20 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
+            <Calendar className="h-10 w-10" />
+          </div>
         </div>
       </div>
 
-      {/* Performance Summary */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Performance Summary</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-600 mb-2">Revenue Growth</p>
-            <p className={`text-2xl font-bold ${data.growth.revenue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {data.growth.revenue >= 0 ? '+' : ''}{data.growth.revenue}%
-            </p>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+        <div className="bg-white rounded-2xl p-5 shadow-sm border">
+          <p className="text-sm text-slate-500">This Month Revenue</p>
+          <h3 className="text-3xl font-bold mt-2">
+            ₹{data.thisMonth.revenue.toLocaleString()}
+          </h3>
+          <p className="text-sm text-slate-500 mt-2">
+            {data.thisMonth.orders} Orders
+          </p>
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 shadow-sm border">
+          <p className="text-sm text-slate-500">Last Month</p>
+          <h3 className="text-3xl font-bold mt-2">
+            ₹{data.lastMonth.revenue.toLocaleString()}
+          </h3>
+          <p className="text-sm text-slate-500 mt-2">
+            {data.lastMonth.orders} Orders
+          </p>
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 shadow-sm border">
+          <p className="text-sm text-slate-500">Revenue Growth</p>
+          <h3 className="text-3xl font-bold text-green-600 mt-2">
+            +{data.growth.revenue}%
+          </h3>
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 shadow-sm border">
+          <p className="text-sm text-slate-500">Avg Order Value</p>
+          <h3 className="text-3xl font-bold mt-2">
+            ₹
+            {data.thisMonth.orders > 0
+              ? Math.round(
+                  data.thisMonth.revenue / data.thisMonth.orders,
+                ).toLocaleString()
+              : 0}
+          </h3>
+        </div>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        {/* Revenue Trend */}
+        <div className="bg-white rounded-3xl p-6 shadow-sm border">
+          <h3 className="font-semibold text-lg mb-4">Revenue Trend</h3>
+
+          <div className="h-80 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center">
+            <span className="text-slate-400">Chart Coming Soon</span>
           </div>
-          <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <p className="text-sm text-purple-600 mb-2">Orders Growth</p>
-            <p className={`text-2xl font-bold ${data.growth.orders >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {data.growth.orders >= 0 ? '+' : ''}{data.growth.orders}%
-            </p>
-          </div>
-          <div className="text-center p-4 bg-green-50 rounded-lg">
-            <p className="text-sm text-green-600 mb-2">Avg Order Value</p>
-            <p className="text-2xl font-bold text-gray-900">
-              ₹{data.thisMonth.orders > 0 ? Math.round(data.thisMonth.revenue / data.thisMonth.orders).toLocaleString() : 0}
-            </p>
+        </div>
+
+        {/* Category Sales */}
+        <div className="bg-white rounded-3xl p-6 shadow-sm border">
+          <h3 className="font-semibold text-lg mb-4">Sales By Category</h3>
+
+          <div className="h-80 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center">
+            <span className="text-slate-400">Pie Chart Placeholder</span>
           </div>
         </div>
       </div>
+
+      {/* Insights */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        {/* Top Product */}
+        <div className="bg-white rounded-3xl p-6 shadow-sm border">
+          <h3 className="font-semibold text-lg mb-4">🏆 Top Selling Product</h3>
+
+          <div className="h-48 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center">
+            <span className="text-slate-400">Waiting For Backend Data</span>
+          </div>
+        </div>
+
+        {/* payment methods */}
+        <div className="bg-white rounded-3xl p-6 shadow-sm border">
+          <h3 className="font-semibold text-lg mb-4">💳 Payment Methods</h3>
+
+          <div className="h-56 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center">
+            <span className="text-slate-400">Payment Distribution</span>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 };

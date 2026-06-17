@@ -17,30 +17,30 @@ const TopProducts = ({ products = [] }) => {
           View All
         </Link>
       </div>
-    
+    {products.length > 0?(
       <div className="space-y-5">
         {products.map((product) => (
 
           <div
-            key={product._id}
+            key={product?._id}
             className="flex items-center gap-4"
           >
             {/* Product Image */}
-            {/* <img
-              src={product.image}
-              alt={product.name}
+            <img
+              src={product?.images[0]?.url}
+              alt={product?.title}
               className="w-12 h-12 rounded-lg object-cover border"
-            /> */}
+            />
 
             {/* Product Info */}
             <div className="flex-1">
               <div className="flex justify-between mb-1">
                 <h3 className="text-sm font-medium text-gray-800">
-                  {product.title}
+                  {product?.title}
                 </h3>
 
                 <span className="text-sm font-semibold text-gray-900">
-                  ₹{product.price?.toLocaleString()}
+                  ₹{product?.price?.toLocaleString()}
                 </span>
               </div>
 
@@ -48,18 +48,21 @@ const TopProducts = ({ products = [] }) => {
                 <div
                   className="bg-violet-600 h-2 rounded-full"
                   style={{
-                    width: `${product.percentage}%`,
+                    width: `${product?.percentage}%`,
                   }}
                 />
               </div>
 
               <p className="text-xs text-gray-500 mt-1">
-                {product.sold} sold
+                {product?.totalsold} sold
               </p>
             </div>
           </div>
         ))}
       </div>
+      ):(
+        <p className="text-center text-gray-500 py-8">No sales yet.</p>
+      )}
     </div>
   );
 };

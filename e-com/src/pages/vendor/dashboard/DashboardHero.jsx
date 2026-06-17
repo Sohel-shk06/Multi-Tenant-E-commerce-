@@ -42,7 +42,7 @@ const DashboardHero = ({ user, recentOrders = [] }) => {
         ? 100
         : 0;
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-purple-700 via-violet-600 to-fuchsia-500 p-8 text-white shadow-xl">
+    <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[#6366F1] to-[#818CF8] p-8 text-white shadow-xl">
       {/* Background Glow */}
       <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-purple-400/15 rounded-full blur-3xl"></div>
 
