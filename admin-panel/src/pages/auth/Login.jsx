@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../../components/ui/Button';
@@ -6,22 +6,16 @@ import { Input } from '../../components/ui/Input';
 
 export const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const { login, isLoading, error } = useAuth();
+  
+  // 1. Extract isAuthenticated and user from your useAuth hook
+  const { user, login, isLoading, error, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const resultAction = await login(formData);
-    
-    // 🔥 FIX: login.fulfilled.match() ki jagah direct type check karein
-    if (resultAction.type === 'auth/login/fulfilled') {
-      const role = resultAction.payload.user.role;
+  // 2. Use useEffect to handle navigation when auth state changes
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const role = user.role;
       
-      // Role ke hisaab se Dashboard par redirect
       if (role === 'admin') {
         navigate('/admin/dashboard', { replace: true });
       } else if (role === 'vendor') {
@@ -30,6 +24,17 @@ export const Login = () => {
         navigate('/customer/dashboard', { replace: true });
       }
     }
+  }, [isAuthenticated, user, navigate]);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // 3. Simplify handleSubmit - no need for async/await or .match()
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Just dispatch the login action. The useEffect above will handle the redirect.
+    login(formData);
   };
 
   return (

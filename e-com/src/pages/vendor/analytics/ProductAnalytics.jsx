@@ -14,6 +14,7 @@ export const ProductAnalytics = () => {
   const loadData = async () => {
     try {
       const result = await vendorService.getProductAnalytics();
+      console.log('📊 Product Analytics Data:', result);
       setData(result);
     } catch (error) {
       console.error('Failed to load product analytics', error);
@@ -61,40 +62,51 @@ export const ProductAnalytics = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Selling Products */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-            <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
-            Top Selling Products
-          </h2>
-          {data.topProducts.length > 0 ? (
-            <div className="space-y-3">
-              {data.topProducts.map((product, idx) => (
-                <div key={idx} className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg">
-                  <span className="text-lg font-bold text-gray-400 w-6">#{idx + 1}</span>
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-                    {product._id?.images?.[0]?.url ? (
-                      <img src={product._id.images[0].url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package className="w-5 h-5 text-gray-400" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{product._id?.title}</p>
-                    <div className="flex items-center space-x-3 mt-1 text-xs text-gray-500">
-                      <span>{product.totalSold} sold</span>
-                      <span>•</span>
-                      <span className="font-semibold text-green-600">₹{product.totalRevenue.toLocaleString()}</span>
-                    </div>
-                  </div>
+<div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+  <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+    <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
+    Top Selling Products
+  </h2>
+  {data.topProducts && data.topProducts.length > 0 ? (
+    <div className="space-y-3">
+      {data.topProducts.map((item, idx) => {
+        // ✅ Defensive coding - multiple fallbacks
+        const product = item.product || {};
+        const title = product.title || 'Unknown Product';
+        const image = product.images?.[0]?.url || product.images?.[0] || null;
+        
+        return (
+          <div key={idx} className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg">
+            <span className="text-lg font-bold text-gray-400 w-6">#{idx + 1}</span>
+            <div className="w-12 h-12 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
+              {image ? (
+                <img src={image} alt={title} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Package className="w-5 h-5 text-gray-400" />
                 </div>
-              ))}
+              )}
             </div>
-          ) : (
-            <p className="text-center text-gray-500 py-8">No sales yet.</p>
-          )}
-        </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {title}
+              </p>
+              <div className="flex items-center space-x-3 mt-1 text-xs text-gray-500">
+                <span>{item.totalSold || 0} sold</span>
+                <span>•</span>
+                <span className="font-semibold text-green-600">
+                  ₹{(item.totalRevenue || 0).toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  ) : (
+    <p className="text-center text-gray-500 py-8">No sales yet.</p>
+  )}
+</div>
 
         {/* Low Stock Alert */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -102,7 +114,7 @@ export const ProductAnalytics = () => {
             <AlertTriangle className="w-5 h-5 mr-2 text-orange-600" />
             Low Stock Alert
           </h2>
-          {data.lowStockProducts.length > 0 ? (
+          {data.lowStockProducts && data.lowStockProducts.length > 0 ? (
             <div className="space-y-3">
               {data.lowStockProducts.map((product, idx) => (
                 <div key={idx} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
@@ -125,7 +137,7 @@ export const ProductAnalytics = () => {
       </div>
 
       {/* Products without reviews */}
-      {data.productsWithoutReviews.length > 0 && (
+      {data.productsWithoutReviews && data.productsWithoutReviews.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
             <Star className="w-5 h-5 mr-2 text-yellow-500" />
