@@ -60,30 +60,9 @@ export const getVendorProduct = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, product, 'Product fetched successfully'));
 });
 
-export const createVendorProduct = asyncHandler(async (req, res) => {
-  console.log('📥 Creating product with data:', req.body); // Debug log
-  console.log('👤 Vendor ID:', req.user._id);
-  
-  try {
-    const product = await vendorService.createVendorProduct(req.user._id, req.body);
-    console.log('✅ Product created:', product._id);
-    return res.status(201).json(new ApiResponse(201, product, 'Product created successfully'));
-  } catch (error) {
-    console.error('❌ Error creating product:', error);
-    console.error('❌ Error details:', {
-      message: error.message,
-      name: error.name,
-      code: error.code,
-      stack: error.stack
-    });
-    throw error;
-  }
-});
 
-export const updateVendorProduct = asyncHandler(async (req, res) => {
-  const product = await vendorService.updateVendorProduct(req.user._id, req.params.productId, req.body);
-  return res.status(200).json(new ApiResponse(200, product, 'Product updated successfully'));
-});
+
+
 
 export const deleteVendorProduct = asyncHandler(async (req, res) => {
   await vendorService.deleteVendorProduct(req.user._id, req.params.productId);
@@ -220,4 +199,63 @@ export const getVendorCustomerAnalytics = asyncHandler(async (req, res) => {
 export const getVendorSalesAnalytics = asyncHandler(async (req, res) => {
   const result = await vendorService.getVendorSalesAnalytics(req.user._id);
   return res.status(200).json(new ApiResponse(200, result, 'Sales analytics fetched successfully'));
+});
+
+
+// ✅ UPDATED: createVendorProduct with image upload
+// ✅ UPDATED: createVendorProduct with image upload
+export const createVendorProduct = asyncHandler(async (req, res) => {
+  console.log('📥 Creating product with data:', req.body);
+  console.log('📸 Files received:', req.files?.length || 0);
+  console.log('👤 Vendor ID:', req.user._id);
+  
+  try {
+    // ✅ Image validation - at least 3 images required
+    if (!req.files || req.files.length < 3) {
+      throw new ApiError(400, 'At least 3 product images are required');
+    }
+
+    // ✅ Upload images to Cloudinary
+    console.log('📤 Uploading images to Cloudinary...');
+    const { uploadMultipleToCloudinary } = await import('../utils/cloudinaryUploader.js');
+    const uploadedImages = await uploadMultipleToCloudinary(req.files, 'products');
+    console.log(`✅ ${uploadedImages.length} images uploaded successfully`);
+
+    const images = uploadedImages.map((img, index) => ({
+      url: img.url,
+      publicId: img.publicId,
+      isPrimary: index === 0
+    }));
+
+    const productData = {
+      ...req.body,
+      images
+    };
+
+    const product = await vendorService.createVendorProduct(req.user._id, productData);
+    console.log('✅ Product created:', product._id);
+    return res.status(201).json(new ApiResponse(201, product, 'Product created successfully with images'));
+  } catch (error) {
+    console.error('❌ Error creating product:', error);
+    throw error;
+  }
+});
+
+// ✅ UPDATED: Smart update - existing images preserve karega
+export const updateVendorProduct = asyncHandler(async (req, res) => {
+  console.log('📥 Updating product:', req.params.productId);
+  console.log('📸 New files received:', req.files?.length || 0);
+  console.log('🖼️  Existing images:', req.body.existingImages);
+
+  const updateData = { ...req.body };
+  
+  // ✅ Agar naye files hain, toh unhe updateData mein add karo
+  if (req.files && req.files.length > 0) {
+    updateData.images = req.files;
+  } else {
+    updateData.images = [];
+  }
+
+  const product = await vendorService.updateVendorProduct(req.user._id, req.params.productId, updateData);
+  return res.status(200).json(new ApiResponse(200, product, 'Product updated successfully'));
 });

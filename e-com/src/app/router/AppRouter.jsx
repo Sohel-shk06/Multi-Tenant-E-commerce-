@@ -32,6 +32,7 @@ import { Profile } from '../../pages/customer/profile/MyProfile';
 // Vendor Pages
 import { Dashboard as VendorDashboard } from '../../pages/vendor/dashboard/Dashboard';
 import { ProductList as VendorProductList } from '../../pages/vendor/products/ProductList';
+import { EditProduct as VendorEditProduct } from '../../pages/vendor/products/EditProduct';
 import { CreateProduct as VendorCreateProduct } from '../../pages/vendor/products/CreateProduct';
 import { StoreList as VendorStoreList } from '../../pages/vendor/stores/StoreList';
 import { CreateStore as VendorCreateStore } from '../../pages/vendor/stores/CreateStore';
@@ -138,6 +139,7 @@ export const AppRouter = () => {
                     <Route path="dashboard" element={<VendorDashboard />} />
                     <Route path="products" element={<VendorProductList />} />
                     <Route path="products/create" element={<VendorCreateProduct />} />
+                    <Route path="products/edit/:productId" element={<VendorEditProduct />} />
                     <Route path="stores" element={<VendorStoreList />} />
                     <Route path="stores/create" element={<VendorCreateStore />} />
                     <Route path="stores/edit/:storeId" element={<EditStore />} />

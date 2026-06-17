@@ -3,6 +3,7 @@ import { vendorService } from '../../services/vendor.service';
 
 const initialState = {
   products: [],
+  currentProduct: null, // ✅ NEW
   stores: [],
   totalPages: 1,
   currentPage: 1,
@@ -17,13 +18,22 @@ export const fetchVendorProducts = createAsyncThunk(
   'vendorProducts/fetch',
   async (params, { rejectWithValue }) => {
     try {
-      console.log('🔄 Dispatching fetchVendorProducts...');
       const data = await vendorService.getVendorProducts(params);
-      console.log('✅ Fetched data:', data);
       return data;
     } catch (error) {
-      console.error('❌ Error in fetchVendorProducts:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch products');
+    }
+  }
+);
+
+// ✅ NEW: Fetch single product for editing
+export const fetchVendorProduct = createAsyncThunk(
+  'vendorProducts/fetchOne',
+  async (productId, { rejectWithValue }) => {
+    try {
+      return await vendorService.getVendorProduct(productId);
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch product');
     }
   }
 );
@@ -46,6 +56,18 @@ export const createVendorProduct = createAsyncThunk(
       return await vendorService.createVendorProduct(productData);
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create product');
+    }
+  }
+);
+
+// ✅ NEW: Update product thunk
+export const updateVendorProduct = createAsyncThunk(
+  'vendorProducts/update',
+  async ({ productId, productData }, { rejectWithValue }) => {
+    try {
+      return await vendorService.updateVendorProduct(productId, productData);
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update product');
     }
   }
 );
@@ -84,10 +106,13 @@ const vendorProductSlice = createSlice({
   reducers: {
     clearError: (state) => { 
       state.error = null; 
+    },
+    clearCurrentProduct: (state) => {
+      state.currentProduct = null;
     }
   },
   extraReducers: (builder) => {
-    // ✅ FETCH PRODUCTS
+    // FETCH PRODUCTS
     builder
       .addCase(fetchVendorProducts.pending, (state) => {
         state.isLoading = true;
@@ -105,7 +130,22 @@ const vendorProductSlice = createSlice({
         state.error = action.payload;
       });
 
-    // ✅ FETCH STORES
+    // ✅ FETCH SINGLE PRODUCT
+    builder
+      .addCase(fetchVendorProduct.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchVendorProduct.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentProduct = action.payload;
+      })
+      .addCase(fetchVendorProduct.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      });
+
+    // FETCH STORES
     builder
       .addCase(fetchVendorStores.fulfilled, (state, action) => {
         state.stores = action.payload || [];
@@ -114,7 +154,7 @@ const vendorProductSlice = createSlice({
         state.error = action.payload;
       });
 
-    // ✅ CREATE PRODUCT
+    // CREATE PRODUCT
     builder
       .addCase(createVendorProduct.pending, (state) => {
         state.isLoading = true;
@@ -130,14 +170,34 @@ const vendorProductSlice = createSlice({
         state.error = action.payload;
       });
 
-    // ✅ DELETE PRODUCT
+    // ✅ UPDATE PRODUCT
+    builder
+      .addCase(updateVendorProduct.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(updateVendorProduct.fulfilled, (state, action) => {
+        state.isLoading = false;
+        // List mein product update karein
+        const index = state.products.findIndex(p => p._id === action.payload._id);
+        if (index !== -1) {
+          state.products[index] = action.payload;
+        }
+        state.currentProduct = action.payload;
+      })
+      .addCase(updateVendorProduct.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      });
+
+    // DELETE PRODUCT
     builder
       .addCase(deleteVendorProduct.fulfilled, (state, action) => {
         state.products = state.products.filter(p => p._id !== action.payload);
         state.totalProducts -= 1;
       });
 
-    // ✅ CREATE STORE
+    // CREATE STORE
     builder
       .addCase(createVendorStore.pending, (state) => {
         state.isLoading = true;
@@ -153,5 +213,5 @@ const vendorProductSlice = createSlice({
   },
 });
 
-export const { clearError } = vendorProductSlice.actions;
+export const { clearError, clearCurrentProduct } = vendorProductSlice.actions;
 export default vendorProductSlice.reducer;
