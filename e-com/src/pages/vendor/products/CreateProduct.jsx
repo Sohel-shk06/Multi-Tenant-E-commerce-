@@ -4,7 +4,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { createVendorProduct } from '../../../app/store/vendorProductSlice';
 import { vendorService } from '../../../services/vendor.service';
 import { categoryService } from '../../../services/category.service';
+<<<<<<< HEAD
 import { productService } from '../../../services/product.service';
+=======
+>>>>>>> 6795ea4ed397e95d92378fc14cb51803b3358c2a
 import { ArrowLeft, Plus, X, Store, RefreshCw, Upload, Image as ImageIcon } from 'lucide-react';
 
 export const CreateProduct = () => {
@@ -26,14 +29,21 @@ export const CreateProduct = () => {
     sku: '',
     tags: '',
     variants: [],
+<<<<<<< HEAD
     images: [],
+=======
+    images: [], // ✅ NEW: File objects array
+>>>>>>> 6795ea4ed397e95d92378fc14cb51803b3358c2a
   });
   
+  const [imagePreviews, setImagePreviews] = useState([]); // ✅ NEW: Preview URLs
   const [localError, setLocalError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // ✅ Direct API calls (no Redux dependency)
+  const MIN_IMAGES = 3;
+  const MAX_IMAGES = 10;
+
   useEffect(() => {
     loadData();
   }, []);
@@ -43,12 +53,10 @@ export const CreateProduct = () => {
     try {
       console.log('🔄 Loading stores and categories...');
       
-      // Fetch stores
       const storesData = await vendorService.getVendorStores();
       console.log('✅ Stores loaded:', storesData);
       setStores(storesData || []);
       
-      // Fetch categories
       const categoriesData = await categoryService.getCategories();
       console.log('✅ Categories loaded:', categoriesData);
       setCategories(categoriesData || []);
@@ -66,6 +74,7 @@ export const CreateProduct = () => {
     setLocalError('');
   };
 
+<<<<<<< HEAD
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
@@ -127,6 +136,67 @@ export const CreateProduct = () => {
         isPrimary: i === indexToSet,
       })),
     }));
+=======
+  // ✅ NEW: Image handling functions
+  const handleImageSelect = (e) => {
+    const files = Array.from(e.target.files);
+    
+    if (!files || files.length === 0) return;
+    
+    // Max limit check
+    const totalImages = imagePreviews.length + files.length;
+    if (totalImages > MAX_IMAGES) {
+      setLocalError(`Maximum ${MAX_IMAGES} images allowed. You already have ${imagePreviews.length} images.`);
+      return;
+    }
+
+    // File validation
+    const validFiles = [];
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) {
+        setLocalError('Only image files are allowed');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setLocalError(`File "${file.name}" is too large. Max size is 5MB`);
+        return;
+      }
+      validFiles.push(file);
+    }
+
+    // Add to formData
+    setFormData(prev => ({
+      ...prev,
+      images: [...prev.images, ...validFiles]
+    }));
+
+    // Generate previews
+    validFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreviews(prev => ([
+          ...prev,
+          {
+            url: reader.result,
+            file: file,
+            name: file.name
+          }
+        ]));
+      };
+      reader.readAsDataURL(file);
+    });
+
+    setLocalError('');
+    e.target.value = '';
+  };
+
+  const removeImage = (index) => {
+    const newPreviews = imagePreviews.filter((_, i) => i !== index);
+    const newImages = newPreviews.map(p => p.file);
+    
+    setImagePreviews(newPreviews);
+    setFormData(prev => ({ ...prev, images: newImages }));
+>>>>>>> 6795ea4ed397e95d92378fc14cb51803b3358c2a
   };
 
   const addVariant = () => {
@@ -151,6 +221,12 @@ export const CreateProduct = () => {
     e.preventDefault();
     setLocalError('');
 
+    // ✅ Image validation - at least 3 images required
+    if (imagePreviews.length < MIN_IMAGES) {
+      setLocalError(`At least ${MIN_IMAGES} images are required. You have uploaded ${imagePreviews.length}.`);
+      return;
+    }
+
     if (!formData.title.trim()) return setLocalError('Product title is required');
     if (!formData.price || formData.price <= 0) return setLocalError('Valid price is required');
     if (!formData.category) return setLocalError('Category is required');
@@ -170,6 +246,7 @@ export const CreateProduct = () => {
     setIsSubmitting(false);
 
     if (resultAction.type === 'vendorProducts/create/fulfilled') {
+      alert('✅ Product created successfully with images!');
       navigate('/vendor/products');
     } else {
       setLocalError(resultAction.payload || 'Failed to create product');
@@ -237,6 +314,83 @@ export const CreateProduct = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
+          {/* ✅ NEW: Image Upload Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border-b pb-2">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                <ImageIcon className="w-5 h-5 mr-2 text-purple-600" />
+                Product Images
+              </h2>
+              <span className="text-sm text-gray-500">
+                {imagePreviews.length} / {MAX_IMAGES} images
+                <span className="text-red-500 ml-1">* (min {MIN_IMAGES})</span>
+              </span>
+            </div>
+
+            {/* Upload Area */}
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-green-500 transition-colors">
+              <div className="flex flex-col items-center justify-center">
+                <Upload className="w-12 h-12 text-gray-400 mb-3" />
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                  Click to upload or drag and drop
+                </p>
+                <p className="text-xs text-gray-500 mb-3">
+                  PNG, JPG, WEBP up to 5MB each • Minimum {MIN_IMAGES} images required
+                </p>
+                <label className="cursor-pointer px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                    disabled={imagePreviews.length >= MAX_IMAGES}
+                  />
+                  Select Images
+                </label>
+              </div>
+            </div>
+
+            {/* Image Previews Grid */}
+            {imagePreviews.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {imagePreviews.map((img, index) => (
+                  <div key={index} className="relative group">
+                    <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50">
+                      <img
+                        src={img.url}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      {index === 0 && (
+                        <span className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                          Primary
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                      title="Remove image"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                    <p className="text-xs text-gray-500 mt-1 truncate">
+                      {img.name || `Image ${index + 1}`}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {imagePreviews.length === 0 && (
+              <p className="text-sm text-gray-500 italic text-center py-4">
+                No images uploaded yet. Please upload at least {MIN_IMAGES} images.
+              </p>
+            )}
+          </div>
+
           {/* Basic Info */}
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Basic Information</h2>

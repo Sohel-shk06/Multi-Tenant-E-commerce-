@@ -11,10 +11,17 @@ export const ProductList = () => {
   const { products, isLoading, error, currentPage, totalPages } = useSelector((state) => state.products);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    dispatch(fetchProducts({ page: currentPage, search: searchTerm }));
-  }, [dispatch, currentPage, searchTerm]);
-
+useEffect(() => {
+  // ✅ Sirf valid parameters bhejo
+  const params = { page: currentPage };
+  
+  // Empty search ko skip karo
+  if (searchTerm && searchTerm.trim() !== '') {
+    params.search = searchTerm.trim();
+  }
+  
+  dispatch(fetchProducts(params));
+}, [dispatch, currentPage, searchTerm]);
   const handleDelete = (productId, productTitle) => {
     if (window.confirm(`Are you sure you want to delete "${productTitle}"? This action cannot be undone.`)) {
       dispatch(deleteProduct(productId));
