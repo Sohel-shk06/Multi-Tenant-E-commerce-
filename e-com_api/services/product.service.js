@@ -121,10 +121,7 @@ export const getProductById = async (productId) => {
 export const createProduct = async (productData, vendorId, storeId) => {
   console.log('🔧 Creating product with:', { vendorId, storeId });
 
-  const { 
-    title, description, price, comparePrice, category, 
-    variants, tags, stock, sku, images 
-  } = productData;
+  const { title, description, price, comparePrice, category, variants, tags, stock, sku, images } = productData;
 
   // ✅ Validation
   if (!title || !title.trim()) {
@@ -170,9 +167,9 @@ export const createProduct = async (productData, vendorId, storeId) => {
       vendor: vendorId,
       store: storeId,
       images: images || [],
-      variants: parsedVariants,
-      tags: parsedTags,
-      stock: Number(stock) || 0,
+      variants: variants || [],
+      tags: tags || [],
+      stock: stock || 0,
       sku: sku || undefined,
       status: 'draft'
     });

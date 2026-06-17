@@ -5,6 +5,7 @@ import {
   ArrowLeft, Package, MapPin, CreditCard, Truck, 
   CheckCircle, Clock, XCircle, Store, Calendar 
 } from 'lucide-react';
+import { CancelOrder } from './CancelOrder';
 
 export const OrderDetails = () => {
   const { orderId } = useParams();
@@ -12,6 +13,7 @@ export const OrderDetails = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
   useEffect(() => {
     loadOrder();
@@ -117,6 +119,14 @@ export const OrderDetails = () => {
             <div className="flex flex-col items-start sm:items-end gap-2">
               {getStatusBadge(order.status)}
               <p className="text-2xl font-bold text-gray-900">₹{order.totalAmount.toLocaleString()}</p>
+              {(order.status === 'pending' || order.status === 'confirmed') && (
+                <button
+                  onClick={() => setIsCancelModalOpen(true)}
+                  className="mt-1 text-sm font-semibold text-red-600 hover:text-red-800 transition-colors px-3 py-1.5 border border-red-200 rounded-lg bg-red-50/50 hover:bg-red-50"
+                >
+                  Cancel Order
+                </button>
+              )}
             </div>
           </div>
 
@@ -342,6 +352,11 @@ export const OrderDetails = () => {
           </div>
         </div>
       </div>
+      <CancelOrder 
+        isOpen={isCancelModalOpen} 
+        onClose={() => setIsCancelModalOpen(false)} 
+        order={order} 
+      />
     </div>
   );
 };

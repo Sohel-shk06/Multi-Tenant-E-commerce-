@@ -63,8 +63,8 @@ export const changePassword = async (userId, currentPassword, newPassword) => {
   }
 
   // Validate new password
-  if (newPassword.length < 6) {
-    throw new ApiError(400, 'New password must be at least 6 characters');
+  if (newPassword.length < 8) {
+    throw new ApiError(400, 'New password must be at least 8 characters');
   }
 
   // Update password
