@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, Store, Users, Package, ShoppingCart, 
-  DollarSign, CreditCard, Percent, AlertCircle, BarChart3, 
-  Settings, LogOut, ChevronDown, X, Menu
+import {
+  LayoutDashboard, Store, Users, Package, ShoppingCart,
+  DollarSign, CreditCard, Percent, AlertCircle, BarChart3,
+  Settings, LogOut, ChevronDown, X, Menu,TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -52,16 +52,16 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
       ],
     },
     {
-  title: 'Payments',
-  icon: CreditCard,
-  children: [
-    { title: 'Transactions', path: '/admin/payments' },
-    { title: 'Payouts', path: '/admin/payments/payouts' },
-    { title: 'Refunds', path: '/admin/payments/refunds' },
-    { title: 'Failed', path: '/admin/payments/failed' },
-    { title: 'Analytics', path: '/admin/payments/analytics' },
-  ],
-},
+      title: 'Payments',
+      icon: CreditCard,
+      children: [
+        { title: 'Transactions', path: '/admin/payments' },
+        { title: 'Payouts', path: '/admin/payments/payouts' },
+        { title: 'Refunds', path: '/admin/payments/refunds' },
+        { title: 'Failed', path: '/admin/payments/failed' },
+        { title: 'Analytics', path: '/admin/payments/analytics' },
+      ],
+    },
     {
       title: 'Subscriptions',
       icon: DollarSign,
@@ -83,11 +83,16 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
     },
     {
       title: 'Analytics',
-      icon: BarChart3,
+      icon: TrendingUp,
       children: [
-        { title: 'Revenue', path: '/admin/analytics/revenue' },
-        { title: 'Vendors', path: '/admin/analytics/vendors' },
-        { title: 'Customers', path: '/admin/analytics/customers' },
+        { title: 'Vendors', path: '/admin/analytics/vendors'},
+        { title: 'Customers', path: '/admin/analytics/customers'},
+        { title: 'Sales', path: '/admin/analytics/sales' },
+        { title: 'Products', path: '/admin/analytics/products' },
+        { title: 'Orders', path: '/admin/analytics/orders' },
+        { title: 'Commissions', path: '/admin/analytics/commissions' },
+        { title: 'Subscriptions', path: '/admin/analytics/subscriptions' },
+        { title: 'Revenue', path: '/admin/analytics/revenue'},
       ],
     },
     {
@@ -111,7 +116,7 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
     <>
       {/* Mobile Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={onClose}
         />
@@ -133,7 +138,7 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
               </div>
               <span className="text-xl font-bold text-gray-900">Marketplace</span>
             </div>
-            <button 
+            <button
               onClick={onClose}
               className="lg:hidden p-1 rounded-md hover:bg-gray-100"
             >
@@ -170,8 +175,8 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
                       className={`
                         w-full flex items-center justify-between px-3 py-2.5 rounded-lg
                         transition-colors text-left
-                        ${parentActive 
-                          ? 'bg-blue-50 text-blue-700' 
+                        ${parentActive
+                          ? 'bg-blue-50 text-blue-700'
                           : 'text-gray-700 hover:bg-gray-100'
                         }
                       `}
@@ -182,7 +187,7 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
                       </div>
                       <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                     </button>
-                    
+
                     {isExpanded && (
                       <div className="ml-8 mt-1 space-y-1">
                         {item.children.map((child) => (
