@@ -36,6 +36,14 @@ import { DisputeList } from '../../pages/disputes/DisputeList';
 import { DisputeDetails } from '../../pages/disputes/DisputeDetails';
 import { OpenDisputes } from '../../pages/disputes/OpenDisputes';
 import { ClosedDisputes } from '../../pages/disputes/ClosedDisputes';
+import { RevenueAnalytics } from '../../pages/analytics/RevenueAnalytics';
+import { VendorAnalytics } from '../../pages/analytics/VendorAnalytics';
+import { CustomerAnalytics } from '../../pages/analytics/CustomerAnalytics';
+import { SalesAnalytics } from '../../pages/analytics/SalesAnalytics';
+import { ProductAnalytics } from '../../pages/analytics/ProductAnalytics';
+import { OrderAnalytics } from '../../pages/analytics/OrderAnalytics';
+import { CommissionAnalytics } from '../../pages/analytics/CommissionAnalytics';
+import { SubscriptionAnalytics } from '../../pages/analytics/SubscriptionAnalytics';
 
 // Error Pages
 import { NotFound } from '../../pages/errors/NotFound';
@@ -96,6 +104,16 @@ export const AppRouter = () => {
               <Route path="/admin/disputes/open" element={<OpenDisputes />} />
               <Route path="/admin/disputes/closed" element={<ClosedDisputes />} />
               <Route path="/admin/disputes/:disputeId" element={<DisputeDetails />} />
+              {/* ✅ ✅ ✅ ANALYTICS ROUTES ✅ ✅ ✅ */}
+              <Route path="/admin/analytics" element={<RevenueAnalytics />} />
+              <Route path="/admin/analytics/revenue" element={<RevenueAnalytics />} />
+              <Route path="/admin/analytics/vendors" element={<VendorAnalytics />} />
+              <Route path="/admin/analytics/customers" element={<CustomerAnalytics />} />
+              <Route path="/admin/analytics/sales" element={<SalesAnalytics />} />
+              <Route path="/admin/analytics/products" element={<ProductAnalytics />} />
+              <Route path="/admin/analytics/orders" element={<OrderAnalytics />} />
+              <Route path="/admin/analytics/commissions" element={<CommissionAnalytics />} />
+              <Route path="/admin/analytics/subscriptions" element={<SubscriptionAnalytics />} />
 
               {/* Stores */}
               <Route path="/admin/stores" element={<StoreList />} />
