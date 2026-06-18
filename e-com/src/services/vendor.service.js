@@ -19,14 +19,12 @@ export const vendorService = {
         return response.data.data;
     },
 
-    // Existing dashboard functions ke baad ye add karein:
-
     // ===== Product Management =====
     getVendorProducts: async (params) => {
         console.log('📡 Fetching vendor products with params:', params);
         const response = await api.get('/vendor/products', { params });
         console.log('✅ Response:', response.data);
-        return response.data.data; // ✅ Ensure ye `.data.data` return kar raha hai
+        return response.data.data;
     },
 
     getVendorProduct: async (productId) => {
@@ -34,15 +32,91 @@ export const vendorService = {
         return response.data.data;
     },
 
+    // ✅ UPDATED: createVendorProduct with FormData for image upload
     createVendorProduct: async (productData) => {
-        const response = await api.post('/vendor/products', productData);
+        const formData = new FormData();
+        
+        // Text fields
+        formData.append('title', productData.title);
+        formData.append('description', productData.description);
+        formData.append('price', productData.price);
+        formData.append('comparePrice', productData.comparePrice || 0);
+        formData.append('category', productData.category);
+        formData.append('store', productData.store);
+        formData.append('stock', productData.stock || 0);
+        formData.append('sku', productData.sku || '');
+        
+        // Tags
+        if (productData.tags && productData.tags.length > 0) {
+            productData.tags.forEach(tag => formData.append('tags[]', tag));
+        }
+        
+        // Variants
+        if (productData.variants && productData.variants.length > 0) {
+            formData.append('variants', JSON.stringify(productData.variants));
+        }
+        
+        // ✅ Multiple images
+        if (productData.images && productData.images.length > 0) {
+            productData.images.forEach(file => {
+                formData.append('images', file);
+            });
+        }
+
+        const response = await api.post('/vendor/products', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
         return response.data.data;
     },
 
-    updateVendorProduct: async (productId, productData) => {
-        const response = await api.patch(`/vendor/products/${productId}`, productData);
-        return response.data.data;
-    },
+updateVendorProduct: async (productId, productData) => {
+    const formData = new FormData();
+    
+    // Text fields
+    if (productData.title !== undefined) formData.append('title', productData.title);
+    if (productData.description !== undefined) formData.append('description', productData.description);
+    if (productData.price !== undefined) formData.append('price', productData.price);
+    if (productData.comparePrice !== undefined) formData.append('comparePrice', productData.comparePrice);
+    if (productData.category !== undefined) formData.append('category', productData.category);
+    if (productData.store !== undefined) formData.append('store', productData.store);
+    if (productData.stock !== undefined) formData.append('stock', productData.stock);
+    if (productData.sku !== undefined) formData.append('sku', productData.sku);
+    if (productData.status !== undefined) formData.append('status', productData.status);
+    
+    // Tags
+    if (productData.tags && productData.tags.length > 0) {
+        productData.tags.forEach(tag => formData.append('tags[]', tag));
+    }
+    
+    // Variants
+    if (productData.variants && productData.variants.length > 0) {
+        formData.append('variants', JSON.stringify(productData.variants));
+    }
+    
+    // ✅ EXISTING IMAGES (jo vendor ne rakhi hain)
+    if (productData.existingImages !== undefined) {
+        formData.append('existingImages', JSON.stringify(productData.existingImages));
+    }
+    
+    // ✅ NEW IMAGES (jo vendor ne add kiye hain)
+    if (productData.images && productData.images.length > 0) {
+        productData.images.forEach(file => {
+            if (file instanceof File) {
+                formData.append('images', file);
+            }
+        });
+    }
+
+    // ✅ CORRECT URL: /vendor/products/:productId
+    const response = await api.patch(`/vendor/products/${productId}`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+    return response.data.data;
+},
 
     deleteVendorProduct: async (productId) => {
         const response = await api.delete(`/vendor/products/${productId}`);
@@ -54,9 +128,8 @@ export const vendorService = {
         return response.data.data;
     },
 
-
     createStore: async (storeData) => {
-        const response = await api.post('/stores', storeData); // /stores route already handles vendor ID internally
+        const response = await api.post('/stores', storeData);
         return response.data.data;
     },
 
@@ -86,7 +159,6 @@ export const vendorService = {
         return response.data.data;
     },
 
-
     // ===== Order Management =====
     getVendorOrders: async (params) => {
         const response = await api.get('/vendor/orders', { params });
@@ -102,7 +174,6 @@ export const vendorService = {
         const response = await api.patch(`/vendor/orders/${orderId}/status`, { status });
         return response.data.data;
     },
-
 
     // ===== Earnings & Payouts =====
     getEarningsOverview: async () => {
@@ -150,7 +221,6 @@ export const vendorService = {
         const response = await api.get('/vendor/reviews/analytics');
         return response.data.data;
     },
-
 
     // ===== Analytics =====
     getRevenueAnalytics: async (params) => {

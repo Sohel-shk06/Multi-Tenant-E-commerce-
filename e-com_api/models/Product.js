@@ -52,10 +52,10 @@ const productSchema = new mongoose.Schema({
         required: true
     },
     images: [{
-        url: { type: String, required: true },
-        publicId: { type: String, required: true },
-        isPrimary: { type: Boolean, default: false }
-    }],
+  url: { type: String, required: true },
+  publicId: { type: String },
+  isPrimary: { type: Boolean, default: false }
+}],
     variants: [variantSchema],
     tags: [{ type: String, trim: true }],
     stock: {
