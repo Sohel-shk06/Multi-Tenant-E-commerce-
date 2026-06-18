@@ -1,9 +1,7 @@
 import multer from 'multer';
 
-// Memory storage - Cloudinary par direct upload karenge
 const storage = multer.memoryStorage();
 
-// File filter - sirf images allow karein
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
@@ -12,19 +10,13 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Product images upload (max 10 images, 5MB each)
-export const uploadProductImages = multer({
+export const upload = multer({
   storage,
   fileFilter,
-  limits: { 
-    fileSize: 5 * 1024 * 1024, // 5MB per image
-    files: 10 // Max 10 images
-  }
-}).array('images', 10);
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
+});
 
-// Single image upload
-export const uploadSingleImage = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 2 * 1024 * 1024 } // 2MB max
-}).single('image');
+// For vendor routes
+export const uploadProductImages = upload.array('images', 10);

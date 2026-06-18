@@ -27,7 +27,9 @@ api.interceptors.response.use(
   (error) => {
     const isAuthEndpoint = error.config?.url?.includes('/auth/login') || 
                            error.config?.url?.includes('/auth/register') ||
-                           error.config?.url?.includes('/auth/forgot-password');
+                           error.config?.url?.includes('/auth/forgot-password') ||
+                           error.config?.url?.includes('/user/change-password') ||
+                           error.config?.url?.includes('/auth/change-password');
 
     if (error.response && error.response.status === 401 && !isAuthEndpoint) {
       localStorage.removeItem('token');

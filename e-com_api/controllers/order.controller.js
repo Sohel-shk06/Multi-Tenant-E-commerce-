@@ -23,6 +23,17 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, order, `Order ${status} successfully`));
 });
 
+export const cancelOrder = asyncHandler(async (req, res) => {
+  const { reason } = req.body;
+  const order = await orderService.cancelOrder(
+    req.params.orderId,
+    reason,
+    req.user._id,
+    req.user.role
+  );
+  return res.status(200).json(new ApiResponse(200, order, 'Order cancelled successfully'));
+});
+
 export const createOrder = asyncHandler(async (req, res) => {
   const order = await orderService.createOrder(req.body);
   return res.status(201).json(new ApiResponse(201, order, 'Order created successfully'));
