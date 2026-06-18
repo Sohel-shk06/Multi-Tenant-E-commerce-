@@ -42,6 +42,7 @@ export const ProductAnalytics = () => {
   const loadData = async () => {
     try {
       const result = await vendorService.getProductAnalytics();
+      console.log('📊 Product Analytics Data:', result);
       setData(result);
       console.log("Product analytics data loaded:", result);
     } catch (error) {
@@ -384,6 +385,7 @@ const priceData = [
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Selling Products */}
+<<<<<<< HEAD
         <div className="bg-white rounded-2xl border border-gray-100 shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
           <div className="mb-5 flex items-center justify-between">
             <div>
@@ -444,9 +446,34 @@ const priceData = [
                     </div>
                   </div>
                   <ArrowUpRight className="w-4 h-4 text-gray-300 group-hover:text-indigo-500 transition-colors flex-shrink-0" />
+=======
+<div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+  <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+    <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
+    Top Selling Products
+  </h2>
+  {data.topProducts && data.topProducts.length > 0 ? (
+    <div className="space-y-3">
+      {data.topProducts.map((item, idx) => {
+        // ✅ Defensive coding - multiple fallbacks
+        const product = item.product || {};
+        const title = product.title || 'Unknown Product';
+        const image = product.images?.[0]?.url || product.images?.[0] || null;
+        
+        return (
+          <div key={idx} className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg">
+            <span className="text-lg font-bold text-gray-400 w-6">#{idx + 1}</span>
+            <div className="w-12 h-12 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
+              {image ? (
+                <img src={image} alt={title} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Package className="w-5 h-5 text-gray-400" />
+>>>>>>> origin/main
                 </div>
-              ))}
+              )}
             </div>
+<<<<<<< HEAD
           ) : (
             <div className="flex flex-col items-center text-center py-12 gap-3">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-500 flex items-center justify-center">
@@ -480,6 +507,39 @@ const priceData = [
                   key={idx}
                   className="flex items-center justify-between p-3.5 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl border border-orange-100"
                 >
+=======
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {title}
+              </p>
+              <div className="flex items-center space-x-3 mt-1 text-xs text-gray-500">
+                <span>{item.totalSold || 0} sold</span>
+                <span>•</span>
+                <span className="font-semibold text-green-600">
+                  ₹{(item.totalRevenue || 0).toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  ) : (
+    <p className="text-center text-gray-500 py-8">No sales yet.</p>
+  )}
+</div>
+
+        {/* Low Stock Alert */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+            <AlertTriangle className="w-5 h-5 mr-2 text-orange-600" />
+            Low Stock Alert
+          </h2>
+          {data.lowStockProducts && data.lowStockProducts.length > 0 ? (
+            <div className="space-y-3">
+              {data.lowStockProducts.map((product, idx) => (
+                <div key={idx} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+>>>>>>> origin/main
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">
                       {product.title}
@@ -519,12 +579,19 @@ const priceData = [
       
 
       {/* Products without reviews */}
+<<<<<<< HEAD
       {data.productsWithoutReviews.length > 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
           <h2 className="text-base font-bold text-gray-900 flex items-center gap-2 mb-1">
             <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-yellow-300 to-amber-400 text-white flex items-center justify-center shadow-sm">
               <Star className="w-4 h-4" />
             </span>
+=======
+      {data.productsWithoutReviews && data.productsWithoutReviews.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+            <Star className="w-5 h-5 mr-2 text-yellow-500" />
+>>>>>>> origin/main
             Products Needing Reviews
           </h2>
           <p className="text-xs text-gray-400 mb-4 ml-11">

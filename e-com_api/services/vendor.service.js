@@ -262,14 +262,14 @@ export const createVendorProduct = async (vendorId, productData) => {
   }
 };
 
-// Update vendor's product
+// ✅ UPDATED: Smart image update - existing images preserve karega
 export const updateVendorProduct = async (vendorId, productId, updateData) => {
   const product = await Product.findOne({ _id: productId, vendor: vendorId });
   if (!product) {
     throw new ApiError(404, 'Product not found or you are not authorized');
   }
 
-  // If store is being changed, validate it
+  // Store validation agar change ho raha hai
   if (updateData.store && updateData.store !== product.store.toString()) {
     const { Store } = await import('../models/Store.js');
     const vendorStore = await Store.findOne({ _id: updateData.store, vendor: vendorId });
@@ -278,8 +278,102 @@ export const updateVendorProduct = async (vendorId, productId, updateData) => {
     }
   }
 
+  // ✅ Parse existingImages (jo vendor ne rakhi hain)
+  let existingImages = [];
+  if (updateData.existingImages) {
+    try {
+      existingImages = typeof updateData.existingImages === 'string' 
+        ? JSON.parse(updateData.existingImages) 
+        : updateData.existingImages;
+    } catch (e) {
+      console.warn('⚠️  Failed to parse existingImages:', e.message);
+      existingImages = [];
+    }
+  }
+
+  // ✅ Parse variants agar JSON string hai
+  if (updateData.variants && typeof updateData.variants === 'string') {
+    try {
+      updateData.variants = JSON.parse(updateData.variants);
+    } catch (e) {
+      delete updateData.variants;
+    }
+  }
+
+  // ✅ Parse tags agar string hai
+  if (updateData.tags && typeof updateData.tags === 'string') {
+    updateData.tags = updateData.tags.split(',').map(t => t.trim()).filter(Boolean);
+  }
+
+  // ✅ Number fields convert
+  if (updateData.price) updateData.price = Number(updateData.price);
+  if (updateData.comparePrice) updateData.comparePrice = Number(updateData.comparePrice);
+  if (updateData.stock !== undefined) updateData.stock = Number(updateData.stock);
+
+  // ✅ SMART IMAGE HANDLING
+  if (product.images && product.images.length > 0) {
+    const existingPublicIds = existingImages.map(img => img.publicId).filter(Boolean);
+    
+    // Woh images dhundho jo vendor ne remove ki hain
+    const imagesToDelete = product.images.filter(
+      oldImg => !existingPublicIds.includes(oldImg.publicId)
+    );
+
+    // ✅ Sirf woh images delete karo jo vendor ne remove ki hain
+    if (imagesToDelete.length > 0) {
+      try {
+        const { deleteFromCloudinary } = await import('../utils/cloudinaryUploader.js');
+        for (const img of imagesToDelete) {
+          if (img.publicId) {
+            await deleteFromCloudinary(img.publicId);
+            console.log('✅ Deleted old image from Cloudinary:', img.publicId);
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️  Failed to delete some old images:', error.message);
+      }
+    }
+  }
+
+  // ✅ Naye images ko Cloudinary par upload karo (agar hain)
+  let newUploadedImages = [];
+  if (updateData.images && updateData.images.length > 0) {
+    try {
+      const { uploadMultipleToCloudinary } = await import('../utils/cloudinaryUploader.js');
+      const uploaded = await uploadMultipleToCloudinary(updateData.images, 'products');
+      newUploadedImages = uploaded.map((img, index) => ({
+        url: img.url,
+        publicId: img.publicId,
+        isPrimary: existingImages.length === 0 && index === 0 // Agar koi existing nahi hai toh pehli naye image primary
+      }));
+      console.log(`✅ ${newUploadedImages.length} new images uploaded to Cloudinary`);
+    } catch (error) {
+      console.error('❌ Failed to upload new images:', error.message);
+      throw new ApiError(500, 'Failed to upload new images');
+    }
+  }
+
+  // ✅ Final images array: existing + new
+  const finalImages = [...existingImages, ...newUploadedImages];
+  
+  // Agar koi image hai toh pehli ko primary banao
+  if (finalImages.length > 0 && !finalImages.some(img => img.isPrimary)) {
+    finalImages[0].isPrimary = true;
+  }
+
+  // ✅ Update data mein images set karo
+  updateData.images = finalImages;
+
+  // ✅ Product update karo
   Object.assign(product, updateData);
   await product.save();
+  
+  console.log('✅ Product updated with images:', {
+    existing: existingImages.length,
+    new: newUploadedImages.length,
+    total: finalImages.length
+  });
+  
   return product;
 };
 
@@ -960,75 +1054,157 @@ export const getVendorRevenueAnalytics = async (vendorId, query) => {
   };
 };
 
-// Product Analytics
+// ✅ FIXED: Debug logs + Fallback + Data consistency check
 export const getVendorProductAnalytics = async (vendorId) => {
-  const vendorProducts = await Product.find({ vendor: vendorId }).select('_id');
-  const productIds = vendorProducts.map(p => p._id);
+  try {
+    console.log('\n🔍 ========== PRODUCT ANALYTICS DEBUG ==========');
+    console.log('👤 Vendor ID:', vendorId);
 
-  // Top selling products
-  const topProducts = await Order.aggregate([
-    { $match: { vendor: new mongoose.Types.ObjectId(vendorId), status: { $in: ['delivered', 'completed'] } } },
-    { $unwind: '$items' },
-    {
-      $group: {
-        _id: '$items.product',
-        totalSold: { $sum: '$items.quantity' },
-        totalRevenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
-        ordersCount: { $sum: 1 }
-      }
-    },
-    { $sort: { totalRevenue: -1 } },
-    { $limit: 10 }
-  ]);
+    // ============================================
+    // STEP 1: Top selling products ki IDs nikalo
+    // ============================================
+    const topProductsAgg = await Order.aggregate([
+      { $match: { vendor: new mongoose.Types.ObjectId(vendorId), status: { $in: ['delivered', 'completed'] } } },
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: '$items.product',
+          totalSold: { $sum: '$items.quantity' },
+          totalRevenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
+          ordersCount: { $sum: 1 }
+        }
+      },
+      { $sort: { totalRevenue: -1 } },
+      { $limit: 10 }
+    ]);
 
-  // Populate product details
-  const topProductsWithDetails = await Product.populate(topProducts, {
-    path: '_id',
-    select: 'title images price stock'
-  });
-
-  // Low stock products
-  const lowStockProducts = await Product.find({
-    vendor: vendorId,
-    stock: { $lte: 10 },
-    status: 'active'
-  }).select('title stock price').limit(10);
-
-  // Products without reviews
-  const productsWithoutReviews = await Product.find({
-    vendor: vendorId,
-    totalReviews: 0,
-    status: 'active'
-  }).select('title price').limit(10);
-
-  // Total product stats
-  const productStats = await Product.aggregate([
-    { $match: { vendor: new mongoose.Types.ObjectId(vendorId) } },
-    {
-      $group: {
-        _id: null,
-        totalProducts: { $sum: 1 },
-        activeProducts: { $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] } },
-        draftProducts: { $sum: { $cond: [{ $eq: ['$status', 'draft'] }, 1, 0] } },
-        totalStock: { $sum: '$stock' },
-        totalStockValue: { $sum: { $multiply: ['$price', '$stock'] } }
-      }
+    console.log('📊 Step 1 - Found', topProductsAgg.length, 'product IDs from orders');
+    
+    if (topProductsAgg.length > 0) {
+      console.log('📋 Product IDs:', topProductsAgg.map(p => p._id.toString()));
     }
-  ]);
 
-  return {
-    topProducts: topProductsWithDetails,
-    lowStockProducts,
-    productsWithoutReviews,
-    stats: productStats[0] || {
-      totalProducts: 0,
-      activeProducts: 0,
-      draftProducts: 0,
-      totalStock: 0,
-      totalStockValue: 0
+    // ============================================
+    // STEP 2: Product IDs se details fetch karo
+    // ============================================
+    let topProducts = [];
+    
+    if (topProductsAgg.length > 0) {
+      // ✅ Type conversion - sab IDs ko ObjectId mein convert karo
+      const productIds = topProductsAgg.map(p => {
+        try {
+          return new mongoose.Types.ObjectId(p._id);
+        } catch (e) {
+          console.warn('⚠️  Invalid product ID:', p._id);
+          return null;
+        }
+      }).filter(Boolean);
+
+      console.log('🔎 Step 2 - Searching', productIds.length, 'products...');
+
+      // ✅ Products fetch karo - WITHOUT vendor filter (data inconsistency handle karne ke liye)
+      const productsDetails = await Product.find({ 
+        _id: { $in: productIds } 
+      }).select('title images price stock vendor');
+      
+      console.log('✅ Found', productsDetails.length, 'products in database');
+
+      // ✅ Debug: Check karo konsa product missing hai
+      const foundIds = productsDetails.map(p => p._id.toString());
+      const missingIds = productIds.filter(id => !foundIds.includes(id.toString()));
+      
+      if (missingIds.length > 0) {
+        console.warn('⚠️  Missing products (deleted or inconsistent):', missingIds);
+      }
+
+      // ✅ Debug: Vendor mismatch check
+      productsDetails.forEach(p => {
+        if (p.vendor.toString() !== vendorId.toString()) {
+          console.warn('⚠️  Vendor mismatch for product:', p.title, '- belongs to', p.vendor);
+        }
+      });
+
+      // Map banao for quick lookup
+      const productMap = {};
+      productsDetails.forEach(p => {
+        productMap[p._id.toString()] = p;
+      });
+
+      // Merge karo - aggregation data + product details
+      topProducts = topProductsAgg.map(agg => {
+        const product = productMap[agg._id.toString()];
+        return {
+          product: product ? {
+            _id: product._id,
+            title: product.title,
+            images: product.images || [],
+            price: product.price,
+            stock: product.stock
+          } : null,
+          totalSold: agg.totalSold,
+          totalRevenue: agg.totalRevenue,
+          ordersCount: agg.ordersCount
+        };
+      });
+
+      console.log('✅ Final top products:', topProducts.filter(p => p.product).length);
     }
-  };
+
+    console.log('🔍 ========== END DEBUG ==========\n');
+
+    // ============================================
+    // Low stock products
+    // ============================================
+    const lowStockProducts = await Product.find({
+      vendor: vendorId,
+      stock: { $lte: 10 },
+      status: 'active'
+    }).select('title stock price').limit(10);
+
+    // ============================================
+    // Products without reviews
+    // ============================================
+    const productsWithoutReviews = await Product.find({
+      vendor: vendorId,
+      totalReviews: 0,
+      status: 'active'
+    }).select('title price').limit(10);
+
+    // ============================================
+    // Total product stats
+    // ============================================
+    const productStats = await Product.aggregate([
+      { $match: { vendor: new mongoose.Types.ObjectId(vendorId) } },
+      {
+        $group: {
+          _id: null,
+          totalProducts: { $sum: 1 },
+          activeProducts: { $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] } },
+          draftProducts: { $sum: { $cond: [{ $eq: ['$status', 'draft'] }, 1, 0] } },
+          totalStock: { $sum: '$stock' },
+          totalStockValue: { $sum: { $multiply: ['$price', '$stock'] } }
+        }
+      }
+    ]);
+
+    return {
+      topProducts: topProducts.filter(p => p.product !== null), // Sirf valid products
+      lowStockProducts,
+      productsWithoutReviews,
+      stats: productStats[0] || {
+        totalProducts: 0,
+        activeProducts: 0,
+        draftProducts: 0,
+        totalStock: 0,
+        totalStockValue: 0
+      }
+    };
+  } catch (error) {
+    console.error('❌ Error in getVendorProductAnalytics:', error);
+    throw new ApiError(500, `Failed to fetch product analytics: ${error.message}`);
+  }
 };
+
 
 // Order Analytics
 export const getVendorOrderAnalytics = async (vendorId) => {

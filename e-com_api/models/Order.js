@@ -99,6 +99,7 @@ const orderSchema = new mongoose.Schema({
     type: String, 
     maxlength: [500, 'Notes cannot exceed 500 characters']
   },
+  cancelReason: { type: String, default: '' },
   cancelledAt: { type: Date },
   completedAt: { type: Date },
   deliveredAt: { type: Date }

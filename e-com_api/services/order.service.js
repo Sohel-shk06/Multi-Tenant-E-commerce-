@@ -126,10 +126,92 @@ export const updateOrderStatus = async (orderId, status, userId, userRole) => {
   // Set timestamps based on status
   if (status === 'cancelled') {
     order.cancelledAt = new Date();
+    
+    // Restore product stock
+    for (const item of order.items) {
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { stock: item.quantity }
+      });
+    }
+
+    // If paid, mark payment as refunded
+    if (order.paymentStatus === 'paid') {
+      order.paymentStatus = 'refunded';
+      await Payment.findOneAndUpdate(
+        { order: order._id },
+        { paymentStatus: 'refunded' }
+      );
+    }
+
+    // Update commission status if it exists
+    try {
+      const { Commission } = await import('../models/Commission.js');
+      await Commission.findOneAndUpdate(
+        { order: order._id },
+        { status: 'refunded', notes: 'Order cancelled by vendor/admin' }
+      );
+    } catch (commErr) {
+      console.error('Warning: Failed to update commission status:', commErr.message);
+    }
   } else if (status === 'delivered') {
     order.deliveredAt = new Date();
   } else if (status === 'completed') {
     order.completedAt = new Date();
+  }
+
+  await order.save();
+
+  return order;
+};
+
+// Cancel order by customer
+export const cancelOrder = async (orderId, reason, userId, userRole) => {
+  const order = await Order.findById(orderId);
+  
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  // Authorization check - only the owner can cancel
+  if (userRole === 'customer' && order.customer.toString() !== userId.toString()) {
+    throw new ApiError(403, 'You are not authorized to cancel this order');
+  }
+
+  // Check if status is cancelable
+  const cancelableStatuses = ['pending', 'confirmed'];
+  if (!cancelableStatuses.includes(order.status)) {
+    throw new ApiError(400, `Cannot cancel order with status ${order.status}`);
+  }
+
+  order.status = 'cancelled';
+  order.cancelledAt = new Date();
+  order.cancelReason = reason || '';
+
+  // Restore product stock
+  for (const item of order.items) {
+    await Product.findByIdAndUpdate(item.product, {
+      $inc: { stock: item.quantity }
+    });
+  }
+
+  // If paid, mark payment as refunded
+  if (order.paymentStatus === 'paid') {
+    order.paymentStatus = 'refunded';
+    await Payment.findOneAndUpdate(
+      { order: order._id },
+      { paymentStatus: 'refunded' }
+    );
+  }
+
+  // Update commission status if it exists
+  try {
+    const { Commission } = await import('../models/Commission.js');
+    await Commission.findOneAndUpdate(
+      { order: order._id },
+      { status: 'refunded', notes: `Order cancelled by customer. Reason: ${reason || 'N/A'}` }
+    );
+  } catch (commErr) {
+    console.error('Warning: Failed to update commission status:', commErr.message);
   }
 
   await order.save();

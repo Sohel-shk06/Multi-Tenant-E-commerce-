@@ -134,6 +134,11 @@ export const changePasswordService = async (userId, oldPassword, newPassword) =>
     throw new ApiError(401, 'Incorrect old password');
   }
 
+  // Validate new password
+  if (newPassword.length < 8) {
+    throw new ApiError(400, 'New password must be at least 8 characters');
+  }
+
   user.password = newPassword; // pre-save hook automatically hash karega
   await user.save();
 
