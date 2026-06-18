@@ -138,31 +138,31 @@ export const NewArrivals = () => {
                     to={`/products/${product._id}`}
                     className="group block"
                   >
-                    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300">
+                    <div className="bg-white rounded-[22px] border border-[#E9E7F5] overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300">
                       {/* Image & Badges */}
-                      <div className="relative h-56 bg-gray-50 overflow-hidden flex items-center justify-center">
+                      <div className="relative h-56 bg-[#F8F7FC] overflow-hidden flex items-center justify-center">
                         {/* ✨ New Badge */}
-                        <span className="absolute top-3 left-3 z-10 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                        <span className="absolute top-3.5 left-3.5 z-10 bg-gradient-to-r from-[#6C4DF6] to-[#9C7CFF] text-white text-[10px] font-extrabold tracking-wider uppercase px-3 py-1 rounded-full shadow-sm">
                            New
                         </span>
 
                         {/* Wishlist Button */}
                         <button
                           onClick={(e) => handleWishlistToggle(e, product)}
-                          className={`absolute top-3 right-3 z-10 p-2 rounded-full shadow-md transition-colors ${
+                          className={`absolute top-3.5 right-3.5 z-10 p-2.5 rounded-full shadow-md transition-all duration-300 hover:scale-115 ${
                             isInWish
-                              ? 'bg-red-500 text-white hover:bg-red-600'
-                              : 'bg-white text-gray-400 hover:text-red-500 hover:bg-gray-50'
+                              ? 'bg-[#6C4DF6] text-white'
+                              : 'bg-white text-[#6B7280] hover:text-red-500 hover:bg-gray-50'
                           }`}
                         >
-                          <Heart className="w-4 h-4 fill-current" />
+                          <Heart className={`w-4 h-4 ${isInWish ? 'fill-current' : ''}`} />
                         </button>
 
                         {product.images && product.images.length > 0 ? (
                           <img
                             src={product.images[0].url}
                             alt={product.title}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           />
                         ) : (
                           <div className="flex flex-col items-center text-gray-300">
@@ -176,7 +176,7 @@ export const NewArrivals = () => {
                           <button
                             onClick={(e) => handleQuickAdd(e, product)}
                             disabled={product.stock === 0}
-                            className="w-full bg-white hover:bg-blue-600 hover:text-white text-gray-900 font-bold py-2 px-4 rounded-xl shadow-lg transition-colors duration-200 flex items-center justify-center space-x-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full bg-gradient-to-r from-[#6C4DF6] to-[#9C7CFF] text-white hover:shadow-glow font-bold py-2 px-4 rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center space-x-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <ShoppingBag className="w-4 h-4" />
                             <span>{product.stock === 0 ? 'Out of Stock' : 'Quick Add'}</span>
@@ -186,10 +186,10 @@ export const NewArrivals = () => {
 
                       {/* Details */}
                       <div className="p-4">
-                        <span className="text-[10px] font-semibold text-blue-600 tracking-wider uppercase">
+                        <span className="text-[10px] font-extrabold text-[#6C4DF6] tracking-widest uppercase">
                           {product.store?.name || 'Official Partner'}
                         </span>
-                        <h3 className="mt-1 text-sm font-bold text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                        <h3 className="mt-1 text-sm font-bold text-[#1E1E2F] line-clamp-1 group-hover:text-[#6C4DF6] transition-colors">
                           {product.title}
                         </h3>
 
@@ -199,7 +199,7 @@ export const NewArrivals = () => {
                           <span className="text-xs font-semibold text-gray-700">
                             {product.averageRating ? product.averageRating.toFixed(1) : '0.0'}
                           </span>
-                          <span className="text-[10px] text-gray-400">
+                          <span className="text-[10px] text-[#6B7280]">
                             ({product.totalReviews || 0})
                           </span>
                         </div>
@@ -207,17 +207,17 @@ export const NewArrivals = () => {
                         {/* Price */}
                         <div className="flex items-baseline justify-between mt-3">
                           <div className="flex items-center space-x-2">
-                            <span className="text-base font-extrabold text-gray-900">
+                            <span className="text-base font-extrabold text-[#6C4DF6]">
                               ₹{product.price.toLocaleString()}
                             </span>
                             {product.comparePrice > product.price && (
-                              <span className="text-xs text-gray-400 line-through">
+                              <span className="text-xs text-[#6B7280] line-through">
                                 ₹{product.comparePrice.toLocaleString()}
                               </span>
                             )}
                           </div>
                           {product.comparePrice > product.price && (
-                            <span className="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
+                            <span className="text-[10px] font-extrabold text-green-600 bg-green-50 px-1.5 py-0.5 rounded-lg">
                               {Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}% OFF
                             </span>
                           )}
