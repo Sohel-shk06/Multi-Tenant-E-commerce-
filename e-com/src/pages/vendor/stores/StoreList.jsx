@@ -50,7 +50,7 @@ export const StoreList = () => {
         <div className="flex items-center space-x-3">
           <button
             onClick={handleRefresh}
-            className="inline-flex items-center space-x-2 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            className="inline-flex items-center space-x-2 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
           >
             <RefreshCw className="w-4 h-4" />
             <span>Refresh</span>

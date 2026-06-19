@@ -24,9 +24,11 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  CartesianGrid
+  CartesianGrid,
 } from "recharts";
 import { vendorService } from "../../../services/vendor.service";
+import TopProducts from "../dashboard/TopProducts";
+import InventoryAlerts from "../dashboard/InventoryAlerts";
 // import { vendorProductService } from '../../../services/vendorProduct.service';
 
 export const ProductAnalytics = () => {
@@ -42,9 +44,8 @@ export const ProductAnalytics = () => {
   const loadData = async () => {
     try {
       const result = await vendorService.getProductAnalytics();
-      console.log('📊 Product Analytics Data:', result);
       setData(result);
-      console.log("Product analytics data loaded:", result);
+      // console.log("Product analytics data loaded:", result);
     } catch (error) {
       console.error("Failed to load product analytics", error);
     } finally {
@@ -221,14 +222,13 @@ export const ProductAnalytics = () => {
   }));
 
   const COLORS = ["#22C55E", "#F59E0B"];
-const priceData = [
-  { range: "₹0-500", products: 5 },
-  { range: "₹500-1K", products: 8 },
-  { range: "₹1K-5K", products: 12 },
-  { range: "₹5K-10K", products: 4 },
-  { range: "₹10K+", products: 2 },
-];
-
+  const priceData = [
+    { range: "₹0-500", products: 5 },
+    { range: "₹500-1K", products: 8 },
+    { range: "₹1K-5K", products: 12 },
+    { range: "₹5K-10K", products: 4 },
+    { range: "₹10K+", products: 2 },
+  ];
 
   return (
     <div className="p-6 space-y-8 bg-gradient-to-b from-gray-50 to-white min-h-screen">
@@ -385,235 +385,46 @@ const priceData = [
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Selling Products */}
-<<<<<<< HEAD
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 text-white flex items-center justify-center shadow-sm">
-                  <TrendingUp className="w-4 h-4" />
-                </span>
-                Top Selling Products
-              </h2>
-              <p className="text-xs text-gray-400 mt-1 ml-11">
-                Ranked by units sold
-              </p>
-            </div>
+        <div className="lg:col-span-1">
+          <TopProducts products={data?.topProducts}
+          totalRevenue={0} />
           </div>
-          {dataa.topProducts.length > 0 ? (
-            <div className="space-y-1.5">
-              {dataa.topProducts.map((product, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors group"
-                >
-                  <span
-                    className={`w-7 h-7 rounded-lg text-xs font-extrabold flex items-center justify-center flex-shrink-0 ${
-                      idx === 0
-                        ? "bg-yellow-100 text-yellow-700"
-                        : idx === 1
-                          ? "bg-gray-100 text-gray-600"
-                          : idx === 2
-                            ? "bg-orange-100 text-orange-600"
-                            : "bg-indigo-50 text-indigo-600"
-                    }`}
-                  >
-                    {idx + 1}
-                  </span>
-                  <div className="w-12 h-12 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden ring-1 ring-gray-100">
-                    {product._id?.images?.[0]?.url ? (
-                      <img
-                        src={product._id.images[0].url}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package className="w-5 h-5 text-gray-400" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">
-                      {product._id?.title}
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-400">
-                      <span>{product.totalSold} sold</span>
-                      <span>·</span>
-                      <span className="font-bold text-green-600">
-                        ₹{product.totalRevenue.toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                  <ArrowUpRight className="w-4 h-4 text-gray-300 group-hover:text-indigo-500 transition-colors flex-shrink-0" />
-=======
-<div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-  <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-    <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
-    Top Selling Products
-  </h2>
-  {data.topProducts && data.topProducts.length > 0 ? (
-    <div className="space-y-3">
-      {data.topProducts.map((item, idx) => {
-        // ✅ Defensive coding - multiple fallbacks
-        const product = item.product || {};
-        const title = product.title || 'Unknown Product';
-        const image = product.images?.[0]?.url || product.images?.[0] || null;
-        
-        return (
-          <div key={idx} className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg">
-            <span className="text-lg font-bold text-gray-400 w-6">#{idx + 1}</span>
-            <div className="w-12 h-12 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-              {image ? (
-                <img src={image} alt={title} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Package className="w-5 h-5 text-gray-400" />
->>>>>>> origin/main
-                </div>
-              )}
-            </div>
-<<<<<<< HEAD
-          ) : (
-            <div className="flex flex-col items-center text-center py-12 gap-3">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-500 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6" />
-              </div>
-              <p className="text-sm font-bold text-gray-900">No sales yet</p>
-              <p className="text-xs text-gray-400 max-w-[260px]">
-                Your best-selling products will show up here as orders come in.
-              </p>
-            </div>
-          )}
+        {/*Inventory Alert*/}
+         <div className="lg:col-span-1">
+          <InventoryAlerts products={data?.lowStockProducts} />
         </div>
 
-        {/* Low Stock Alert */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
-          <div className="mb-5">
-            <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-              <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-red-400 to-orange-500 text-white flex items-center justify-center shadow-sm">
-                <AlertTriangle className="w-4 h-4" />
+
+        {/* Products without reviews */}
+        {data.productsWithoutReviews.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
+            <h2 className="text-base font-bold text-gray-900 flex items-center gap-2 mb-1">
+              <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-yellow-300 to-amber-400 text-white flex items-center justify-center shadow-sm">
+                <Star className="w-4 h-4" />
               </span>
-              Low Stock Alert
+              Products Needing Reviews
             </h2>
-            <p className="text-xs text-gray-400 mt-1 ml-11">
-              Products running low on inventory
+            <p className="text-xs text-gray-400 mb-4 ml-11">
+              These products have no reviews yet. Encourage customers to review!
             </p>
-          </div>
-          {dataa.lowStockProducts.length > 0 ? (
-            <div className="space-y-1.5">
-              {dataa.lowStockProducts.map((product, idx) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {dataa.productsWithoutReviews.map((product, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between p-3.5 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl border border-orange-100"
+                  className="p-3.5 bg-gradient-to-br from-yellow-50 to-amber-50 border border-yellow-100 rounded-xl hover:shadow-sm transition-shadow"
                 >
-=======
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {title}
-              </p>
-              <div className="flex items-center space-x-3 mt-1 text-xs text-gray-500">
-                <span>{item.totalSold || 0} sold</span>
-                <span>•</span>
-                <span className="font-semibold text-green-600">
-                  ₹{(item.totalRevenue || 0).toLocaleString()}
-                </span>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  ) : (
-    <p className="text-center text-gray-500 py-8">No sales yet.</p>
-  )}
-</div>
-
-        {/* Low Stock Alert */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-            <AlertTriangle className="w-5 h-5 mr-2 text-orange-600" />
-            Low Stock Alert
-          </h2>
-          {data.lowStockProducts && data.lowStockProducts.length > 0 ? (
-            <div className="space-y-3">
-              {data.lowStockProducts.map((product, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
->>>>>>> origin/main
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">
-                      {product.title}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      ₹{product.price.toLocaleString()}
-                    </p>
-                  </div>
-                  <span
-                    className={`text-xs font-bold px-3 py-1.5 rounded-full shadow-sm ${
-                      product.stock <= 5
-                        ? "bg-red-500 text-white"
-                        : "bg-orange-400 text-white"
-                    }`}
-                  >
-                    {product.stock} left
-                  </span>
+                  <p className="text-sm font-semibold text-gray-900 truncate">
+                    {product.title}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    ₹{product.price.toLocaleString()}
+                  </p>
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="flex flex-col items-center text-center py-12 gap-3">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 text-green-500 flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6" />
-              </div>
-              <p className="text-sm font-bold text-gray-900">
-                All products are well stocked
-              </p>
-              <p className="text-xs text-gray-400 max-w-[260px]">
-                You'll be alerted here as soon as any product stock runs low.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      
-
-      {/* Products without reviews */}
-<<<<<<< HEAD
-      {data.productsWithoutReviews.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
-          <h2 className="text-base font-bold text-gray-900 flex items-center gap-2 mb-1">
-            <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-yellow-300 to-amber-400 text-white flex items-center justify-center shadow-sm">
-              <Star className="w-4 h-4" />
-            </span>
-=======
-      {data.productsWithoutReviews && data.productsWithoutReviews.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-            <Star className="w-5 h-5 mr-2 text-yellow-500" />
->>>>>>> origin/main
-            Products Needing Reviews
-          </h2>
-          <p className="text-xs text-gray-400 mb-4 ml-11">
-            These products have no reviews yet. Encourage customers to review!
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {dataa.productsWithoutReviews.map((product, idx) => (
-              <div
-                key={idx}
-                className="p-3.5 bg-gradient-to-br from-yellow-50 to-amber-50 border border-yellow-100 rounded-xl hover:shadow-sm transition-shadow"
-              >
-                <p className="text-sm font-semibold text-gray-900 truncate">
-                  {product.title}
-                </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  ₹{product.price.toLocaleString()}
-                </p>
-              </div>
-            ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* All Products Table */}
       {allProducts.length > 0 && (

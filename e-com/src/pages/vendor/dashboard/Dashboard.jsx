@@ -46,6 +46,7 @@ export const Dashboard = () => {
     try {
       const result = await vendorService.getProductAnalytics();
       setData(result);
+      // console.log('dash data',result.topProducts)
     } catch (error) {
       console.error('Failed to load product analytics', error);
     } finally {
@@ -85,7 +86,7 @@ export const Dashboard = () => {
   }
 
   // Access products from vendorProducts slice for InventoryAlerts
-  console.log("data:-",data);
+  // console.log("data:-",data);
 const { products } = useSelector((state) => state.vendorProducts);
 
   const lowStockProducts = products.filter((product) => product.stock <= 10);
@@ -125,6 +126,7 @@ const { products } = useSelector((state) => state.vendorProducts);
       link: "/vendor/products",
     },
   ];
+  // console.log("Stats Data:", stats.totalOrders);
 
   const colorClasses = {
     blue: "bg-blue-100 text-blue-600",
@@ -175,7 +177,7 @@ const { products } = useSelector((state) => state.vendorProducts);
           <RevenueChart chartData={chartData} />
         </div>
 
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 h-full">
           <OrderStatusChart />
         </div>
       </div>
@@ -183,11 +185,14 @@ const { products } = useSelector((state) => state.vendorProducts);
       {/* Top Products & Inventory Alerts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         <div className="lg:col-span-1">
-          <TopProducts products={topProducts} />
+          <TopProducts 
+          products={data?.topProducts} 
+          totalOrder={stats?.totalOrders}
+          />
         </div>
 
         <div className="lg:col-span-1">
-          <InventoryAlerts products={lowStockProducts} />
+          <InventoryAlerts products={data?.lowStockProducts} />
         </div>
       </div>
 

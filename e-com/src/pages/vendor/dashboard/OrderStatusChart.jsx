@@ -1,21 +1,20 @@
 import { useEffect, useState } from "react";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-} from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { vendorService } from "../../../services/vendor.service";
 
-const COLORS = {
-  delivered: "#22C55E",
-  pending: "#FACC15",
-  confirmed: "#3B82F6",
-  completed: "#EF4444",
-};
+const COLORS = [
+  "#22C55E", // green
+  "#FACC15", // yellow
+  "#3B82F6", // blue
+  "#EF4444", // red
+  "#8B5CF6", // purple
+  "#06B6D4", // cyan
+  "#F97316", // orange
+  "#EC4899", // pink
+];
 
 const OrderStatusChart = () => {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,7 +24,9 @@ const OrderStatusChart = () => {
   const loadData = async () => {
     try {
       const result = await vendorService.getOrderAnalytics();
-      setData(result.statusBreakdown);
+
+      setData(result.statusBreakdown || []);
+
       console.log("Order Analytics Data:", result.statusBreakdown);
     } catch (error) {
       console.error("Failed to load order analytics", error);
@@ -36,85 +37,64 @@ const OrderStatusChart = () => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-3xl p-6 shadow-sm border">
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 h-full">
         Loading...
       </div>
     );
   }
 
-  const chartData = [
-    {
-      name: "Delivered",
-      value: data[0].count || 0,
-      color: COLORS.delivered,
-    },
-    {
-      name: "Pending",
-      value: data[3].count || 0,
-      color: COLORS.pending,
-    },
-    {
-      name: "confirmed",
-      value: data[2].count || 0,
-      color: COLORS.confirmed,
-    },
-    {
-      name: "Completed",
-      value: data[1].count || 0,
-      color: COLORS.completed,
-    },
-  ];
+  const chartData = data.map((item, index) => ({
+    name: item._id.charAt(0).toUpperCase() + item._id.slice(1).toLowerCase(),
+    value: item.count,
+    color: COLORS[index % COLORS.length],
+  }));
 
-  const totalOrders = chartData.reduce(
-    (sum, item) => sum + item.value,
-    0
-  );
+  const totalOrders = chartData.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <div className="relative overflow-hidden bg-white rounded-3xl p-6 shadow-sm border border-slate-200 h-full">
+    <div className="relative overflow-hidden bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+      <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-100 blur-3xl opacity-50" />
 
-      <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-100 blur-3xl opacity-50"></div>
-
-      <h2 className="text-lg font-bold text-slate-900 mb-6">
-        📊 Order Status
-      </h2>
+      <h2 className="text-lg font-bold text-slate-900 mb-6">📊 Order Status</h2>
 
       <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+        {/* Chart */}
+        <div className="relative w-[55%] max-w-sm h-64">
+          {totalOrders > 0 ? (
+            <>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    dataKey="value"
+                    innerRadius={70}
+                    outerRadius={100}
+                    paddingAngle={4}
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell key={index} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
 
-        {/* Donut Chart */}
-        <div className="relative w-full max-w-sm h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={chartData}
-                dataKey="value"
-                innerRadius={70}
-                outerRadius={100}
-                paddingAngle={4}
-              >
-                {chartData.map((entry) => (
-                  <Cell
-                    key={entry.name}
-                    fill={entry.color}
-                  />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <h3 className="text-4xl font-bold text-slate-900">
+                  {totalOrders}
+                </h3>
 
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <h3 className="text-4xl font-bold text-slate-900">
-              {totalOrders}
-            </h3>
-
-            <p className="text-sm text-slate-500">
-              Orders
-            </p>
-          </div>
+                <p className="text-sm text-slate-500">Orders</p>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-slate-500">No order data available</p>
+            </div>
+          )}
         </div>
 
         {/* Legend */}
-        <div className="w-full max-w-xs space-y-3">
+        <div className="w-[45%] max-w-xs space-y-2">
           {chartData.map((item) => {
             const percentage =
               totalOrders > 0
@@ -124,7 +104,7 @@ const OrderStatusChart = () => {
             return (
               <div
                 key={item.name}
-                className="flex items-center justify-between p-3 rounded-2xl bg-slate-50"
+                className="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50"
               >
                 <div className="flex items-center gap-3">
                   <div
@@ -140,19 +120,17 @@ const OrderStatusChart = () => {
                 </div>
 
                 <div className="text-right">
-                  <p className="font-semibold text-slate-900">
+                  <p className="text-lg font-bold text-slate-900">
                     {item.value}
-                  </p>
-
-                  <p className="text-xs text-slate-500">
-                    {percentage}%
+                    <span className="ml-2 text-sm font-medium text-slate-500">
+                      ({percentage}%)
+                    </span>
                   </p>
                 </div>
               </div>
             );
           })}
         </div>
-
       </div>
     </div>
   );

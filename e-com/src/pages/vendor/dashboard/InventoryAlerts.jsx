@@ -2,10 +2,9 @@ import { AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const InventoryAlerts = ({ products = [] }) => {
-  const lowStockProducts = products.filter(
-    (product) => product.stock <= 10
-  );
+  const lowStockProducts = products.filter((product) => product.stock <= 10);
 
+  // console.log("InventoryAlerts component rendered with products:", products);
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full">
       <div className="flex items-center justify-between mb-6">
@@ -36,7 +35,7 @@ const InventoryAlerts = ({ products = [] }) => {
               className="flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
-                <img
+                {/* <img
                   src={
                     product.images?.[0]?.url ||
                     product.image ||
@@ -44,16 +43,16 @@ const InventoryAlerts = ({ products = [] }) => {
                   }
                   alt={product.title}
                   className="w-12 h-12 rounded-lg object-cover border border-gray-200"
-                />
+                /> */}
 
                 <div>
                   <h3 className="text-sm font-medium text-gray-800">
                     {product.title}
                   </h3>
 
-                  <p className="text-xs text-gray-500">
+                  {/* <p className="text-xs text-gray-500">
                     SKU: {product.sku}
-                  </p>
+                  </p> */}
                 </div>
               </div>
 
@@ -62,9 +61,7 @@ const InventoryAlerts = ({ products = [] }) => {
                   {product.stock} left
                 </p>
 
-                <p className="text-xs text-gray-500">
-                  Low Stock
-                </p>
+                <p className="text-xs text-gray-500">Low Stock</p>
               </div>
             </div>
           ))}
