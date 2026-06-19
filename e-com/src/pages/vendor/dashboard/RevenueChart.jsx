@@ -9,6 +9,7 @@ import {
 } from "recharts";
 
 const RevenueChart = ({ chartData }) => {
+  // console.log('chartdata:-',chartData)
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full">
       <div className="flex items-center justify-between mb-6">
@@ -62,7 +63,7 @@ const RevenueChart = ({ chartData }) => {
 
               <Bar
                 dataKey="revenue"
-                fill="#6366F1"
+                fill="#3B82F6"
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>

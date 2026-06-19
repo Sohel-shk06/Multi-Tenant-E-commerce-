@@ -91,9 +91,11 @@ const { products } = useSelector((state) => state.vendorProducts);
 
   const lowStockProducts = products.filter((product) => product.stock <= 10);
 
-  const topProducts = [...products]
-    .sort((a, b) => b.soldCount - a.soldCount)
-    .slice(0, 5);
+  const totalUnitsSold = data?.topProducts?.reduce(
+    (sum, p) => sum + (p.totalSold || 0),
+    0,
+  );
+
 
   // Stats data array
   const statsData = [
@@ -187,7 +189,7 @@ const { products } = useSelector((state) => state.vendorProducts);
         <div className="lg:col-span-1">
           <TopProducts 
           products={data?.topProducts} 
-          totalOrder={stats?.totalOrders}
+          totalSold={totalUnitsSold}
           />
         </div>
 

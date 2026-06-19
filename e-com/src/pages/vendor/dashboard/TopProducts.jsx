@@ -1,9 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const TopProducts = ({ products = [], totalOrder }) => {
+const TopProducts = ({ products = [], totalSold }) => {
   // console.log("TopProducts component rendered with products:", products);
-  // console.log("Total Revenue:", totalOrder);
+  // console.log("Total Revenue:", totalSold);
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full">
       <div className="flex items-center justify-between mb-6">
@@ -46,8 +46,8 @@ const TopProducts = ({ products = [], totalOrder }) => {
                     className="bg-violet-600 h-2 rounded-full"
                     style={{
                       width: `${
-                        totalOrder > 0
-                          ? ((product?.totalSold || 0) / totalOrder) * 100
+                        totalSold > 0
+                          ? ((product?.totalSold || 0) / totalSold) * 100
                           : 0
                       }%`,
                     }}

@@ -387,7 +387,7 @@ export const ProductAnalytics = () => {
         {/* Top Selling Products */}
         <div className="lg:col-span-1">
           <TopProducts products={data?.topProducts}
-          totalRevenue={0} />
+          totalSold={totalUnitsSold} />
           </div>
         {/*Inventory Alert*/}
          <div className="lg:col-span-1">
