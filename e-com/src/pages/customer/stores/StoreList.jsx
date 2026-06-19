@@ -89,10 +89,27 @@ export const StoreList = () => {
                 >
                   <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 h-full">
                     {/* Store Header */}
-                    <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-24 relative">
-                      <div className="absolute -bottom-8 left-6">
-                        <div className="w-16 h-16 bg-white rounded-xl border-4 border-white shadow-lg flex items-center justify-center">
-                          <StoreIcon className="w-8 h-8 text-blue-600" />
+                    <div className="h-24 relative bg-gradient-to-r from-blue-500 to-purple-600 overflow-hidden">
+                      {store.banner ? (
+                        <img 
+                          src={store.banner} 
+                          alt={`${store.name} banner`} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600" />
+                      )}
+                      <div className="absolute -bottom-8 left-6 z-10">
+                        <div className="w-16 h-16 bg-white rounded-xl border-4 border-white shadow-lg flex items-center justify-center overflow-hidden">
+                          {store.logo ? (
+                            <img 
+                              src={store.logo} 
+                              alt={`${store.name} logo`} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <StoreIcon className="w-8 h-8 text-blue-600" />
+                          )}
                         </div>
                       </div>
                     </div>
