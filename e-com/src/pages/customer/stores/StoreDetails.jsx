@@ -57,8 +57,16 @@ export const StoreDetails = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Store Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="relative text-white overflow-hidden bg-gradient-to-r from-blue-500 to-purple-600">
+        {store.banner && (
+          <img 
+            src={store.banner} 
+            alt={store.name} 
+            className="absolute inset-0 w-full h-full object-cover opacity-35"
+          />
+        )}
+        <div className="absolute inset-0 bg-black/15 backdrop-blur-[2px] z-0" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 z-10">
           <button 
             onClick={() => navigate(-1)} 
             className="flex items-center space-x-2 text-white/80 hover:text-white mb-6"
@@ -68,8 +76,16 @@ export const StoreDetails = () => {
           </button>
 
           <div className="flex items-center space-x-6">
-            <div className="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center">
-              <StoreIcon className="w-12 h-12 text-blue-600" />
+            <div className="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+              {store.logo ? (
+                <img 
+                  src={store.logo} 
+                  alt={`${store.name} logo`} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <StoreIcon className="w-12 h-12 text-blue-600" />
+              )}
             </div>
             <div>
               <h1 className="text-4xl font-bold mb-2">{store.name}</h1>
