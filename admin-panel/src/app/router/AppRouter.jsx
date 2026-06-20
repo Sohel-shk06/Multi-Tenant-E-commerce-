@@ -44,6 +44,14 @@ import { ProductAnalytics } from '../../pages/analytics/ProductAnalytics';
 import { OrderAnalytics } from '../../pages/analytics/OrderAnalytics';
 import { CommissionAnalytics } from '../../pages/analytics/CommissionAnalytics';
 import { SubscriptionAnalytics } from '../../pages/analytics/SubscriptionAnalytics';
+import { GeneralSettings } from '../../pages/settings/GeneralSettings';
+import { SecuritySettings } from '../../pages/settings/SecuritySettings';
+import { CommissionSettings } from '../../pages/settings/CommissionSettings';
+import { PaymentSettings } from '../../pages/settings/PaymentSettings';
+import { EmailSettings } from '../../pages/settings/EmailSettings';
+import { NotificationSettings } from '../../pages/settings/NotificationSettings';
+import { StorageSettings } from '../../pages/settings/StorageSettings';
+import { SystemSettings } from '../../pages/settings/SystemSettings';
 
 // Error Pages
 import { NotFound } from '../../pages/errors/NotFound';
@@ -114,6 +122,15 @@ export const AppRouter = () => {
               <Route path="/admin/analytics/orders" element={<OrderAnalytics />} />
               <Route path="/admin/analytics/commissions" element={<CommissionAnalytics />} />
               <Route path="/admin/analytics/subscriptions" element={<SubscriptionAnalytics />} />
+              <Route path="/admin/settings" element={<GeneralSettings />} />
+              <Route path="/admin/settings/general" element={<GeneralSettings />} />
+              <Route path="/admin/settings/security" element={<SecuritySettings />} />
+              <Route path="/admin/settings/commission" element={<CommissionSettings />} />
+              <Route path="/admin/settings/payment" element={<PaymentSettings />} />
+              <Route path="/admin/settings/email" element={<EmailSettings />} />
+              <Route path="/admin/settings/notifications" element={<NotificationSettings />} />
+              <Route path="/admin/settings/storage" element={<StorageSettings />} />
+              <Route path="/admin/settings/system" element={<SystemSettings />} />
 
               {/* Stores */}
               <Route path="/admin/stores" element={<StoreList />} />

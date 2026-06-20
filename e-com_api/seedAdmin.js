@@ -129,126 +129,115 @@
 // fixPendingPayments();
 
 
+
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import { Dispute } from './models/Dispute.js';
-import { Order } from './models/Order.js';
-import { User } from './models/User.js';
+import { Setting } from './models/Setting.js';
 
 dotenv.config();
 
-const seedDisputes = async () => {
+const defaultSettings = [
+  // ===== GENERAL SETTINGS =====
+  { key: 'platformName', value: 'Multi-Tenant Marketplace', category: 'general' },
+  { key: 'platformLogo', value: '', category: 'general' },
+  { key: 'supportEmail', value: 'support@marketplace.com', category: 'general' },
+  { key: 'contactPhone', value: '+91-XXXXXXXXXX', category: 'general' },
+  { key: 'platformAddress', value: '', category: 'general' },
+  { key: 'timezone', value: 'Asia/Kolkata', category: 'general' },
+  { key: 'currency', value: 'INR', category: 'general' },
+  { key: 'language', value: 'en', category: 'general' },
+
+  // ===== SECURITY SETTINGS =====
+  { key: 'jwtExpiry', value: '7d', category: 'security' },
+  { key: 'passwordMinLength', value: 8, category: 'security' },
+  { key: 'requireUppercase', value: true, category: 'security' },
+  { key: 'requireNumber', value: true, category: 'security' },
+  { key: 'requireSpecialChar', value: false, category: 'security' },
+  { key: 'twoFactorAuth', value: false, category: 'security' },
+  { key: 'loginAttempts', value: 5, category: 'security' },
+  { key: 'lockoutDuration', value: 15, category: 'security' },
+  { key: 'sessionTimeout', value: 60, category: 'security' },
+
+  // ===== COMMISSION SETTINGS =====
+  { key: 'globalCommissionRate', value: 10, category: 'commission' },
+  { key: 'commissionType', value: 'percentage', category: 'commission' },
+  { key: 'minimumOrderForCommission', value: 0, category: 'commission' },
+  { key: 'autoCollectCommission', value: false, category: 'commission' },
+
+  // ===== PAYMENT SETTINGS =====
+  { key: 'stripeEnabled', value: false, category: 'payment' },
+  { key: 'stripePublishableKey', value: '', category: 'payment' },
+  { key: 'stripeSecretKey', value: '', category: 'payment' },
+  { key: 'razorpayEnabled', value: false, category: 'payment' },
+  { key: 'razorpayKeyId', value: '', category: 'payment' },
+  { key: 'razorpayKeySecret', value: '', category: 'payment' },
+  { key: 'codEnabled', value: true, category: 'payment' },
+  { key: 'minOrderAmount', value: 100, category: 'payment' },
+  { key: 'maxOrderAmount', value: 100000, category: 'payment' },
+
+  // ===== EMAIL SETTINGS =====
+  { key: 'smtpHost', value: '', category: 'email' },
+  { key: 'smtpPort', value: 587, category: 'email' },
+  { key: 'smtpUser', value: '', category: 'email' },
+  { key: 'smtpPassword', value: '', category: 'email' },
+  { key: 'smtpSecure', value: true, category: 'email' },
+  { key: 'fromEmail', value: 'noreply@marketplace.com', category: 'email' },
+  { key: 'fromName', value: 'Marketplace', category: 'email' },
+
+  // ===== NOTIFICATION SETTINGS =====
+  { key: 'emailNewOrder', value: true, category: 'notification' },
+  { key: 'emailOrderShipped', value: true, category: 'notification' },
+  { key: 'emailOrderDelivered', value: true, category: 'notification' },
+  { key: 'emailNewReview', value: true, category: 'notification' },
+  { key: 'emailNewVendor', value: true, category: 'notification' },
+  { key: 'inAppNotifications', value: true, category: 'notification' },
+  { key: 'pushNotifications', value: false, category: 'notification' },
+
+  // ===== STORAGE SETTINGS =====
+  { key: 'cloudinaryCloudName', value: '', category: 'storage' },
+  { key: 'cloudinaryApiKey', value: '', category: 'storage' },
+  { key: 'cloudinaryApiSecret', value: '', category: 'storage' },
+  { key: 'maxImageSize', value: 5, category: 'storage' },
+  { key: 'maxImagesPerProduct', value: 10, category: 'storage' },
+  { key: 'allowedFileTypes', value: ['image/jpeg', 'image/png', 'image/webp'], category: 'storage' },
+
+  // ===== SYSTEM SETTINGS =====
+  { key: 'maintenanceMode', value: false, category: 'system' },
+  { key: 'maintenanceMessage', value: 'We are currently under maintenance. Please check back later.', category: 'system' },
+  { key: 'registrationEnabled', value: true, category: 'system' },
+  { key: 'vendorRegistrationEnabled', value: true, category: 'system' },
+  { key: 'autoApproveVendors', value: false, category: 'system' },
+  { key: 'autoApproveProducts', value: false, category: 'system' },
+  { key: 'cacheEnabled', value: true, category: 'system' },
+  { key: 'debugMode', value: false, category: 'system' }
+];
+
+const seedSettings = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
     console.log('✅ Connected to MongoDB\n');
 
-    // 1. Ek Customer aur Vendor dhundho
-    const customer = await User.findOne({ role: 'customer' });
-    const vendor = await User.findOne({ role: 'vendor' });
+    let created = 0;
+    let skipped = 0;
 
-    if (!customer || !vendor) {
-      console.log('❌ Error: Pehle database mein kam se kam 1 Customer aur 1 Vendor create karo.');
-      process.exit(1);
-    }
-
-    // 2. Existing orders dhundho (jinpe dispute raise ho sake)
-    const orders = await Order.find({}).limit(5);
-
-    if (orders.length === 0) {
-      console.log('⚠️  Database mein koi Order nahi mila.');
-      console.log('💡 Pehle customer account se 1-2 test orders place karo, phir yeh script run karo.');
-      process.exit(0);
-    }
-
-    console.log(`🔍 Found ${orders.length} orders. Creating test disputes...\n`);
-
-    // 3. Test Disputes ka data
-    const disputeTemplates = [
-      {
-        subject: 'Product damaged during delivery',
-        reason: 'product_damaged',
-        description: 'The product box was completely crushed and the item inside is broken. I need a replacement or full refund.',
-        priority: 'high',
-        status: 'open'
-      },
-      {
-        subject: 'Received wrong product variant',
-        reason: 'wrong_product',
-        description: 'I ordered a Blue color variant, but I received a Red one. Please arrange a pickup and send the correct item.',
-        priority: 'medium',
-        status: 'under_review'
-      },
-      {
-        subject: 'Order delivered but item missing',
-        reason: 'product_not_received',
-        description: 'The tracking shows delivered, but the package was empty. The delivery boy handed over an empty box.',
-        priority: 'urgent',
-        status: 'vendor_responded'
-      },
-      {
-        subject: 'Poor quality material',
-        reason: 'quality_issue',
-        description: 'The material quality is very poor and does not match the product description on the website.',
-        priority: 'low',
-        status: 'resolved_customer'
-      },
-      {
-        subject: 'Late delivery beyond promised date',
-        reason: 'late_delivery',
-        description: 'The order was promised in 3 days but it took 10 days to arrive. I want compensation for the delay.',
-        priority: 'medium',
-        status: 'closed'
-      }
-    ];
-
-    let createdCount = 0;
-
-    for (let i = 0; i < orders.length; i++) {
-      const order = orders[i];
-      const template = disputeTemplates[i % disputeTemplates.length];
-
-      // Check karo ki is order pe pehle se dispute toh nahi hai
-      const existingDispute = await Dispute.findOne({ order: order._id });
-      if (existingDispute) {
-        console.log(`⏭️  Dispute already exists for Order: ${order.orderNumber}`);
+    for (const setting of defaultSettings) {
+      const existing = await Setting.findOne({ key: setting.key });
+      if (existing) {
+        skipped++;
         continue;
       }
 
-      // Naya dispute create karo
-      await Dispute.create({
-        order: order._id,
-        raisedBy: customer._id,
-        vendor: order.vendor || vendor._id,
-        customer: customer._id,
-        subject: template.subject,
-        reason: template.reason,
-        description: template.description,
-        priority: template.priority,
-        status: template.status,
-        openedAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000), // Purane dates ke liye
-        messages: [
-          {
-            sender: customer._id,
-            senderRole: 'customer',
-            message: template.description,
-            createdAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000)
-          }
-        ]
-      });
-
-      console.log(`✅ Dispute created [${template.status.toUpperCase()}] for Order: ${order.orderNumber}`);
-      createdCount++;
+      await Setting.create(setting);
+      console.log(`✅ Created: ${setting.key}`);
+      created++;
     }
 
-    console.log(`\n🎉 Success! Created ${createdCount} test disputes.`);
-    console.log('✅ Ab Admin Panel refresh karo (Ctrl + Shift + R) - Numbers dikhne lagenge!\n');
-
+    console.log(`\n🎉 Done! Created: ${created}, Skipped: ${skipped}`);
     process.exit(0);
   } catch (error) {
-    console.error('\n❌ Error seeding disputes:', error.message);
-    console.error('Stack:', error.stack);
+    console.error('❌ Error:', error.message);
     process.exit(1);
-    }
+  }
 };
 
-seedDisputes();
+seedSettings();
