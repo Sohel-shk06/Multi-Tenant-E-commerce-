@@ -25,6 +25,12 @@ router.patch('/:orderId/status',
   orderController.updateOrderStatus
 );
 
+// Customer can cancel active orders
+router.patch('/:orderId/cancel',
+  authorizeRoles('customer'),
+  orderController.cancelOrder
+);
+
 // For testing - create order (normally created after payment)
 router.post('/', 
   authorizeRoles('admin', 'customer'), 

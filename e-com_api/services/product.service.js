@@ -121,10 +121,7 @@ export const getProductById = async (productId) => {
 export const createProduct = async (productData, vendorId, storeId) => {
   console.log('🔧 Creating product with:', { vendorId, storeId });
 
-  const { 
-    title, description, price, comparePrice, category, 
-    variants, tags, stock, sku, images 
-  } = productData;
+  const { title, description, price, comparePrice, category, variants, tags, stock, sku, images } = productData;
 
   // ✅ Validation
   if (!title || !title.trim()) {
@@ -170,9 +167,9 @@ export const createProduct = async (productData, vendorId, storeId) => {
       vendor: vendorId,
       store: storeId,
       images: images || [],
-      variants: parsedVariants,
-      tags: parsedTags,
-      stock: Number(stock) || 0,
+      variants: variants || [],
+      tags: tags || [],
+      stock: stock || 0,
       sku: sku || undefined,
       status: 'draft'
     });
@@ -425,7 +422,7 @@ export const moderateProduct = async (productId, action, adminNotes) => {
 // ============================================
 export const getPublicProducts = async (query) => {
   try {
-    const { page = 1, limit = 12, search, category, minPrice, maxPrice } = query;
+    const { page = 1, limit = 12, search, category, minPrice, maxPrice, sort } = query;
     const pageNum = Math.max(1, parseInt(page) || 1);
     const limitNum = Math.max(1, Math.min(100, parseInt(limit) || 12));
     const skip = (pageNum - 1) * limitNum;
@@ -455,6 +452,18 @@ export const getPublicProducts = async (query) => {
       if (Object.keys(filter.price).length === 0) delete filter.price;
     }
 
+    // Determine sort order
+    let sortObj = { createdAt: -1 };
+    if (sort === 'price_asc') {
+      sortObj = { price: 1 };
+    } else if (sort === 'price_desc') {
+      sortObj = { price: -1 };
+    } else if (sort === 'rating') {
+      sortObj = { averageRating: -1 };
+    } else if (sort === 'newest') {
+      sortObj = { createdAt: -1 };
+    }
+
     const products = await Product.find(filter)
       .populate('category', 'name slug')
       .populate({
@@ -467,7 +476,7 @@ export const getPublicProducts = async (query) => {
       })
       .skip(skip)
       .limit(limitNum)
-      .sort({ createdAt: -1 });
+      .sort(sortObj);
 
     const totalProducts = await Product.countDocuments(filter);
 
