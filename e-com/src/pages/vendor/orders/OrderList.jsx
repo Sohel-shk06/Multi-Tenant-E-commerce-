@@ -183,7 +183,7 @@ export const OrderList = () => {
                     className="hover:bg-blue-50 transition-all duration-200"
                   >
                     <td className="px-6 py-5">
-                      <span className="font-semibold text-blue-600 hover:text-blue-800 cursor-pointer">
+                      <span className="font-medium text-sm  text-blue-600 hover:text-blue-800 cursor-pointer">
                         {order.orderNumber}
                       </span>
                     </td>
