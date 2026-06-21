@@ -15,6 +15,7 @@ import { VerifyEmail } from '../../pages/auth/VerifyEmail';
 // Dashboard Pages
 import { Dashboard } from '../../pages/dashboard/Dashboard';
 import { VendorList } from '../../pages/vendors/VendorList';
+import { VendorDetails } from '../../pages/vendors/VendorDetails';
 import { CategoryList } from '../../pages/categories/CategoryList';
 import { CreateCategory } from '../../pages/categories/CreateCategory';
 import { ProductList } from '../../pages/products/ProductList';
@@ -65,33 +66,39 @@ export const AppRouter = () => {
               <Route path="/admin/vendors" element={<VendorList />} />
               <Route path="/admin/vendors/pending" element={<VendorList defaultStatus="pending" />} />
               <Route path="/admin/vendors/suspended" element={<VendorList defaultStatus="suspended" />} />
+              <Route path="/admin/vendors/:vendorId" element={<VendorDetails />} />
 
-              {/* ✅ ✅ ✅ CATEGORIES - EDIT ROUTE ADDED ✅ ✅ ✅ */}
+              {/* Categories */}
               <Route path="/admin/categories" element={<CategoryList />} />
               <Route path="/admin/categories/create" element={<CreateCategory />} />
               <Route path="/admin/categories/edit/:categoryId" element={<CreateCategory />} />
 
-              {/* ✅ ✅ ✅ PRODUCTS - SAB ROUTES SAHI ✅ ✅ ✅ */}
+              {/* Products */}
               <Route path="/admin/products" element={<ProductList />} />
               <Route path="/admin/products/create" element={<CreateProduct />} />
               <Route path="/admin/products/edit/:productId" element={<CreateProduct />} />
               <Route path="/admin/products/moderation" element={<ProductModeration />} />
 
-              {/* ✅ ✅ ✅ ORDERS - SAHI ORDER MEIN ✅ ✅ ✅ */}
+              {/* Orders */}
               <Route path="/admin/orders" element={<OrderList />} />
               <Route path="/admin/orders/pending" element={<OrderList defaultStatus="pending" />} />
               <Route path="/admin/orders/completed" element={<OrderList defaultStatus="completed" />} />
               <Route path="/admin/orders/cancelled" element={<OrderList defaultStatus="cancelled" />} />
               <Route path="/admin/orders/:orderId" element={<OrderDetails />} />
 
+              {/* Payments */}
               <Route path="/admin/payments" element={<Transactions />} />
               <Route path="/admin/payments/payouts" element={<Payouts />} />
               <Route path="/admin/payments/refunds" element={<Refunds />} />
               <Route path="/admin/payments/failed" element={<FailedPayments />} />
               <Route path="/admin/payments/analytics" element={<PaymentAnalytics />} />
               <Route path="/admin/payments/:paymentId" element={<PaymentDetails />} />
+
+              {/* Commissions */}
               <Route path="/admin/commissions" element={<CommissionList />} />
               <Route path="/admin/commissions/:commissionId" element={<CommissionDetails />} />
+
+              {/* Disputes */}
               <Route path="/admin/disputes" element={<DisputeList />} />
               <Route path="/admin/disputes/open" element={<OpenDisputes />} />
               <Route path="/admin/disputes/closed" element={<ClosedDisputes />} />
