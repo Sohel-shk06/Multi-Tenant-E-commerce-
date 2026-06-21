@@ -3,6 +3,7 @@ import { vendorService } from '../../services/vendor.service';
 
 const initialState = {
   vendors: [],
+  selectedVendor: null,
   totalPages: 1,
   currentPage: 1,
   totalVendors: 0,
@@ -22,13 +23,24 @@ export const fetchVendors = createAsyncThunk(
   }
 );
 
+export const fetchVendorById = createAsyncThunk(
+  'vendors/fetchVendorById',
+  async (vendorId, { rejectWithValue }) => {
+    try {
+      const data = await vendorService.getVendorById(vendorId);
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch vendor');
+    }
+  }
+);
+
 export const updateVendorStatus = createAsyncThunk(
   'vendors/updateStatus',
   async ({ vendorId, status }, { rejectWithValue, dispatch }) => {
     try {
       await vendorService.updateVendorStatus(vendorId, status);
-      // Refresh the list after update
-      dispatch(fetchVendors({ page: 1 })); 
+      dispatch(fetchVendors({ page: 1 }));
       return status;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update status');
@@ -42,6 +54,7 @@ const vendorSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      // fetchVendors
       .addCase(fetchVendors.pending, (state) => { state.isLoading = true; })
       .addCase(fetchVendors.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -51,6 +64,17 @@ const vendorSlice = createSlice({
         state.totalVendors = action.payload.totalVendors;
       })
       .addCase(fetchVendors.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      // fetchVendorById
+      .addCase(fetchVendorById.pending, (state) => { state.isLoading = true; })
+      .addCase(fetchVendorById.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.selectedVendor = action.payload;
+      })
+      .addCase(fetchVendorById.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       });

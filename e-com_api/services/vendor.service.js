@@ -80,6 +80,16 @@ export const createVendorByAdmin = async (vendorData) => {
 
   return newVendor;
 };
+// Get single vendor by ID
+export const getVendorById = async (vendorId) => {
+  const vendor = await User.findById(vendorId)
+    .select('-password -resetPasswordToken -verifyEmailToken');
+  
+  if (!vendor || vendor.role !== 'vendor') {
+    throw new ApiError(404, 'Vendor not found');
+  }
+  return vendor;
+};
 
 // ===== VENDOR: Dashboard Functions =====
 

@@ -66,7 +66,7 @@ import { Router } from 'express';
 import * as vendorController from '../controllers/vendor.controller.js';
 import { verifyJWT } from '../middlewares/auth.middleware.js';
 import { authorizeRoles } from '../middlewares/role.middleware.js';
-import { uploadProductImages } from '../middlewares/upload.middleware.js'; // ✅ NEW
+import { uploadProductImages } from '../middlewares/upload.middleware.js';
 
 const router = Router();
 router.use(verifyJWT);
@@ -86,30 +86,15 @@ router.delete('/stores/:storeId', authorizeRoles('vendor'), vendorController.del
 
 // ===== VENDOR PRODUCT ROUTES =====
 router.get('/products', authorizeRoles('vendor', 'admin'), vendorController.getVendorProducts);
-
-// ✅ UPDATED: Create product with image upload
-router.post(
-  '/products', 
-  authorizeRoles('vendor'),
-  uploadProductImages, // ✅ Multer middleware
-  vendorController.createVendorProduct
-);
-
+router.post('/products', authorizeRoles('vendor'), uploadProductImages, vendorController.createVendorProduct);
 router.get('/products/:productId', authorizeRoles('vendor', 'admin'), vendorController.getVendorProduct);
-
-// ✅ UPDATED: Update product with optional new images
-router.patch(
-  '/products/:productId', 
-  authorizeRoles('vendor'),
-  uploadProductImages, // ✅ Multer middleware
-  vendorController.updateVendorProduct
-);
-
+router.patch('/products/:productId', authorizeRoles('vendor'), uploadProductImages, vendorController.updateVendorProduct);
 router.delete('/products/:productId', authorizeRoles('vendor'), vendorController.deleteVendorProduct);
 
 // ===== ADMIN VENDOR MANAGEMENT ROUTES =====
 router.get('/', authorizeRoles('admin'), vendorController.getVendors);
 router.post('/', authorizeRoles('admin'), vendorController.createVendor);
+router.get('/:vendorId', authorizeRoles('admin'), vendorController.getVendorById);
 router.patch('/:vendorId/status', authorizeRoles('admin'), vendorController.updateVendorStatus);
 
 // ===== VENDOR ORDER ROUTES =====
