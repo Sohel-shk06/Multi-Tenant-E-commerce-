@@ -160,10 +160,22 @@ updateVendorProduct: async (productId, productData) => {
     },
 
     // ===== Order Management =====
-    getVendorOrders: async (params) => {
-        const response = await api.get('/vendor/orders', { params });
-        return response.data.data;
-    },
+   // ===== Order Management =====
+getVendorOrders: async (params) => {
+    // ✅ Empty parameters ko filter karein
+    const cleanParams = {};
+    if (params) {
+        Object.keys(params).forEach(key => {
+            if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+                cleanParams[key] = params[key];
+            }
+        });
+    }
+    
+    console.log('📡 Fetching vendor orders with params:', cleanParams);
+    const response = await api.get('/vendor/orders', { params: cleanParams });
+    return response.data.data;
+},
 
     getVendorOrder: async (orderId) => {
         const response = await api.get(`/vendor/orders/${orderId}`);
