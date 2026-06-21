@@ -2,12 +2,12 @@
 
 @theme {
   --font-sans: 'Plus Jakarta Sans', 'Outfit', sans-serif;
-  --color-primary: #6C4DF6;
-  --color-primary-hover: #5B3EE0;
-  --color-secondary: #9C7CFF;
+  --color-primary: #6C4EFF;
+  --color-primary-hover: #5335E2;
+  --color-secondary: #9477FF;
   --color-brand-bg: #F8F7FC;
   --color-brand-card: #FFFFFF;
-  --color-accent: #EEE9FF;
+  --color-accent: #ECE7FD;
   --color-text-primary: #1E1E2F;
   --color-text-secondary: #6B7280;
   --color-border-color: #E9E7F5;

@@ -33,7 +33,7 @@ export const Home = () => {
       description: "Explore designer wardrobe essentials, modern tailoring, and comfortable footwear curated for every occasion.",
       cta: "Explore Apparel",
       link: "/products?search=fashion",
-      image: "/hero_fashion_clean_wide.png",
+      image: "/hero_fashion_new_wide.png",
       background: "linear-gradient(135deg, #E9E1F0 0%, #B099C7 100%)",
       startColor: "#E9E1F0"
     },
@@ -43,7 +43,7 @@ export const Home = () => {
       description: "Indulge in premium skincare formulations, clean beauty cosmetics, and spa-grade wellness remedies.",
       cta: "Browse Beauty",
       link: "/products?search=beauty",
-      image: "/hero_beauty_clean_wide.png",
+      image: "/hero_beauty_new_wide.png",
       background: "linear-gradient(135deg, #F8CEDA 0%, #D2CCE8 100%)",
       startColor: "#F8CEDA"
     }
@@ -168,7 +168,7 @@ export const Home = () => {
     <div className="min-h-screen bg-[#F8F7FC] pb-16">
       
       {/* Hero Carousel Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8">
         <div 
           className="relative h-[500px] rounded-[24px] overflow-hidden border border-[#E9E7F5] shadow-sm"
           onMouseEnter={() => setIsHovering(true)}
@@ -187,13 +187,13 @@ export const Home = () => {
                 <img 
                   src={slide.image} 
                   alt={slide.subtitle}
-                  className="w-full h-full object-cover object-right"
+                  className="w-full h-full object-cover object-right scale-[1.04] origin-right transition-transform duration-700"
                 />
               </div>
               
               {/* Text backdrop gradient overlay for perfect copy legibility and seamless image blending */}
               <div 
-                className="absolute inset-y-0 left-0 w-full lg:w-[65%] z-10 pointer-events-none" 
+                className="absolute inset-y-0 left-0 w-full lg:w-[58%] z-10 pointer-events-none" 
                 style={{
                   background: `linear-gradient(to right, ${slide.startColor} 0%, ${slide.startColor} 45%, transparent 100%)`
                 }}
