@@ -94,6 +94,9 @@ export const CustomerLayout = () => {
                     <Link to="/customer/orders" className="block px-4 py-2.5 text-sm text-[#1E1E2F] hover:bg-[#ECE7FD] hover:text-[#6C4EFF] font-medium transition-colors">
                       My Orders
                     </Link>
+                    <Link to="/customer/notifications" className="block px-4 py-2.5 text-sm text-[#1E1E2F] hover:bg-[#ECE7FD] hover:text-[#6C4EFF] font-medium transition-colors">
+                      Notifications
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 border-t border-[#E9E7F5] rounded-b-2xl font-medium transition-colors"

@@ -28,6 +28,7 @@ import { StoreDetails } from '../../pages/customer/stores/StoreDetails';
 import { Wishlist } from '../../pages/customer/wishlist/Wishlist';
 import { OrderDetails } from '../../pages/customer/orders/OrderDetails';
 import { Profile } from '../../pages/customer/profile/MyProfile';
+import { NotificationList } from '../../pages/customer/notifications/NotificationList';
 
 // Vendor Pages
 import { Dashboard as VendorDashboard } from '../../pages/vendor/dashboard/Dashboard';
@@ -121,6 +122,7 @@ export const AppRouter = () => {
                     <Route path="orders/:orderId" element={<OrderDetails />} />
 
                     <Route path="profile" element={<Profile />} />
+                    <Route path="notifications" element={<NotificationList />} />
                     <Route path="reviews" element={<MyReviews />} />
                     <Route path="reviews/write" element={<WriteReview />} />
                     <Route path="reviews/edit/:reviewId" element={<EditReview />} />
