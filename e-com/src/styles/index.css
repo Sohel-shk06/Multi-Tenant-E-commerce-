@@ -1,1 +1,30 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+  --color-primary: #6C4EFF;
+  --color-primary-hover: #5335E2;
+  --color-secondary: #9477FF;
+  --color-brand-bg: #F8F7FC;
+  --color-brand-card: #FFFFFF;
+  --color-accent: #ECE7FD;
+  --color-text-primary: #1E1E2F;
+  --color-text-secondary: #6B7280;
+  --color-border-color: #E9E7F5;
+}
+
+/* Custom styles and transitions */
+.shadow-glow {
+  transition: all 0.3s ease;
+}
+.shadow-glow:hover {
+  box-shadow: 0 10px 20px -5px rgba(108, 77, 246, 0.4);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

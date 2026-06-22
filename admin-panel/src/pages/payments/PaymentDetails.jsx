@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchTransaction } from '../../app/store/paymentSlice';
 import { PageLoader } from '../../components/loaders/PageLoader';
-import { ArrowLeft, CreditCard, User, Calendar, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { ArrowLeft, CreditCard, User, Calendar, CheckCircle, XCircle, Clock, ShoppingCart, Store } from 'lucide-react';
 
 export const PaymentDetails = () => {
   const { paymentId } = useParams();
@@ -17,109 +17,186 @@ export const PaymentDetails = () => {
 
   if (isLoading || !tx) return <PageLoader />;
 
-  const getStatusIcon = (status) => {
-    if (status === 'paid') return <CheckCircle className="w-5 h-5 text-green-600" />;
-    if (status === 'failed') return <XCircle className="w-5 h-5 text-red-600" />;
-    return <Clock className="w-5 h-5 text-yellow-600" />;
-  };
-
-  const getStatusColor = (status) => {
-    if (status === 'paid') return 'bg-green-50 border-green-200 text-green-800';
-    if (status === 'failed') return 'bg-red-50 border-red-200 text-red-800';
-    return 'bg-yellow-50 border-yellow-200 text-yellow-800';
+  const getStatusBadge = (status) => {
+    const styles = {
+      paid:     { bg: '#DCFCE7', color: '#15803D', border: '#86EFAC' },
+      pending:  { bg: '#FEF9C3', color: '#A16207', border: '#FDE047' },
+      failed:   { bg: '#FEE2E2', color: '#DC2626', border: '#FECACA' },
+      refunded: { bg: '#EEF2FF', color: '#4338CA', border: '#C7D2FE' },
+    };
+    const s = styles[status] || { bg: '#F3F4F6', color: '#374151', border: '#D1D5DB' };
+    const icons = {
+      paid: <CheckCircle className="w-3.5 h-3.5" />,
+      failed: <XCircle className="w-3.5 h-3.5" />,
+      pending: <Clock className="w-3.5 h-3.5" />,
+      refunded: <CheckCircle className="w-3.5 h-3.5" />,
+    };
+    return (
+      <span
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] font-medium border"
+        style={{ backgroundColor: s.bg, color: s.color, borderColor: s.border }}
+      >
+        {icons[status]}
+        {status?.charAt(0).toUpperCase() + status?.slice(1)}
+      </span>
+    );
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <button
-        onClick={() => navigate('/admin/payments')}
-        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span className="text-sm font-medium">Back to Transactions</span>
-      </button>
+    <div className="p-6 max-w-4xl mx-auto space-y-5">
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {/* Header */}
-        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Payment Details</h1>
-              <p className="text-sm text-gray-600 mt-1 font-mono">{tx.transactionId || tx._id}</p>
-            </div>
-            <div className={`flex items-center space-x-2 px-4 py-2 rounded-lg border ${getStatusColor(tx.paymentStatus)}`}>
-              {getStatusIcon(tx.paymentStatus)}
-              <span className="font-semibold capitalize">{tx.paymentStatus}</span>
-            </div>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate('/admin/payments')}
+            className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 text-gray-600" />
+          </button>
+          <div>
+            <h1 className="text-[18px] font-semibold text-gray-900">Payment Details</h1>
+            <p className="text-[12px] font-mono text-gray-400 mt-0.5">
+              {tx.transactionId || tx._id}
+            </p>
           </div>
         </div>
+        {getStatusBadge(tx.paymentStatus)}
+      </div>
 
-        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Amount */}
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-500 mb-1">Amount</p>
-            <p className="text-3xl font-bold text-gray-900">₹{tx.amount?.toLocaleString()}</p>
+      {/* Amount + Method */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <p className="text-[11px] text-gray-400 uppercase font-medium tracking-wide mb-2">Amount</p>
+          <p className="text-[32px] font-bold text-gray-900 leading-none">
+            ₹{tx.amount?.toLocaleString()}
+          </p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <p className="text-[11px] text-gray-400 uppercase font-medium tracking-wide mb-2">Payment Method</p>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: '#EEF2FF' }}>
+              <CreditCard className="w-4 h-4" style={{ color: '#4338CA' }} />
+            </div>
+            <span className="text-[16px] font-semibold text-gray-900 uppercase">
+              {tx.paymentMethod}
+            </span>
           </div>
-
-          {/* Payment Method */}
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-500 mb-1">Payment Method</p>
-            <div className="flex items-center space-x-2">
-              <CreditCard className="w-5 h-5 text-gray-700" />
-              <p className="text-lg font-semibold text-gray-900 uppercase">{tx.paymentMethod}</p>
-            </div>
-          </div>
-
-          {/* Customer Info */}
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center space-x-2 mb-2">
-              <User className="w-4 h-4 text-gray-500" />
-              <p className="text-sm text-gray-500">Customer</p>
-            </div>
-            <p className="font-semibold text-gray-900">{tx.customer?.name || 'Guest'}</p>
-            <p className="text-sm text-gray-600">{tx.customer?.email}</p>
-            {tx.customer?.phone && <p className="text-sm text-gray-600">{tx.customer.phone}</p>}
-          </div>
-
-          {/* Date Info */}
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center space-x-2 mb-2">
-              <Calendar className="w-4 h-4 text-gray-500" />
-              <p className="text-sm text-gray-500">Date</p>
-            </div>
-            <p className="font-semibold text-gray-900">{new Date(tx.createdAt).toLocaleString()}</p>
-            {tx.updatedAt && (
-              <p className="text-xs text-gray-500 mt-1">Updated: {new Date(tx.updatedAt).toLocaleString()}</p>
-            )}
-          </div>
-
-          {/* Order Info */}
-          {tx.order && (
-            <div className="p-4 bg-blue-50 rounded-lg md:col-span-2">
-              <p className="text-sm text-blue-700 mb-2">Associated Order</p>
-              <p className="font-semibold text-gray-900">Order #{tx.order.orderNumber}</p>
-              <p className="text-sm text-gray-600">Total: ₹{tx.order.totalAmount?.toLocaleString()}</p>
-            </div>
-          )}
-
-          {/* Vendor Info */}
-          {tx.vendor && (
-            <div className="p-4 bg-green-50 rounded-lg md:col-span-2">
-              <p className="text-sm text-green-700 mb-2">Vendor</p>
-              <p className="font-semibold text-gray-900">{tx.vendor.name}</p>
-              <p className="text-sm text-gray-600">{tx.vendor.email}</p>
-            </div>
-          )}
-
-          {/* Gateway Response */}
-          {tx.gatewayResponse && (
-            <div className="p-4 bg-gray-50 rounded-lg md:col-span-2">
-              <p className="text-sm text-gray-500 mb-2">Gateway Response</p>
-              <pre className="text-xs text-gray-700 overflow-x-auto">{JSON.stringify(tx.gatewayResponse, null, 2)}</pre>
-            </div>
-          )}
         </div>
       </div>
+
+      {/* Info Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        {/* Customer */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: '#EEF2FF' }}>
+              <User className="w-4 h-4" style={{ color: '#4338CA' }} />
+            </div>
+            <p className="text-[13px] font-semibold text-gray-900">Customer</p>
+          </div>
+          <div className="p-5 flex items-center gap-3">
+            <div
+              className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0"
+              style={{ backgroundColor: '#4338CA' }}
+            >
+              {tx.customer?.name?.charAt(0).toUpperCase() || 'G'}
+            </div>
+            <div>
+              <p className="text-[13px] font-medium text-gray-900">{tx.customer?.name || 'Guest'}</p>
+              <p className="text-[11px] text-gray-400">{tx.customer?.email}</p>
+              {tx.customer?.phone && (
+                <p className="text-[11px] text-gray-400">{tx.customer.phone}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Date */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: '#EEF2FF' }}>
+              <Calendar className="w-4 h-4" style={{ color: '#4338CA' }} />
+            </div>
+            <p className="text-[13px] font-semibold text-gray-900">Date & Time</p>
+          </div>
+          <div className="p-5 space-y-1">
+            <p className="text-[13px] font-medium text-gray-900">
+              {new Date(tx.createdAt).toLocaleString('en-IN')}
+            </p>
+            {tx.updatedAt && (
+              <p className="text-[11px] text-gray-400">
+                Updated: {new Date(tx.updatedAt).toLocaleString('en-IN')}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Order */}
+        {tx.order && (
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: '#EEF2FF' }}>
+                <ShoppingCart className="w-4 h-4" style={{ color: '#4338CA' }} />
+              </div>
+              <p className="text-[13px] font-semibold text-gray-900">Associated Order</p>
+            </div>
+            <div className="p-5 space-y-1">
+              <p className="text-[13px] font-medium text-gray-900">
+                Order #{tx.order.orderNumber}
+              </p>
+              <p className="text-[11px] text-gray-400">
+                Total: ₹{tx.order.totalAmount?.toLocaleString()}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Vendor */}
+        {tx.vendor && (
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: '#EEF2FF' }}>
+                <Store className="w-4 h-4" style={{ color: '#4338CA' }} />
+              </div>
+              <p className="text-[13px] font-semibold text-gray-900">Vendor</p>
+            </div>
+            <div className="p-5 flex items-center gap-3">
+              <div
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0"
+                style={{ backgroundColor: '#4338CA' }}
+              >
+                {tx.vendor?.name?.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p className="text-[13px] font-medium text-gray-900">{tx.vendor.name}</p>
+                <p className="text-[11px] text-gray-400">{tx.vendor.email}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Gateway Response */}
+      {tx.gatewayResponse && (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100">
+            <p className="text-[13px] font-semibold text-gray-900">Gateway Response</p>
+          </div>
+          <div className="p-5">
+            <pre className="text-[12px] text-gray-600 overflow-x-auto bg-gray-50 rounded-lg p-3 border border-gray-100">
+              {JSON.stringify(tx.gatewayResponse, null, 2)}
+            </pre>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
