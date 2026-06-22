@@ -68,12 +68,12 @@ const DashboardHero = ({ user, recentOrders = [] }) => {
 
             <div>
               <p className="text-sm text-white/70">Conversion Rate</p>
-              <h3 className="text-2xl font-bold">3.42%</h3>
+              <h3 className="text-2xl font-bold">0%</h3>
             </div>
 
             <div>
               <p className="text-sm text-white/70">Store Visitors</p>
-              <h3 className="text-2xl font-bold">12.6K</h3>
+              <h3 className="text-2xl font-bold">0</h3>
             </div>
           </div>
         </div>

@@ -160,14 +160,17 @@ updateVendorProduct: async (productId, productData) => {
     },
 
     // ===== Order Management =====
-   // ===== Order Management =====
+// ===== Order Management =====
+// ✅ FIXED: Empty parameters filter karo
 getVendorOrders: async (params) => {
-    // ✅ Empty parameters ko filter karein
+    // Empty/invalid parameters ko filter karein
     const cleanParams = {};
     if (params) {
         Object.keys(params).forEach(key => {
-            if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
-                cleanParams[key] = params[key];
+            const value = params[key];
+            // Sirf valid values add karein
+            if (value !== undefined && value !== null && value !== '') {
+                cleanParams[key] = value;
             }
         });
     }

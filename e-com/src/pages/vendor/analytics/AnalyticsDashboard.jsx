@@ -193,6 +193,7 @@ export const AnalyticsDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Weekly");
   const [revenueCard, setRevenueCard] = useState(null);
+  const [review, setReview] = useState(null);
 
   useEffect(() => {
     loadAll();
@@ -200,12 +201,13 @@ export const AnalyticsDashboard = () => {
 
   const loadAll = async () => {
     try {
-      const [sales, customers, orders, products, revenue] =
+      const [sales, customers, orders, products, review, revenue] =
         await Promise.allSettled([
           vendorService.getSalesAnalytics(),
           vendorService.getCustomerAnalytics(),
           vendorService.getOrderAnalytics(),
           vendorService.getProductAnalytics(),
+          vendorService.getReviewAnalytics(),
           vendorService.getRevenueAnalytics({
             period: "daily",
           }),
@@ -214,6 +216,7 @@ export const AnalyticsDashboard = () => {
       if (customers.status === "fulfilled") setCustomerData(customers.value);
       if (orders.status === "fulfilled") setOrderData2(orders.value);
       if (products.status === "fulfilled") setProductData(products.value);
+      if (review.status === "fulfilled") setReview(review.value);
       if (revenue.status === "fulfilled") setRevenueCard(revenue.value.data);
     } catch (e) {
       console.error("Analytics load error", e);
@@ -240,7 +243,7 @@ export const AnalyticsDashboard = () => {
       setLoading(false);
     }
   };
-  console.log("oody--", customerData);
+  console.log("oody--", review);
 
   if (loading) {
     return (
@@ -251,18 +254,18 @@ export const AnalyticsDashboard = () => {
   }
 
   // ── Derived values (real data if available, fallback to dummy) ──
-  const totalRevenue = salesData?.thisMonth?.revenue ?? 245760;
-  const totalOrders = orderData2?.stats?.totalOrders ?? 3854;
-  const totalCustomers = customerData?.totalCustomers ?? 2345;
-  const avgOrderValue = orderData2?.stats?.avgOrderValue ?? 63.75;
-  const revenueGrowth = salesData?.growth?.revenue ?? 18.3;
-  const ordersGrowth = salesData?.growth?.orders ?? 13.5;
-  const customersGrowth = 13.2;
-  const aovGrowth = 8.3;
+  const totalRevenue = salesData?.thisMonth?.revenue ?? 0;
+  const totalOrders = orderData2?.stats?.totalOrders ?? 0;
+  const totalCustomers = customerData?.totalCustomers ?? 0;
+  const avgOrderValue = orderData2?.stats?.avgOrderValue ?? 0;
+  const revenueGrowth = salesData?.growth?.revenue ?? 0;
+  const ordersGrowth = salesData?.growth?.orders ?? 0;
+  const customersGrowth = 0;
+  const aovGrowth = 0;
 
-  const totalProducts = productData?.stats?.totalProducts ?? 1234;
-  const activeProducts = productData?.stats?.activeProducts ?? 987;
-  const lowStockCount = productData?.lowStockProducts?.length ?? 136;
+  const totalProducts = productData?.stats?.totalProducts ?? 0;
+  const activeProducts = productData?.stats?.activeProducts ?? 0;
+  const lowStockCount = productData?.lowStockProducts?.length ?? 0;
   const outOfStockCount = productData?.stats?.outOfStock ?? 0;
   const healthScore = Math.max(
     0,
@@ -272,10 +275,6 @@ export const AnalyticsDashboard = () => {
         100,
     ),
   );
-
-  const radius = 40;
-  const circumference = 2 * Math.PI * radius;
-  const progress = (healthScore / 100) * circumference;
   const healthInfo =
     healthScore >= 80
       ? {
@@ -301,23 +300,31 @@ export const AnalyticsDashboard = () => {
               text: "text-red-600",
             };
 
-  const repeatCustomers = customerData?.repeatCustomers ?? 1102;
+  const repeatCustomers = customerData?.repeatCustomers ?? 0;
   const newCustomers =
     customerData?.acquisitionTrend?.reduce((s, t) => s + t.newCustomers, 0) ??
-    1243;
-  const retentionRate = customerData?.repeatRate ?? 68.4;
+    0;
+  const retentionRate = customerData?.repeatRate ?? 0;
+  const distribution = review?.ratingDistribution || {};
 
-  const avgRating = 4.8;
-  const totalReviews = 2450;
-  const ratingDist = [
-    { stars: 5, count: 1856, pct: 75.8 },
-    { stars: 4, count: 438, pct: 17.9 },
-    { stars: 3, count: 98, pct: 4.0 },
-    { stars: 2, count: 36, pct: 1.5 },
-    { stars: 1, count: 22, pct: 0.9 },
-  ];
+  const positiveCount = (distribution[5] || 0) + (distribution[4] || 0);
 
-  console.log(productData);
+  const neutralCount = distribution[3] || 0;
+
+  const negativeCount = (distribution[2] || 0) + (distribution[1] || 0);
+
+  const totalReviews = review?.totalReviews || 0;
+
+  const positivePct =
+    totalReviews > 0 ? ((positiveCount / totalReviews) * 100).toFixed(1) : 0;
+
+  const neutralPct =
+    totalReviews > 0 ? ((neutralCount / totalReviews) * 100).toFixed(1) : 0;
+
+  const negativePct =
+    totalReviews > 0 ? ((negativeCount / totalReviews) * 100).toFixed(1) : 0;
+
+  // console.log();
 
   return (
     <div className="min-h-screen p-6 space-y-6">
@@ -330,10 +337,10 @@ export const AnalyticsDashboard = () => {
             time.
           </p>
         </div>
-        <div className="absolute top-6 right-6 flex items-center gap-2 bg-white/10 rounded-xl px-4 py-2 text-white text-sm backdrop-blur-sm">
+        {/* <div className="absolute top-6 right-6 flex items-center gap-2 bg-white/10 rounded-xl px-4 py-2 text-white text-sm backdrop-blur-sm">
           <Calendar className="w-4 h-4 opacity-70" />
           <span>May 12 – Jun 12, 2025</span>
-        </div>
+        </div> */}
       </div>
 
       {/* ── Stat Cards ── */}
@@ -497,10 +504,170 @@ export const AnalyticsDashboard = () => {
         </Card>
       </div>
 
-      {/* ── Sales by Category + Customer Analytics ── */}
+      {/* Product analysis  + Customer Analytics ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Sales by Category */}
+        {/* Product Analytics */}
         <Card>
+          <SectionTitle>Product Analytics</SectionTitle>
+
+          <div className="flex items-center gap-8">
+            {/* Health Score */}
+            <div className="relative w-40 h-40 flex-shrink-0">
+              <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                {/* Background Circle */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  fill="none"
+                  stroke="#e2e8f0"
+                  strokeWidth="16"
+                />
+
+                {/* Progress Circle */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r={40}
+                  fill="none"
+                  stroke="#a855f7"
+                  strokeWidth="16"
+                  strokeLinecap="round"
+                  strokeDasharray={2 * Math.PI * 40}
+                  strokeDashoffset={
+                    2 * Math.PI * 40 - (healthScore / 100) * (2 * Math.PI * 40)
+                  }
+                />
+              </svg>
+
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-3xl font-bold text-slate-900">
+                  {healthScore}%
+                </span>
+                <span className="text-sm text-slate-500">Health</span>
+              </div>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="flex-1 flex flex-col gap-3">
+              {[
+                { label: "Total Products", value: totalProducts },
+                { label: "Active Products", value: activeProducts },
+                { label: "Low Stock", value: lowStockCount },
+                { label: "Out of Stock", value: outOfStockCount },
+              ].map((s, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl px-4 py-3 bg-slate-50 border border-slate-200 flex justify-between items-center"
+                >
+                  <p className="text-sm font-medium text-slate-600">
+                    {s.label}
+                  </p>
+
+                  <p className="text-xl font-bold text-slate-900">
+                    {s.value.toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <p
+            className={`text-xs mt-4 flex items-center gap-1 ${healthInfo.text}`}
+          >
+            <span
+              className={`w-2 h-2 rounded-full inline-block ${healthInfo.dot}`}
+            />
+            Product Health Score: {healthInfo.status}
+          </p>
+        </Card>
+
+        {/* Customer Analytics */}
+        <Card>
+          <SectionTitle>Customer Analytics</SectionTitle>
+
+          <div className="grid grid-cols-4 gap-3 mb-4">
+            {[
+              {
+                label: "Total Customers",
+                value: totalCustomers.toLocaleString(),
+                pos: true,
+              },
+              {
+                label: "New Customers",
+                value: newCustomers.toLocaleString(),
+                pos: true,
+              },
+              {
+                label: "Returning Customers",
+                value: repeatCustomers.toLocaleString(),
+                pos: true,
+              },
+              {
+                label: "Retention Rate",
+                value: `${retentionRate}%`,
+                pos: true,
+              },
+            ].map((s, i) => (
+              <div key={i} className="text-center">
+                <p className="text-xs text-slate-500 mb-1">{s.label}</p>
+
+                <p className="text-lg font-bold text-slate-900">{s.value}</p>
+
+                <p
+                  className={`text-xs ${
+                    s.pos ? "text-emerald-600" : "text-red-600"
+                  }`}
+                >
+                  {s.change}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-xs text-slate-500 mb-2">Customer Growth</p>
+
+          <ResponsiveContainer width="100%" height={130}>
+            <AreaChart data={customerGrowthData?.acquisitionTrend}>
+              <defs>
+                <linearGradient id="custGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+
+              <XAxis
+                dataKey="period"
+                tick={{
+                  fill: "#64748b",
+                  fontSize: 10,
+                }}
+                axisLine={false}
+                tickLine={false}
+              />
+
+              <YAxis hide />
+
+              <Tooltip content={<LightTooltip />} />
+
+              <Area
+                type="monotone"
+                dataKey="customers"
+                name="Customers"
+                stroke="#6366f1"
+                strokeWidth={2}
+                fill="url(#custGrad)"
+                dot={false}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </Card>
+      </div>
+
+      {/* ── Sales Analytics + Revenue Breakdown ── */}
+      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-4"> */}
+      {/* Sales by Category */}
+      {/* <Card>
           <SectionTitle>Sales by Category</SectionTitle>
 
           <div className="flex items-center gap-6">
@@ -572,174 +739,10 @@ export const AnalyticsDashboard = () => {
               ))}
             </div>
           </div>
-        </Card>
+        </Card> */}
 
-        {/* Customer Analytics */}
-        <Card>
-          <SectionTitle>Customer Analytics</SectionTitle>
-
-          <div className="grid grid-cols-4 gap-3 mb-4">
-            {[
-              {
-                label: "Total Customers",
-                value: totalCustomers.toLocaleString(),
-                change: "+15.7%",
-                pos: true,
-              },
-              {
-                label: "New Customers",
-                value: newCustomers.toLocaleString(),
-                change: "+18.3%",
-                pos: true,
-              },
-              {
-                label: "Returning Customers",
-                value: repeatCustomers.toLocaleString(),
-                change: "+12.1%",
-                pos: true,
-              },
-              {
-                label: "Retention Rate",
-                value: `${retentionRate}%`,
-                change: "+9.7%",
-                pos: true,
-              },
-            ].map((s, i) => (
-              <div key={i} className="text-center">
-                <p className="text-xs text-slate-500 mb-1">{s.label}</p>
-
-                <p className="text-lg font-bold text-slate-900">{s.value}</p>
-
-                <p
-                  className={`text-xs ${
-                    s.pos ? "text-emerald-600" : "text-red-600"
-                  }`}
-                >
-                  {s.change}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <p className="text-xs text-slate-500 mb-2">Customer Growth</p>
-
-          <ResponsiveContainer width="100%" height={130}>
-            <AreaChart data={customerGrowthData?.acquisitionTrend}>
-              <defs>
-                <linearGradient id="custGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-
-              <XAxis
-                dataKey="period"
-                tick={{
-                  fill: "#64748b",
-                  fontSize: 10,
-                }}
-                axisLine={false}
-                tickLine={false}
-              />
-
-              <YAxis hide />
-
-              <Tooltip content={<LightTooltip />} />
-
-              <Area
-                type="monotone"
-                dataKey="customers"
-                name="Customers"
-                stroke="#6366f1"
-                strokeWidth={2}
-                fill="url(#custGrad)"
-                dot={false}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </Card>
-      </div>
-
-      {/* ── Product Analytics + Revenue Breakdown ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Product Analytics */}
-        <Card>
-          <SectionTitle>Product Analytics</SectionTitle>
-
-          <div className="flex items-center gap-8">
-            {/* Health Score */}
-            <div className="relative w-40 h-40 flex-shrink-0">
-              <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                {/* Background Circle */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  fill="none"
-                  stroke="#e2e8f0"
-                  strokeWidth="16"
-                />
-
-                {/* Progress Circle */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r={40}
-                  fill="none"
-                  stroke="#a855f7"
-                  strokeWidth="16"
-                  strokeLinecap="round"
-                  strokeDasharray={2 * Math.PI * 36}
-                  strokeDashoffset={
-                    2 * Math.PI * 36 - (healthScore / 100) * (2 * Math.PI * 36)
-                  }
-                />
-              </svg>
-
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-3xl font-bold text-slate-900">
-                  {healthScore}%
-                </span>
-                <span className="text-sm text-slate-500">Health</span>
-              </div>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="flex-1 flex flex-col gap-3">
-              {[
-                { label: "Total Products", value: totalProducts },
-                { label: "Active Products", value: activeProducts },
-                { label: "Low Stock", value: lowStockCount },
-                { label: "Out of Stock", value: outOfStockCount },
-              ].map((s, i) => (
-                <div
-                  key={i}
-                  className="rounded-xl px-4 py-3 bg-slate-50 border border-slate-200 flex justify-between items-center"
-                >
-                  <p className="text-sm font-medium text-slate-600">
-                    {s.label}
-                  </p>
-
-                  <p className="text-xl font-bold text-slate-900">
-                    {s.value.toLocaleString()}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <p
-            className={`text-xs mt-4 flex items-center gap-1 ${healthInfo.text}`}
-          >
-            <span
-              className={`w-2 h-2 rounded-full inline-block ${healthInfo.dot}`}
-            />
-            Product Health Score: {healthInfo.status}
-          </p>
-        </Card>
-
-        {/* Revenue Breakdown */}
-        <Card>
+      {/* Revenue Breakdown */}
+      {/* <Card>
           <SectionTitle>Revenue Breakdown</SectionTitle>
 
           <div className="flex items-center gap-6">
@@ -812,8 +815,8 @@ export const AnalyticsDashboard = () => {
               ))}
             </div>
           </div>
-        </Card>
-      </div>
+        </Card> */}
+      {/* </div> */}
 
       {/* ── Customer Reviews ── */}
       <Card>
@@ -824,7 +827,9 @@ export const AnalyticsDashboard = () => {
           <div className="flex flex-col items-center justify-center">
             <p className="text-xs text-slate-500 mb-2">Average Rating</p>
 
-            <p className="text-6xl font-bold text-slate-900">{avgRating}</p>
+            <p className="text-6xl font-bold text-slate-900">
+              {review?.averageRating}
+            </p>
 
             <p className="text-slate-500 text-sm">/ 5</p>
 
@@ -833,7 +838,7 @@ export const AnalyticsDashboard = () => {
                 <Star
                   key={s}
                   className={`w-5 h-5 ${
-                    s <= Math.round(avgRating)
+                    s <= Math.round(review?.averageRating)
                       ? "text-yellow-400 fill-yellow-400"
                       : "text-slate-300"
                   }`}
@@ -844,7 +849,7 @@ export const AnalyticsDashboard = () => {
             <p className="text-xs text-slate-500 mt-2">
               Total Reviews:{" "}
               <span className="text-slate-900 font-medium">
-                {totalReviews.toLocaleString()}
+                {review?.totalReviews.toLocaleString()}
               </span>
             </p>
           </div>
@@ -854,32 +859,44 @@ export const AnalyticsDashboard = () => {
             <p className="text-xs text-slate-500 mb-3">Rating Distribution</p>
 
             <div className="space-y-2">
-              {ratingDist.map((r) => (
-                <div key={r.stars} className="flex items-center gap-3 text-sm">
-                  <span className="text-slate-600 w-12 text-right">
-                    {r.stars} Stars
-                  </span>
+              {Object.entries(review?.ratingDistribution || {})
+                .reverse()
+                .map(([rating, count]) => {
+                  const pct =
+                    review?.totalReviews > 0
+                      ? Math.round((count / review.totalReviews) * 100)
+                      : 0;
 
-                  <div className="flex-1 h-2 rounded-full overflow-hidden bg-slate-200">
+                  return (
                     <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${r.pct}%`,
-                        background:
-                          r.stars >= 4
-                            ? "#a855f7"
-                            : r.stars === 3
-                              ? "#6366f1"
-                              : "#ef4444",
-                      }}
-                    />
-                  </div>
+                      key={rating}
+                      className="flex items-center gap-3 text-sm"
+                    >
+                      <span className="text-slate-600 w-12 text-right">
+                        {rating} Stars
+                      </span>
 
-                  <span className="text-slate-500 text-xs w-20">
-                    {r.count.toLocaleString()} ({r.pct}%)
-                  </span>
-                </div>
-              ))}
+                      <div className="flex-1 h-2 rounded-full overflow-hidden bg-slate-200">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${pct}%`,
+                            background:
+                              Number(rating) >= 4
+                                ? "#a855f7"
+                                : Number(rating) === 3
+                                  ? "#6366f1"
+                                  : "#ef4444",
+                          }}
+                        />
+                      </div>
+
+                      <span className="text-slate-500 text-xs w-20">
+                        {count} ({pct}%)
+                      </span>
+                    </div>
+                  );
+                })}
             </div>
           </div>
 
@@ -888,22 +905,22 @@ export const AnalyticsDashboard = () => {
             {[
               {
                 label: "Positive Reviews",
-                value: 2102,
-                pct: "85.8%",
+                value: positiveCount,
+                pct: `${positivePct}%`,
                 emoji: "😊",
                 color: "text-emerald-600",
               },
               {
                 label: "Neutral Reviews",
-                value: 236,
-                pct: "9.6%",
+                value: neutralCount,
+                pct: `${neutralPct}%`,
                 emoji: "😐",
                 color: "text-yellow-600",
               },
               {
                 label: "Negative Reviews",
-                value: 112,
-                pct: "4.6%",
+                value: negativeCount,
+                pct: `${negativePct}%`,
                 emoji: "😞",
                 color: "text-red-600",
               },

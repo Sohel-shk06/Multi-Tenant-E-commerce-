@@ -24,7 +24,7 @@ const TopProducts = ({ products = [], totalSold }) => {
             <div key={product?._id} className="flex items-center gap-4">
               {/* Product Image */}
               <img
-                src={product?.product.images[0].url}
+                src={product?.product?.images[0]?.url}
                 alt={product?.product.title}
                 className="w-12 h-12 rounded-lg object-cover border"
               />
