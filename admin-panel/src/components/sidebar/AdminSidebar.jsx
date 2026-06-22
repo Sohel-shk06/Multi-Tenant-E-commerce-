@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Store, Users, Package, ShoppingCart,
   DollarSign, CreditCard, Percent, AlertCircle, BarChart3,
-  Settings, LogOut, ChevronDown, X, Menu,TrendingUp
+  Settings, LogOut, ChevronDown, X, Menu, TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -62,15 +62,15 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
         { title: 'Analytics', path: '/admin/payments/analytics' },
       ],
     },
-    {
-      title: 'Subscriptions',
-      icon: DollarSign,
-      children: [
-        { title: 'Plans', path: '/admin/subscriptions/plans' },
-        { title: 'Active Subscriptions', path: '/admin/subscriptions/active' },
-        { title: 'Billing History', path: '/admin/subscriptions/billing' },
-      ],
-    },
+    // {
+    //   title: 'Subscriptions',
+    //   icon: DollarSign,
+    //   children: [
+    //     { title: 'Plans', path: '/admin/subscriptions/plans' },
+    //     { title: 'Active Subscriptions', path: '/admin/subscriptions/active' },
+    //     { title: 'Billing History', path: '/admin/subscriptions/billing' },
+    //   ],
+    // },
     {
       title: 'Commissions',
       icon: Percent,
@@ -85,21 +85,30 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
       title: 'Analytics',
       icon: TrendingUp,
       children: [
-        { title: 'Vendors', path: '/admin/analytics/vendors'},
-        { title: 'Customers', path: '/admin/analytics/customers'},
+        { title: 'Vendors', path: '/admin/analytics/vendors' },
+        { title: 'Customers', path: '/admin/analytics/customers' },
         { title: 'Sales', path: '/admin/analytics/sales' },
         { title: 'Products', path: '/admin/analytics/products' },
         { title: 'Orders', path: '/admin/analytics/orders' },
         { title: 'Commissions', path: '/admin/analytics/commissions' },
         { title: 'Subscriptions', path: '/admin/analytics/subscriptions' },
-        { title: 'Revenue', path: '/admin/analytics/revenue'},
+        { title: 'Revenue', path: '/admin/analytics/revenue' },
       ],
     },
     {
       title: 'Settings',
       icon: Settings,
-      path: '/admin/settings',
-    },
+      children: [
+        { title: 'General', path: '/admin/settings/general'},
+        { title: 'Security', path: '/admin/settings/security' },
+        { title: 'Commission', path: '/admin/settings/commission' },
+        { title: 'Payment', path: '/admin/settings/payment' },
+        { title: 'Email', path: '/admin/settings/email' },
+        { title: 'Notifications', path: '/admin/settings/notifications' },
+        { title: 'Storage', path: '/admin/settings/storage' },
+        { title: 'System', path: '/admin/settings/system' },
+      ]
+    }
   ];
 
   const toggleMenu = (title) => {

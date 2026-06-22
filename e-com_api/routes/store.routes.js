@@ -20,4 +20,7 @@ router.post('/', storeController.createStore);
 router.patch('/:storeId', storeController.updateStore);
 router.delete('/:storeId', storeController.deleteStore);
 
+// ✅ NEW: Store Analytics Route
+router.get('/:storeId/analytics', authorizeRoles('admin'), storeController.getStoreAnalytics);
+
 export default router;

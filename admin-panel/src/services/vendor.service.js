@@ -3,7 +3,12 @@ import api from './api';
 export const vendorService = {
   getVendors: async (params) => {
     const response = await api.get('/vendors', { params });
-    return response.data.data; // Returns { vendors, totalPages, currentPage, totalVendors }
+    return response.data.data;
+  },
+
+  getVendorById: async (vendorId) => {
+    const response = await api.get(`/vendors/${vendorId}`);
+    return response.data.data;
   },
 
   updateVendorStatus: async (vendorId, status) => {

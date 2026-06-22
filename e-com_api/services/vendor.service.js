@@ -80,6 +80,16 @@ export const createVendorByAdmin = async (vendorData) => {
 
   return newVendor;
 };
+// Get single vendor by ID
+export const getVendorById = async (vendorId) => {
+  const vendor = await User.findById(vendorId)
+    .select('-password -resetPasswordToken -verifyEmailToken');
+  
+  if (!vendor || vendor.role !== 'vendor') {
+    throw new ApiError(404, 'Vendor not found');
+  }
+  return vendor;
+};
 
 // ===== VENDOR: Dashboard Functions =====
 
@@ -523,33 +533,38 @@ export const deleteVendorStore = async (vendorId, storeId) => {
 // ===== VENDOR: Order Management Functions =====
 
 export const getVendorOrders = async (vendorId, query) => {
-  const { page = 1, limit = 10, search, status } = query;
-  const skip = (page - 1) * limit;
-  
-  const filter = { vendor: vendorId };
-  
-  if (search) {
-    filter.orderNumber = { $regex: search, $options: 'i' };
-  }
-  if (status) {
-    filter.status = status;
-  }
+    const { page = 1, limit = 10, search, status } = query;
+    const skip = (page - 1) * limit;
+    
+    const filter = { vendor: vendorId };
+    
+    // ✅ Search filter - empty string handle karo
+    if (search && search.trim() !== '') {
+        filter.orderNumber = { $regex: search.trim(), $options: 'i' };
+    }
+    
+    // ✅ Status filter - empty string handle karo
+    if (status && status.trim() !== '') {
+        filter.status = status;
+    }
 
-  const orders = await Order.find(filter)
-    .populate('customer', 'name email')
-    .populate('items.product', 'title images')
-    .skip(skip)
-    .limit(Number(limit))
-    .sort({ createdAt: -1 });
+    console.log('🔍 Vendor orders filter:', JSON.stringify(filter));
 
-  const totalOrders = await Order.countDocuments(filter);
+    const orders = await Order.find(filter)
+        .populate('customer', 'name email')
+        .populate('items.product', 'title images')
+        .skip(skip)
+        .limit(Number(limit))
+        .sort({ createdAt: -1 });
 
-  return {
-    orders,
-    totalPages: Math.ceil(totalOrders / limit),
-    currentPage: Number(page),
-    totalOrders
-  };
+    const totalOrders = await Order.countDocuments(filter);
+
+    return {
+        orders,
+        totalPages: Math.ceil(totalOrders / limit),
+        currentPage: Number(page),
+        totalOrders
+    };
 };
 
 export const getVendorOrderById = async (vendorId, orderId) => {

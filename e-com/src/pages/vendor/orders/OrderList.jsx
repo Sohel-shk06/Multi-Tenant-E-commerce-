@@ -21,13 +21,7 @@ export const OrderList = () => {
   const [statusFilter, setStatusFilter] = useState("");
 
   useEffect(() => {
-    dispatch(
-      fetchVendorOrders({
-        page: currentPage,
-        search: searchTerm,
-        status: statusFilter,
-      }),
-    );
+    dispatch(fetchVendorOrders({ page: currentPage, search: searchTerm, status: statusFilter }));
   }, [dispatch, currentPage, searchTerm, statusFilter]);
 
   const handleStatusChange = (orderId, newStatus) => {
