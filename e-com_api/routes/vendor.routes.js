@@ -27,7 +27,13 @@ router.get('/products/:productId', authorizeRoles('vendor', 'admin'), vendorCont
 router.patch('/products/:productId', authorizeRoles('vendor'), uploadProductImages, vendorController.updateVendorProduct);
 router.delete('/products/:productId', authorizeRoles('vendor'), vendorController.deleteVendorProduct);
 
-// ===== VENDOR ORDER ROUTES (Specific paths PEHLE) =====
+// ===== ADMIN VENDOR MANAGEMENT ROUTES =====
+router.get('/', authorizeRoles('admin'), vendorController.getVendors);
+router.post('/', authorizeRoles('admin'), vendorController.createVendor);
+router.get('/:vendorId', authorizeRoles('admin'), vendorController.getVendorById);
+router.patch('/:vendorId/status', authorizeRoles('admin'), vendorController.updateVendorStatus);
+
+// ===== VENDOR ORDER ROUTES =====
 router.get('/orders', authorizeRoles('vendor', 'admin'), vendorController.getVendorOrders);
 router.patch('/orders/:orderId/status', authorizeRoles('vendor'), vendorController.updateVendorOrderStatus);
 router.get('/orders/:orderId', authorizeRoles('vendor', 'admin'), vendorController.getVendorOrder);
