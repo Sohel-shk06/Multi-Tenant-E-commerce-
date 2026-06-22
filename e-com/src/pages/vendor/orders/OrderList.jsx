@@ -10,9 +10,20 @@ export const OrderList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
-  useEffect(() => {
-    dispatch(fetchVendorOrders({ page: currentPage, search: searchTerm, status: statusFilter }));
-  }, [dispatch, currentPage, searchTerm, statusFilter]);
+useEffect(() => {
+    // ✅ Sirf valid parameters bhejo
+    const params = { page: currentPage };
+    
+    if (searchTerm && searchTerm.trim() !== '') {
+        params.search = searchTerm.trim();
+    }
+    
+    if (statusFilter && statusFilter.trim() !== '') {
+        params.status = statusFilter;
+    }
+    
+    dispatch(fetchVendorOrders(params));
+}, [dispatch, currentPage, searchTerm, statusFilter]);
 
   const handleStatusChange = (orderId, newStatus) => {
     if (window.confirm(`Are you sure you want to mark this order as '${newStatus}'?`)) {

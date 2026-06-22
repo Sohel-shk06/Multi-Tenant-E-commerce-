@@ -104,8 +104,31 @@ export const deleteVendorStore = asyncHandler(async (req, res) => {
 // ===== VENDOR: Order Management =====
 
 export const getVendorOrders = asyncHandler(async (req, res) => {
-  const result = await vendorService.getVendorOrders(req.user._id, req.query);
-  return res.status(200).json(new ApiResponse(200, result, 'Vendor orders fetched successfully'));
+    console.log('\n📦 ========== GET VENDOR ORDERS ==========');
+    console.log('👤 User:', req.user?.role, req.user?._id);
+    console.log('📋 Query params:', req.query);
+    
+    // ✅ Role check
+    if (req.user.role !== 'vendor' && req.user.role !== 'admin') {
+        console.error('❌ User is not vendor or admin:', req.user.role);
+        throw new ApiError(403, 'Only vendors and admins can access orders');
+    }
+    
+    try {
+        const result = await vendorService.getVendorOrders(req.user._id, req.query);
+        console.log('✅ Orders fetched:', result.orders.length, 'orders');
+        console.log('📦 ========== END ==========\n');
+        return res.status(200).json(new ApiResponse(200, result, 'Vendor orders fetched successfully'));
+    } catch (error) {
+        console.error('❌ Error in getVendorOrders:', error.message);
+        console.error('❌ Stack:', error.stack);
+        console.log('📦 ========== END ==========\n');
+        
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        throw new ApiError(500, `Failed to fetch orders: ${error.message}`);
+    }
 });
 
 export const getVendorOrder = asyncHandler(async (req, res) => {

@@ -3,6 +3,8 @@ import { storeService } from '../../services/store.service';
 
 const initialState = {
   stores: [],
+  currentStore: null,
+  storeAnalytics: null,
   totalPages: 1,
   currentPage: 1,
   totalStores: 0,
@@ -21,6 +23,18 @@ export const fetchStores = createAsyncThunk(
   }
 );
 
+// ✅ NEW: Fetch single store
+export const fetchStore = createAsyncThunk(
+  'stores/fetchStore',
+  async (storeId, { rejectWithValue }) => {
+    try {
+      return await storeService.getStore(storeId);
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch store');
+    }
+  }
+);
+
 export const createStore = createAsyncThunk(
   'stores/createStore',
   async (storeData, { rejectWithValue, dispatch }) => {
@@ -30,6 +44,20 @@ export const createStore = createAsyncThunk(
       return store;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create store');
+    }
+  }
+);
+
+// ✅ NEW: Update store
+export const updateStore = createAsyncThunk(
+  'stores/updateStore',
+  async ({ storeId, storeData }, { rejectWithValue, dispatch }) => {
+    try {
+      const store = await storeService.updateStore(storeId, storeData);
+      dispatch(fetchStores({ page: 1 }));
+      return store;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update store');
     }
   }
 );
@@ -47,12 +75,27 @@ export const deleteStore = createAsyncThunk(
   }
 );
 
+// ✅ NEW: Fetch store analytics
+export const fetchStoreAnalytics = createAsyncThunk(
+  'stores/fetchAnalytics',
+  async (storeId, { rejectWithValue }) => {
+    try {
+      return await storeService.getStoreAnalytics(storeId);
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch analytics');
+    }
+  }
+);
+
 const storeSlice = createSlice({
   name: 'stores',
   initialState,
-  reducers: {},
+  reducers: {
+    clearCurrentStore: (state) => { state.currentStore = null; }
+  },
   extraReducers: (builder) => {
     builder
+      // Fetch all stores
       .addCase(fetchStores.pending, (state) => { state.isLoading = true; })
       .addCase(fetchStores.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -64,8 +107,42 @@ const storeSlice = createSlice({
       .addCase(fetchStores.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+      })
+      
+      // ✅ Fetch single store
+      .addCase(fetchStore.pending, (state) => { state.isLoading = true; })
+      .addCase(fetchStore.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentStore = action.payload;
+      })
+      .addCase(fetchStore.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      
+      // ✅ Update store
+      .addCase(updateStore.pending, (state) => { state.isLoading = true; })
+      .addCase(updateStore.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentStore = action.payload;
+      })
+      .addCase(updateStore.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      
+      // ✅ Store analytics
+      .addCase(fetchStoreAnalytics.pending, (state) => { state.isLoading = true; })
+      .addCase(fetchStoreAnalytics.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.storeAnalytics = action.payload;
+      })
+      .addCase(fetchStoreAnalytics.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
       });
   },
 });
 
+export const { clearCurrentStore } = storeSlice.actions;
 export default storeSlice.reducer;

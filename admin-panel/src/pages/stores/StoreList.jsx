@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchStores, deleteStore } from '../../app/store/storeSlice';
 import { PageLoader } from '../../components/loaders/PageLoader';
-import { Search, Plus, Trash2, Edit, Store as StoreIcon } from 'lucide-react';
+import { 
+  Search, Plus, Trash2, Edit, Store as StoreIcon, 
+  Eye, BarChart3, Settings 
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -30,8 +33,8 @@ export const StoreList = () => {
       closed: 'bg-red-100 text-red-800'
     };
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status]}`}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status] || styles.active}`}>
+        {status?.charAt(0).toUpperCase() + status?.slice(1)}
       </span>
     );
   };
@@ -95,8 +98,14 @@ export const StoreList = () => {
                           <StoreIcon className="w-5 h-5 text-gray-500" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{store.name}</p>
-                          <p className="text-xs text-gray-500">{store.settings.currency || 'INR'}</p>
+                          {/* ✅ Store name clickable - StoreDetails par le jayega */}
+                          <button
+                            onClick={() => navigate(`/admin/stores/${store._id}`)}
+                            className="text-sm font-medium text-gray-900 hover:text-blue-600 text-left"
+                          >
+                            {store.name}
+                          </button>
+                          <p className="text-xs text-gray-500">{store.settings?.currency || 'INR'}</p>
                         </div>
                       </div>
                     </td>
@@ -109,7 +118,35 @@ export const StoreList = () => {
                       {new Date(store.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end space-x-2">
+                      <div className="flex items-center justify-end space-x-1">
+                        {/* ✅ NEW: View Details Button */}
+                        <button
+                          onClick={() => navigate(`/admin/stores/${store._id}`)}
+                          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="View Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        
+                        {/* ✅ NEW: Analytics Button */}
+                        <button
+                          onClick={() => navigate(`/admin/stores/${store._id}/analytics`)}
+                          className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                          title="Analytics"
+                        >
+                          <BarChart3 className="w-4 h-4" />
+                        </button>
+                        
+                        {/* ✅ NEW: Settings Button */}
+                        <button
+                          onClick={() => navigate(`/admin/stores/${store._id}/settings`)}
+                          className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                          title="Settings"
+                        >
+                          <Settings className="w-4 h-4" />
+                        </button>
+                        
+                        {/* ✅ Edit Button */}
                         <button
                           onClick={() => navigate(`/admin/stores/edit/${store._id}`)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -117,6 +154,8 @@ export const StoreList = () => {
                         >
                           <Edit className="w-4 h-4" />
                         </button>
+                        
+                        {/* ✅ Delete Button */}
                         <button
                           onClick={() => handleDelete(store._id, store.name)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"

@@ -53,6 +53,10 @@ import { EmailSettings } from '../../pages/settings/EmailSettings';
 import { NotificationSettings } from '../../pages/settings/NotificationSettings';
 import { StorageSettings } from '../../pages/settings/StorageSettings';
 import { SystemSettings } from '../../pages/settings/SystemSettings';
+import { StoreDetails } from '../../pages/stores/StoreDetails';
+import { EditStore } from '../../pages/stores/EditStore';
+import { StoreAnalytics } from '../../pages/stores/StoreAnalytics';
+import { StoreSettings } from '../../pages/stores/StoreSettings';
 
 // Error Pages
 import { NotFound } from '../../pages/errors/NotFound';
@@ -142,6 +146,10 @@ export const AppRouter = () => {
               {/* Stores */}
               <Route path="/admin/stores" element={<StoreList />} />
               <Route path="/admin/stores/create" element={<CreateStore />} />
+              <Route path="/admin/stores/edit/:storeId" element={<EditStore />} />
+              <Route path="/admin/stores/:storeId" element={<StoreDetails />} />
+              <Route path="/admin/stores/:storeId/analytics" element={<StoreAnalytics />} />
+              <Route path="/admin/stores/:storeId/settings" element={<StoreSettings />} />
             </Route>
 
             {/* Vendor Only Routes */}
