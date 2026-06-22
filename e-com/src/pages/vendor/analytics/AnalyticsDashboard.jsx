@@ -272,9 +272,34 @@ export const AnalyticsDashboard = () => {
         100,
     ),
   );
+
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
   const progress = (healthScore / 100) * circumference;
+  const healthInfo =
+    healthScore >= 80
+      ? {
+          status: "Excellent",
+          dot: "bg-emerald-500",
+          text: "text-emerald-600",
+        }
+      : healthScore >= 60
+        ? {
+            status: "Good",
+            dot: "bg-blue-500",
+            text: "text-blue-600",
+          }
+        : healthScore >= 40
+          ? {
+              status: "Average",
+              dot: "bg-amber-500",
+              text: "text-amber-600",
+            }
+          : {
+              status: "Poor",
+              dot: "bg-red-500",
+              text: "text-red-600",
+            };
 
   const repeatCustomers = customerData?.repeatCustomers ?? 1102;
   const newCustomers =
@@ -292,7 +317,7 @@ export const AnalyticsDashboard = () => {
     { stars: 1, count: 22, pct: 0.9 },
   ];
 
-  console.log(productData)
+  console.log(productData);
 
   return (
     <div className="min-h-screen p-6 space-y-6">
@@ -641,108 +666,75 @@ export const AnalyticsDashboard = () => {
         <Card>
           <SectionTitle>Product Analytics</SectionTitle>
 
-          <div className="grid grid-cols-4 gap-3 mb-5">
-            {[
-              { label: "Total Products", value: totalProducts },
-              { label: "Active Products", value: activeProducts },
-              { label: "Low Stock", value: lowStockCount },
-              { label: "Out of Stock", value: outOfStockCount },
-            ].map((s, i) => (
-              <div
-                key={i}
-                className="rounded-xl p-3 text-center bg-slate-50 border border-slate-200"
-              >
-                <p className="text-xs text-slate-500 mb-1">{s.label}</p>
-                <p className="text-xl font-bold text-slate-900">
-                  {s.value.toLocaleString()}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex items-end gap-6">
-            {/* Circular health score */}
-            <div className="relative w-28 h-28 flex-shrink-0">
+          <div className="flex items-center gap-8">
+            {/* Health Score */}
+            <div className="relative w-40 h-40 flex-shrink-0">
               <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                {/* Background Circle */}
                 <circle
                   cx="50"
                   cy="50"
                   r="40"
                   fill="none"
                   stroke="#e2e8f0"
-                  strokeWidth="10"
+                  strokeWidth="16"
                 />
 
+                {/* Progress Circle */}
                 <circle
                   cx="50"
                   cy="50"
-                  r={radius}
+                  r={40}
                   fill="none"
                   stroke="#a855f7"
-                  strokeWidth="10"
+                  strokeWidth="16"
                   strokeLinecap="round"
-                  strokeDasharray={circumference}
-                  strokeDashoffset={circumference - progress}
+                  strokeDasharray={2 * Math.PI * 36}
+                  strokeDashoffset={
+                    2 * Math.PI * 36 - (healthScore / 100) * (2 * Math.PI * 36)
+                  }
                 />
               </svg>
 
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-xl font-bold text-slate-900">
+                <span className="text-3xl font-bold text-slate-900">
                   {healthScore}%
                 </span>
-                <span className="text-xs text-slate-500">Health</span>
+                <span className="text-sm text-slate-500">Health</span>
               </div>
             </div>
 
-            <div className="flex-1">
-              <p className="text-xs text-slate-500 mb-2">
-                Products Added Over Time
-              </p>
-
-              <ResponsiveContainer width="100%" height={90}>
-                <AreaChart
-                  data={revenueData.map((d, i) => ({
-                    period: d.period,
-                    count: 60 + i * 12,
-                  }))}
+            {/* Stats Cards */}
+            <div className="flex-1 flex flex-col gap-3">
+              {[
+                { label: "Total Products", value: totalProducts },
+                { label: "Active Products", value: activeProducts },
+                { label: "Low Stock", value: lowStockCount },
+                { label: "Out of Stock", value: outOfStockCount },
+              ].map((s, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl px-4 py-3 bg-slate-50 border border-slate-200 flex justify-between items-center"
                 >
-                  <defs>
-                    <linearGradient id="prodGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#a855f7" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
+                  <p className="text-sm font-medium text-slate-600">
+                    {s.label}
+                  </p>
 
-                  <XAxis
-                    dataKey="period"
-                    tick={{
-                      fill: "#64748b",
-                      fontSize: 9,
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-
-                  <YAxis hide />
-
-                  <Tooltip content={<LightTooltip />} />
-
-                  <Area
-                    type="monotone"
-                    dataKey="count"
-                    stroke="#a855f7"
-                    strokeWidth={2}
-                    fill="url(#prodGrad)"
-                    dot={false}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+                  <p className="text-xl font-bold text-slate-900">
+                    {s.value.toLocaleString()}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
 
-          <p className="text-xs text-emerald-600 mt-2 flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
-            Product Health Score: Excellent
+          <p
+            className={`text-xs mt-4 flex items-center gap-1 ${healthInfo.text}`}
+          >
+            <span
+              className={`w-2 h-2 rounded-full inline-block ${healthInfo.dot}`}
+            />
+            Product Health Score: {healthInfo.status}
           </p>
         </Card>
 
