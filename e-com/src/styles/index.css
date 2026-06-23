@@ -28,3 +28,136 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Customer experience design system */
+.customer-shell {
+  --customer-primary: #6c4eff;
+  --customer-primary-hover: #5b3ee0;
+  --customer-secondary: #9477ff;
+  --customer-bg: #f8f7fc;
+  --customer-card: #ffffff;
+  --customer-accent: #eee9ff;
+  --customer-text: #1e1e2f;
+  --customer-muted: #6b7280;
+  --customer-border: #e9e7f5;
+  --customer-soft-shadow: 0 8px 24px rgba(31, 21, 71, 0.06);
+  --customer-hover-shadow: 0 16px 36px rgba(80, 55, 160, 0.14);
+  background: var(--customer-bg);
+  color: var(--customer-text);
+}
+
+.customer-shell .bg-gray-50,
+.customer-shell .bg-gray-100 {
+  background-color: var(--customer-bg) !important;
+}
+
+.customer-shell .bg-blue-50,
+.customer-shell .bg-purple-100 {
+  background-color: var(--customer-accent) !important;
+}
+
+.customer-shell .bg-blue-600,
+.customer-shell .hover\:bg-blue-700:hover {
+  background-color: var(--customer-primary) !important;
+}
+
+.customer-shell .hover\:bg-gray-50:hover,
+.customer-shell .hover\:bg-gray-100:hover {
+  background-color: var(--customer-accent) !important;
+}
+
+.customer-shell .text-gray-900,
+.customer-shell .text-gray-800,
+.customer-shell .text-blue-800,
+.customer-shell .text-purple-800 {
+  color: var(--customer-text) !important;
+}
+
+.customer-shell .text-gray-700,
+.customer-shell .text-gray-600,
+.customer-shell .text-gray-500,
+.customer-shell .text-gray-400 {
+  color: var(--customer-muted) !important;
+}
+
+.customer-shell .text-blue-600,
+.customer-shell .text-blue-700,
+.customer-shell .text-purple-600,
+.customer-shell .hover\:text-blue-700:hover {
+  color: var(--customer-primary) !important;
+}
+
+.customer-shell .border-gray-200,
+.customer-shell .border-gray-300,
+.customer-shell .border-blue-600,
+.customer-shell .border-purple-100 {
+  border-color: var(--customer-border) !important;
+}
+
+.customer-shell .focus\:ring-blue-500:focus,
+.customer-shell .focus\:ring-purple-500:focus {
+  --tw-ring-color: rgb(108 78 255 / 0.28) !important;
+}
+
+.customer-shell .focus\:border-blue-500:focus,
+.customer-shell .focus\:border-purple-500:focus {
+  border-color: var(--customer-primary) !important;
+}
+
+.customer-shell input:not([type='checkbox']):not([type='radio']),
+.customer-shell select,
+.customer-shell textarea {
+  min-height: 2.75rem;
+  border-color: var(--customer-border);
+  border-radius: 0.75rem;
+  transition: border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+}
+
+.customer-shell input:not([type='checkbox']):not([type='radio']):focus,
+.customer-shell select:focus,
+.customer-shell textarea:focus {
+  border-color: var(--customer-primary);
+  box-shadow: 0 0 0 4px rgb(108 78 255 / 0.12);
+  outline: none;
+}
+
+.customer-shell input[type='checkbox'],
+.customer-shell input[type='radio'] {
+  accent-color: var(--customer-primary);
+}
+
+.customer-shell button,
+.customer-shell a {
+  transition-duration: 200ms;
+}
+
+.customer-shell .shadow-sm {
+  box-shadow: var(--customer-soft-shadow) !important;
+}
+
+.customer-shell .shadow-md,
+.customer-shell .shadow-lg,
+.customer-shell .shadow-xl {
+  box-shadow: var(--customer-soft-shadow) !important;
+}
+
+.customer-shell .hover\:shadow-md:hover,
+.customer-shell .hover\:shadow-lg:hover,
+.customer-shell .hover\:shadow-xl:hover,
+.customer-shell .hover\:shadow-glow:hover {
+  box-shadow: var(--customer-hover-shadow) !important;
+}
+
+.customer-shell .bg-white.border,
+.customer-shell .bg-white\/95.border {
+  border-color: var(--customer-border);
+  box-shadow: var(--customer-soft-shadow);
+}
+
+.customer-shell .rounded-lg.bg-white,
+.customer-shell .rounded-xl.bg-white,
+.customer-shell .rounded-\[20px\].bg-white,
+.customer-shell .rounded-\[22px\].bg-white,
+.customer-shell .rounded-\[24px\].bg-white {
+  border-radius: 1rem !important;
+}
