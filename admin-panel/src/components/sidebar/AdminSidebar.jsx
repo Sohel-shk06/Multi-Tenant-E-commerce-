@@ -62,15 +62,15 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
         { title: 'Analytics', path: '/admin/payments/analytics' },
       ],
     },
-    {
-      title: 'Subscriptions',
-      icon: DollarSign,
-      children: [
-        { title: 'Plans', path: '/admin/subscriptions/plans' },
-        { title: 'Active Subscriptions', path: '/admin/subscriptions/active' },
-        { title: 'Billing History', path: '/admin/subscriptions/billing' },
-      ],
-    },
+    // {
+    //   title: 'Subscriptions',
+    //   icon: DollarSign,
+    //   children: [
+    //     { title: 'Plans', path: '/admin/subscriptions/plans' },
+    //     { title: 'Active Subscriptions', path: '/admin/subscriptions/active' },
+    //     { title: 'Billing History', path: '/admin/subscriptions/billing' },
+    //   ],
+    // },
     {
       title: 'Commissions',
       icon: Percent,

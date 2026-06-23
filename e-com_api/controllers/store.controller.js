@@ -7,9 +7,39 @@ export const getStores = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, result, 'Stores fetched successfully'));
 });
 
+// ✅ FIXED: category populate remove kiya (Store model mein nahi hai)
 export const getStore = asyncHandler(async (req, res) => {
-  const store = await storeService.getStoreById(req.params.storeId, req.user._id, req.user.role);
-  return res.status(200).json(new ApiResponse(200, store, 'Store fetched successfully'));
+  const { storeId } = req.params;
+  
+  console.log('\n🏪 ========== GET STORE ==========');
+  console.log('📋 Store ID:', storeId);
+
+  try {
+    const { Store } = await import('../models/Store.js');
+    
+    // ✅ category populate HATA DIYA - Store model mein category field nahi hai
+    const store = await Store.findById(storeId)
+      .populate('vendor', 'name email');
+    
+    if (!store) {
+      console.log('❌ Store not found');
+      throw new ApiError(404, 'Store not found');
+    }
+
+    console.log('✅ Store found:', store.name);
+    console.log('🔍 ========== END ==========\n');
+
+    return res.status(200).json(new ApiResponse(200, store, 'Store fetched successfully'));
+  } catch (error) {
+    console.error('❌ Error in getStore:', error.message);
+    console.error('❌ Stack:', error.stack);
+    console.log('🔍 ========== END ==========\n');
+    
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(500, `Failed to fetch store: ${error.message}`);
+  }
 });
 
 export const createStore = asyncHandler(async (req, res) => {
@@ -46,10 +76,6 @@ export const createStore = asyncHandler(async (req, res) => {
   }
 });
 
-export const updateStore = asyncHandler(async (req, res) => {
-  const store = await storeService.updateStore(req.params.storeId, req.body, req.user._id, req.user.role);
-  return res.status(200).json(new ApiResponse(200, store, 'Store updated successfully'));
-});
 
 export const deleteStore = asyncHandler(async (req, res) => {
   await storeService.deleteStore(req.params.storeId, req.user._id, req.user.role);
@@ -71,4 +97,19 @@ export const getPublicStore = asyncHandler(async (req, res) => {
 export const getStoreProducts = asyncHandler(async (req, res) => {
   const result = await storeService.getStoreProducts(req.params.storeId, req.query);
   return res.status(200).json(new ApiResponse(200, result, 'Store products fetched successfully'));
+});
+
+export const getStoreById = asyncHandler(async (req, res) => {
+  const store = await storeService.getStoreById(req.params.storeId);
+  return res.status(200).json(new ApiResponse(200, store, 'Store fetched successfully'));
+});
+
+export const updateStore = asyncHandler(async (req, res) => {
+  const store = await storeService.updateStoreById(req.params.storeId, req.body);
+  return res.status(200).json(new ApiResponse(200, store, 'Store updated successfully'));
+});
+
+export const getStoreAnalytics = asyncHandler(async (req, res) => {
+  const analytics = await storeService.getStoreAnalytics(req.params.storeId);
+  return res.status(200).json(new ApiResponse(200, analytics, 'Store analytics fetched successfully'));
 });
