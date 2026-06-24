@@ -50,14 +50,14 @@ export const StoreList = () => {
         <div className="flex items-center space-x-3">
           <button
             onClick={handleRefresh}
-            className="inline-flex items-center space-x-2 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            className="inline-flex items-center space-x-2 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
           >
             <RefreshCw className="w-4 h-4" />
             <span>Refresh</span>
           </button>
           <Link
             to="/vendor/stores/create"
-            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
           >
             <Plus className="w-4 h-4" />
             <span>Add New Store</span>

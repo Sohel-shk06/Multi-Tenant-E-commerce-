@@ -33,7 +33,7 @@ export const OrderDetails = () => {
     };
     return colors[status] || 'text-gray-600 bg-gray-50';
   };
-
+//  console.log("order:-",order);
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <button onClick={() => navigate('/vendor/orders')} className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6">
