@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Bell, ShoppingBag, Tag, ShieldAlert, Check, RefreshCw, CheckCheck } from 'lucide-react';
 import * as notificationService from '../../../services/notification.service';
+import { useNotificationContext } from '../../../app/providers/NotificationContext';
 
 export const NotificationList = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'unread', 'read'
+  const { decrementUnread, clearUnread } = useNotificationContext();
 
   useEffect(() => {
     loadNotifications();
@@ -18,7 +20,23 @@ export const NotificationList = () => {
     try {
       const response = await notificationService.getNotifications();
       // Ensure we extract notifications array correctly from API response wrapper
-      setNotifications(response.data || []);
+      const list = response.data || [];
+      setNotifications(list);
+
+      // Auto-mark all unread notifications as read when the page is viewed
+      const unreadList = list.filter((n) => !n.isRead);
+      if (unreadList.length > 0) {
+        // Send API requests to mark them as read in the backend
+        Promise.all(unreadList.map((n) => notificationService.markAsRead(n._id)))
+          .catch((err) => console.error('Failed to auto-mark notifications as read:', err));
+
+        // Update local state so they display as read
+        setNotifications((prev) =>
+          prev.map((notif) => ({ ...notif, isRead: true }))
+        );
+        // Clear the navbar bell badge count
+        clearUnread();
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch notifications. Please try again.');
     } finally {
@@ -33,6 +51,8 @@ export const NotificationList = () => {
       setNotifications((prev) =>
         prev.map((notif) => (notif._id === id ? { ...notif, isRead: true } : notif))
       );
+      // Sync the navbar bell badge
+      decrementUnread(1);
     } catch (err) {
       console.error('Failed to mark notification as read:', err);
     }
@@ -50,6 +70,8 @@ export const NotificationList = () => {
       setNotifications((prev) =>
         prev.map((notif) => ({ ...notif, isRead: true }))
       );
+      // Clear the navbar bell badge entirely
+      clearUnread();
     } catch (err) {
       console.error('Failed to mark all notifications as read:', err);
     }
