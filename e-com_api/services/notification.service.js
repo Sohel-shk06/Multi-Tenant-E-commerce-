@@ -3,15 +3,9 @@ import { ApiError } from '../utils/ApiError.js';
 
 /**
  * Create a new notification
- * @param {Object} notificationData - The data for the notification
- * @param {string} notificationData.userId - ID of the user the notification is for
- * @param {string} notificationData.title - Heading of the notification
- * @param {string} notificationData.message - Body text of the notification
- * @param {string} [notificationData.type] - Type of notification ('order_update', 'promo', 'security')
- * @returns {Promise<Object>} The created notification
  */
 export const createNotification = async (notificationData) => {
-  const { userId, title, message, type } = notificationData;
+  const { userId, title, message, type, link } = notificationData;
 
   if (!userId) {
     throw new ApiError(400, 'User ID is required to create a notification');
@@ -28,6 +22,7 @@ export const createNotification = async (notificationData) => {
     title,
     message,
     type: type || 'order_update',
+    link: link || '',
     isRead: false
   });
 
@@ -35,9 +30,7 @@ export const createNotification = async (notificationData) => {
 };
 
 /**
- * Get all notifications for a specific user, sorted newest first
- * @param {string} userId - ID of the logged-in user
- * @returns {Promise<Array>} List of notifications
+ * Get all notifications for a specific user (existing - customer)
  */
 export const getUserNotifications = async (userId) => {
   if (!userId) {
@@ -51,10 +44,41 @@ export const getUserNotifications = async (userId) => {
 };
 
 /**
- * Mark a specific notification as read, with ownership verification
- * @param {string} notificationId - ID of the notification to update
- * @param {string} userId - ID of the user trying to perform the update
- * @returns {Promise<Object>} The updated notification
+ * ✅ NEW: Get vendor notifications with pagination and filtering
+ */
+export const getVendorNotifications = async (vendorId, query) => {
+  try {
+    const { page = 1, limit = 20, unreadOnly } = query;
+    const skip = (page - 1) * limit;
+    
+    const filter = { userId: vendorId };
+    if (unreadOnly === 'true') {
+      filter.isRead = false;
+    }
+
+    const notifications = await Notification.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    const totalNotifications = await Notification.countDocuments(filter);
+    const unreadCount = await Notification.countDocuments({ userId: vendorId, isRead: false });
+
+    return {
+      notifications,
+      totalPages: Math.ceil(totalNotifications / limit),
+      currentPage: Number(page),
+      totalNotifications,
+      unreadCount
+    };
+  } catch (error) {
+    console.error('❌ Error in getVendorNotifications:', error);
+    throw new ApiError(500, 'Failed to fetch notifications');
+  }
+};
+
+/**
+ * Mark a specific notification as read
  */
 export const markAsRead = async (notificationId, userId) => {
   if (!notificationId) {
@@ -76,7 +100,138 @@ export const markAsRead = async (notificationId, userId) => {
   }
 
   notification.isRead = true;
+  notification.readAt = new Date();
   await notification.save();
 
   return notification;
+};
+
+/**
+ * ✅ NEW: Mark all notifications as read
+ */
+export const markAllAsRead = async (vendorId) => {
+  try {
+    await Notification.updateMany(
+      { userId: vendorId, isRead: false },
+      { $set: { isRead: true, readAt: new Date() } }
+    );
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Error in markAllAsRead:', error);
+    throw new ApiError(500, 'Failed to mark all as read');
+  }
+};
+
+/**
+ * ✅ NEW: Delete notification
+ */
+export const deleteNotification = async (notificationId, vendorId) => {
+  try {
+    const notification = await Notification.findOneAndDelete({
+      _id: notificationId,
+      userId: vendorId
+    });
+
+    if (!notification) {
+      throw new ApiError(404, 'Notification not found');
+    }
+
+    return { success: true };
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    console.error('❌ Error in deleteNotification:', error);
+    throw new ApiError(500, 'Failed to delete notification');
+  }
+};
+
+/**
+ * ✅ NEW: Get unread count (for bell icon)
+ */
+export const getUnreadCount = async (vendorId) => {
+  try {
+    const count = await Notification.countDocuments({
+      userId: vendorId,
+      isRead: false
+    });
+    return { unreadCount: count };
+  } catch (error) {
+    console.error('❌ Error in getUnreadCount:', error);
+    throw new ApiError(500, 'Failed to fetch unread count');
+  }
+};
+
+// ============================================
+// ✅ NEW: Auto-create notifications for vendor events
+// ============================================
+
+/**
+ * Notify vendor about new order
+ */
+export const notifyNewOrder = async (vendorId, order) => {
+  await createNotification({
+    userId: vendorId,
+    type: 'order',
+    title: '🛒 New Order Received!',
+    message: `You have received a new order #${order.orderNumber} worth ₹${order.totalAmount}`,
+    link: `/vendor/orders/${order._id}`
+  });
+};
+
+/**
+ * Notify vendor about order status change
+ */
+export const notifyOrderStatusChange = async (vendorId, order, status) => {
+  const statusMessages = {
+    confirmed: 'Your order has been confirmed',
+    shipped: 'Your order has been shipped',
+    delivered: 'Your order has been delivered',
+    cancelled: 'Your order has been cancelled'
+  };
+
+  await createNotification({
+    userId: vendorId,
+    type: 'order',
+    title: `📦 Order ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+    message: statusMessages[status] || `Order #${order.orderNumber} status updated to ${status}`,
+    link: `/vendor/orders/${order._id}`
+  });
+};
+
+/**
+ * Notify vendor about new review
+ */
+export const notifyNewReview = async (vendorId, review, product) => {
+  await createNotification({
+    userId: vendorId,
+    type: 'review',
+    title: '⭐ New Review Received',
+    message: `You received a ${review.rating}-star review on "${product.title}"`,
+    link: `/vendor/reviews/${review._id}`
+  });
+};
+
+/**
+ * Notify vendor about payment received
+ */
+export const notifyPaymentReceived = async (vendorId, payment) => {
+  await createNotification({
+    userId: vendorId,
+    type: 'payment',
+    title: '💰 Payment Received',
+    message: `Payment of ₹${payment.amount} has been received`,
+    link: `/vendor/earnings`
+  });
+};
+
+/**
+ * Notify vendor about low stock
+ */
+export const notifyLowStock = async (vendorId, product) => {
+  await createNotification({
+    userId: vendorId,
+    type: 'product',
+    title: '⚠️ Low Stock Alert',
+    message: `Product "${product.title}" has only ${product.stock} items left`,
+    link: `/vendor/products/edit/${product._id}`
+  });
 };

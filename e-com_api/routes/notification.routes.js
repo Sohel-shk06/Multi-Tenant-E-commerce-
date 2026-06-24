@@ -7,13 +7,22 @@ const router = Router();
 // Protect all notification routes with auth middleware
 router.use(verifyJWT);
 
-// Fetch logged-in user's notifications
+// ===== CUSTOMER ROUTES (Existing) =====
 router.get('/', notificationController.getNotifications);
-
-// Create a notification
 router.post('/', notificationController.createNotification);
-
-// Mark notification as read
 router.put('/:id/read', notificationController.markAsRead);
+
+// ===== VENDOR ROUTES (NEW) =====
+// ✅ Get vendor notifications with pagination
+router.get('/vendor', notificationController.getVendorNotifications);
+
+// ✅ Get unread count (for bell icon)
+router.get('/unread-count', notificationController.getUnreadCount);
+
+// ✅ Mark all as read
+router.patch('/mark-all-read', notificationController.markAllAsRead);
+
+// ✅ Delete notification
+router.delete('/:id', notificationController.deleteNotification);
 
 export default router;
