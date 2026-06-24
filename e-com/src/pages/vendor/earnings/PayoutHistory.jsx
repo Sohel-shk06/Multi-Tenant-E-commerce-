@@ -93,7 +93,7 @@ export const PayoutHistory = () => {
                 />
               </div>
               <button type="submit" disabled={requesting || overview.availableBalance <= 0}
-                className="w-full py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium">
+                className="w-full py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium">
                 {requesting ? 'Processing...' : 'Request Withdrawal'}
               </button>
               {overview.availableBalance <= 0 && <p className="text-xs text-red-600 text-center">No available balance.</p>}

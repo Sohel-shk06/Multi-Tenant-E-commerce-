@@ -95,7 +95,7 @@ export const EarningsOverview = () => {
           <h1 className="text-2xl font-bold text-gray-900">Earnings Overview</h1>
           <p className="text-sm text-gray-500 mt-1">Track your revenue and available balance.</p>
         </div>
-        <Link to="/vendor/earnings/payouts" className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+        <Link to="/vendor/earnings/payouts" className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
           <span>Request Payout</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
@@ -109,7 +109,7 @@ export const EarningsOverview = () => {
               key={idx} 
               className={`p-6 rounded-xl shadow-sm border ${
                 card.isHighlight 
-                  ? 'bg-gradient-to-br from-green-500 to-teal-600 text-white border-transparent' 
+                  ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white border-transparent' 
                   : 'bg-white border-gray-200'
               }`}
             >

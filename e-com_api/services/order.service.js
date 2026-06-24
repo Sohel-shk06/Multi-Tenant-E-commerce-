@@ -1,7 +1,8 @@
 import { Order } from '../models/Order.js';
 import { Product } from '../models/Product.js';
 import { ApiError } from '../utils/ApiError.js';
-import { Payment } from '../models/Payment.js'; 
+import { Payment } from '../models/Payment.js';
+import * as notificationService from './notification.service.js'; 
 
 // Get all orders with filters
 export const getAllOrders = async (query, userId, userRole) => {
@@ -161,6 +162,18 @@ export const updateOrderStatus = async (orderId, status, userId, userRole) => {
 
   await order.save();
 
+  // Send Notification to customer
+  try {
+    await notificationService.createNotification({
+      userId: order.customer,
+      title: 'Order Status Update',
+      message: `Your order #${order.orderNumber} status has been updated to ${status}.`,
+      type: 'order_update'
+    });
+  } catch (notifErr) {
+    console.error('Warning: Failed to create order status update notification:', notifErr.message);
+  }
+
   return order;
 };
 
@@ -215,6 +228,29 @@ export const cancelOrder = async (orderId, reason, userId, userRole) => {
   }
 
   await order.save();
+
+  // Send Notification to customer and vendor
+  try {
+    // Notify customer
+    await notificationService.createNotification({
+      userId: order.customer,
+      title: 'Order Cancelled',
+      message: `Your order #${order.orderNumber} has been successfully cancelled.`,
+      type: 'order_update'
+    });
+
+    // Notify vendor (if vendor is assigned)
+    if (order.vendor) {
+      await notificationService.createNotification({
+        userId: order.vendor,
+        title: 'Order Cancelled by Customer',
+        message: `Customer cancelled order #${order.orderNumber}. Reason: ${reason || 'No reason provided'}.`,
+        type: 'order_update'
+      });
+    }
+  } catch (notifErr) {
+    console.error('Warning: Failed to create order cancellation notifications:', notifErr.message);
+  }
 
   return order;
 };
@@ -334,6 +370,50 @@ export const createOrder = async (orderData) => {
       });
     }
 
+    // ✅ Commission Entry Create
+    try {
+      const { Commission } = await import('../models/Commission.js');
+      
+      const commissionRate = 0.10; // 10%
+      const commissionAmount = Math.round(totalAmount * commissionRate * 100) / 100;
+      const vendorAmount = Math.round((totalAmount - commissionAmount) * 100) / 100;
+      
+      await Commission.create({
+        order: order._id,
+        vendor: vendorId,
+        orderAmount: totalAmount,
+        commissionRate: commissionRate,
+        commissionAmount: commissionAmount,
+        vendorAmount: vendorAmount,
+        status: 'pending'
+      });
+      
+      console.log('✅ Commission entry created: ₹' + commissionAmount);
+    } catch (commissionError) {
+      console.error('⚠️  Commission entry create nahi hui:', commissionError.message);
+    }
+
+    // Send notifications to customer and vendor
+    try {
+      // Notify customer
+      await notificationService.createNotification({
+        userId: customer,
+        title: 'Order Placed Successfully',
+        message: `Your order #${order.orderNumber} has been placed successfully!`,
+        type: 'order_update'
+      });
+
+      // Notify vendor
+      await notificationService.createNotification({
+        userId: vendorId,
+        title: 'New Order Received',
+        message: `You have received a new order #${order.orderNumber} for ₹${totalAmount}.`,
+        type: 'order_update'
+      });
+    } catch (notifErr) {
+      console.error('Warning: Failed to create order placement notifications:', notifErr.message);
+    }
+
     return order;
   } catch (error) {
     console.error('❌ Error creating order:', error);
@@ -343,31 +423,6 @@ export const createOrder = async (orderData) => {
     }
     throw error;
   }
-
-  // Order create karne ke baad yeh code add karein (Payment entry ke baad)
-
-// ✅ Commission Entry Create
-try {
-  const { Commission } = await import('../models/Commission.js');
-  
-  const commissionRate = 0.10; // 10%
-  const commissionAmount = Math.round(totalAmount * commissionRate * 100) / 100;
-  const vendorAmount = Math.round((totalAmount - commissionAmount) * 100) / 100;
-  
-  await Commission.create({
-    order: order._id,
-    vendor: vendorId,
-    orderAmount: totalAmount,
-    commissionRate: commissionRate,
-    commissionAmount: commissionAmount,
-    vendorAmount: vendorAmount,
-    status: 'pending'
-  });
-  
-  console.log('✅ Commission entry created: ₹' + commissionAmount);
-} catch (commissionError) {
-  console.error('⚠️  Commission entry create nahi hui:', commissionError.message);
-}
 };
 
 
