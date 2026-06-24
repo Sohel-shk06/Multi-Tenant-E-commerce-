@@ -3,8 +3,7 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import * as notificationService from '../services/notification.service.js';
 
 /**
- * Fetch all notifications for the authenticated user, sorted newest first
- * GET /api/notifications
+ * Fetch all notifications for the authenticated user (existing - customer)
  */
 export const getNotifications = asyncHandler(async (req, res) => {
   const notifications = await notificationService.getUserNotifications(req.user._id);
@@ -14,16 +13,26 @@ export const getNotifications = asyncHandler(async (req, res) => {
 });
 
 /**
- * Create a new notification
- * POST /api/notifications
+ * ✅ NEW: Fetch vendor notifications with pagination
+ */
+export const getVendorNotifications = asyncHandler(async (req, res) => {
+  const result = await notificationService.getVendorNotifications(req.user._id, req.query);
+  return res.status(200).json(
+    new ApiResponse(200, result, 'Vendor notifications fetched successfully')
+  );
+});
+
+/**
+ * Create a new notification (existing)
  */
 export const createNotification = asyncHandler(async (req, res) => {
-  const { userId, title, message, type } = req.body;
+  const { userId, title, message, type, link } = req.body;
   const notification = await notificationService.createNotification({
     userId,
     title,
     message,
-    type
+    type,
+    link
   });
   return res.status(201).json(
     new ApiResponse(201, notification, 'Notification created successfully')
@@ -31,12 +40,41 @@ export const createNotification = asyncHandler(async (req, res) => {
 });
 
 /**
- * Mark a notification as read
- * PUT /api/notifications/:id/read
+ * Mark a notification as read (existing)
  */
 export const markAsRead = asyncHandler(async (req, res) => {
   const notification = await notificationService.markAsRead(req.params.id, req.user._id);
   return res.status(200).json(
     new ApiResponse(200, notification, 'Notification marked as read successfully')
+  );
+});
+
+/**
+ * ✅ NEW: Mark all notifications as read
+ */
+export const markAllAsRead = asyncHandler(async (req, res) => {
+  await notificationService.markAllAsRead(req.user._id);
+  return res.status(200).json(
+    new ApiResponse(200, null, 'All notifications marked as read')
+  );
+});
+
+/**
+ * ✅ NEW: Delete notification
+ */
+export const deleteNotification = asyncHandler(async (req, res) => {
+  await notificationService.deleteNotification(req.params.id, req.user._id);
+  return res.status(200).json(
+    new ApiResponse(200, null, 'Notification deleted successfully')
+  );
+});
+
+/**
+ * ✅ NEW: Get unread count
+ */
+export const getUnreadCount = asyncHandler(async (req, res) => {
+  const result = await notificationService.getUnreadCount(req.user._id);
+  return res.status(200).json(
+    new ApiResponse(200, result, 'Unread count fetched successfully')
   );
 });

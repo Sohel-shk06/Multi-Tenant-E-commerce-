@@ -55,6 +55,8 @@ import { ProductAnalytics } from '../../pages/vendor/analytics/ProductAnalytics'
 import { OrderAnalytics } from '../../pages/vendor/analytics/OrderAnalytics';
 import { CustomerAnalytics } from '../../pages/vendor/analytics/CustomerAnalytics';
 import { VendorSettings } from '../../pages/vendor/settings/VendorSettings';
+// Vendor Pages section mein add karo
+import { NotificationList as VendorNotificationList } from '../../pages/vendor/notifications/NotificationList';
 
 // Protected Route Component
 const ProtectedRoute = ({ allowedRoles, children }) => {
@@ -162,6 +164,7 @@ export const AppRouter = () => {
                     <Route path="analytics/orders" element={<OrderAnalytics />} />
                     <Route path="analytics/customers" element={<CustomerAnalytics />} />
                     <Route path="settings" element={<VendorSettings />} /> 
+                    <Route path="notifications" element={<VendorNotificationList />} />
                 </Route>
 
                 {/* ===== ADMIN ROUTES ===== */}

@@ -1,9 +1,10 @@
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { notificationService } from '../services/notification.service';
 import { 
   LayoutDashboard, Package, ShoppingCart, DollarSign, 
   Store, Star, Settings, LogOut, Menu, X, BarChart3, 
-  ChevronDown, ChevronRight 
+  ChevronDown, ChevronRight, Bell
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -13,6 +14,7 @@ export const VendorLayout = () => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [earningsOpen, setEarningsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Auto-open earnings menu if user is on any earnings page
   useEffect(() => {
@@ -20,6 +22,22 @@ export const VendorLayout = () => {
       setEarningsOpen(true);
     }
   }, [location.pathname]);
+
+  // ✅ NEW: Load unread notification count
+  useEffect(() => {
+    loadUnreadCount();
+    const interval = setInterval(loadUnreadCount, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadUnreadCount = async () => {
+    try {
+      const data = await notificationService.getUnreadCount();
+      setUnreadCount(data.unreadCount);
+    } catch (error) {
+      console.error('Failed to load unread count', error);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -197,6 +215,19 @@ export const VendorLayout = () => {
             </div>
 
             <div className="flex items-center space-x-4">
+              {/* ✅ NEW: Notification Bell Icon */}
+              <Link 
+                to="/vendor/notifications" 
+                className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </Link>
+
               <Link to="/vendor/settings" className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
                 <Settings className="w-5 h-5" />
               </Link>
