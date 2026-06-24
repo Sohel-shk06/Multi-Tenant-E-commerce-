@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchStores, deleteStore } from '../../app/store/storeSlice';
 import { PageLoader } from '../../components/loaders/PageLoader';
-import { 
-  Search, Plus, Trash2, Edit, Store as StoreIcon, 
-  Eye, BarChart3, Settings 
+import {
+  Search, Plus, Trash2, Edit, Store as StoreIcon,
+  Eye, BarChart3, Settings, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -21,19 +21,23 @@ export const StoreList = () => {
   }, [dispatch, currentPage, searchTerm]);
 
   const handleDelete = (storeId, storeName) => {
-    if (window.confirm(`Are you sure you want to delete "${storeName}"? This action cannot be undone.`)) {
+    if (window.confirm(`Are you sure you want to delete "${storeName}"?`)) {
       dispatch(deleteStore(storeId));
     }
   };
 
   const getStatusBadge = (status) => {
     const styles = {
-      active: 'bg-green-100 text-green-800',
-      paused: 'bg-yellow-100 text-yellow-800',
-      closed: 'bg-red-100 text-red-800'
+      active: { bg: '#DCFCE7', color: '#15803D', border: '#86EFAC' },
+      paused: { bg: '#FEF9C3', color: '#A16207', border: '#FDE047' },
+      closed: { bg: '#FEE2E2', color: '#DC2626', border: '#FECACA' },
     };
+    const s = styles[status] || styles.active;
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status] || styles.active}`}>
+      <span
+        className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border"
+        style={{ backgroundColor: s.bg, color: s.color, borderColor: s.border }}
+      >
         {status?.charAt(0).toUpperCase() + status?.slice(1)}
       </span>
     );
@@ -42,126 +46,148 @@ export const StoreList = () => {
   if (isLoading && stores.length === 0) return <PageLoader />;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-5">
+
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Store Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage vendor storefronts and configurations.</p>
+          <h1 className="text-[18px] font-semibold text-gray-900">Store Management</h1>
+          <p className="text-[12px] text-gray-400 mt-0.5">Manage vendor storefronts and configurations.</p>
         </div>
-        <button 
+        <button
           onClick={() => navigate('/admin/stores/create')}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-white rounded-lg transition-colors"
+          style={{ backgroundColor: '#4338CA' }}
+          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#312E81'}
+          onMouseLeave={e => e.currentTarget.style.backgroundColor = '#4338CA'}
         >
-          <Plus className="w-4 h-4" />
-          <span>Add New Store</span>
+          <Plus className="w-3.5 h-3.5" />
+          Add New Store
         </button>
       </div>
 
-      {/* Search Bar */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+      {/* Search */}
+      <div className="relative w-full sm:w-72">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
         <input
           type="text"
           placeholder="Search stores by name or slug..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full pl-9 pr-4 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white"
         />
       </div>
 
-      {error && <div className="p-4 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}
+      {error && (
+        <div className="p-3 bg-red-50 text-red-600 rounded-lg text-[13px] border border-red-100">
+          {error}
+        </div>
+      )}
 
-      {/* Stores Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      {/* Table */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Store Name</th>
+            <thead>
+              <tr className="border-b border-gray-100 bg-gray-50">
+                <th className="px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Store Name</th>
                 {user?.role === 'admin' && (
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Vendor</th>
+                  <th className="px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Vendor</th>
                 )}
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Slug</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Created</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                <th className="px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Slug</th>
+                <th className="px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                <th className="px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Created</th>
+                <th className="px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {stores.length > 0 ? (
                 stores.map((store) => (
-                  <tr key={store._id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <StoreIcon className="w-5 h-5 text-gray-500" />
+                  <tr
+                    key={store._id}
+                    className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                          style={{ backgroundColor: '#EEF2FF' }}
+                        >
+                          <StoreIcon className="w-4 h-4" style={{ color: '#4338CA' }} />
                         </div>
                         <div>
-                          {/* ✅ Store name clickable - StoreDetails par le jayega */}
                           <button
                             onClick={() => navigate(`/admin/stores/${store._id}`)}
-                            className="text-sm font-medium text-gray-900 hover:text-blue-600 text-left"
+                            className="text-[13px] font-medium text-gray-900 hover:underline text-left"
+                            style={{ color: '#1E1B4B' }}
                           >
                             {store.name}
                           </button>
-                          <p className="text-xs text-gray-500">{store.settings?.currency || 'INR'}</p>
+                          <p className="text-[11px] text-gray-400">{store.settings?.currency || 'INR'}</p>
                         </div>
                       </div>
                     </td>
                     {user?.role === 'admin' && (
-                      <td className="px-6 py-4 text-sm text-gray-600">{store.vendor?.name || 'N/A'}</td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-6 h-6 rounded-md flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0"
+                            style={{ backgroundColor: '#4338CA' }}
+                          >
+                            {store.vendor?.name?.charAt(0).toUpperCase() || 'V'}
+                          </div>
+                          <span className="text-[13px] text-gray-600">{store.vendor?.name || 'N/A'}</span>
+                        </div>
+                      </td>
                     )}
-                    <td className="px-6 py-4 text-sm text-gray-600 font-mono">{store.slug}</td>
-                    <td className="px-6 py-4">{getStatusBadge(store.status)}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {new Date(store.createdAt).toLocaleDateString()}
+                    <td className="px-5 py-3.5">
+                      <span className="text-[12px] font-mono text-gray-500">{store.slug}</span>
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end space-x-1">
-                        {/* ✅ NEW: View Details Button */}
+                    <td className="px-5 py-3.5">{getStatusBadge(store.status)}</td>
+                    <td className="px-5 py-3.5 text-[13px] text-gray-500">
+                      {new Date(store.createdAt).toLocaleDateString('en-IN')}
+                    </td>
+                    <td className="px-5 py-3.5 text-right">
+                      <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => navigate(`/admin/stores/${store._id}`)}
-                          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                          className="w-7 h-7 inline-flex items-center justify-center rounded-md border border-gray-200 hover:bg-indigo-50 transition-colors"
+                          style={{ color: '#4338CA' }}
                           title="View Details"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-3.5 h-3.5" />
                         </button>
-                        
-                        {/* ✅ NEW: Analytics Button */}
                         <button
                           onClick={() => navigate(`/admin/stores/${store._id}/analytics`)}
-                          className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                          className="w-7 h-7 inline-flex items-center justify-center rounded-md border border-gray-200 hover:bg-purple-50 transition-colors"
+                          style={{ color: '#6D28D9' }}
                           title="Analytics"
                         >
-                          <BarChart3 className="w-4 h-4" />
+                          <BarChart3 className="w-3.5 h-3.5" />
                         </button>
-                        
-                        {/* ✅ NEW: Settings Button */}
                         <button
                           onClick={() => navigate(`/admin/stores/${store._id}/settings`)}
-                          className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                          className="w-7 h-7 inline-flex items-center justify-center rounded-md border border-gray-200 hover:bg-orange-50 transition-colors"
+                          style={{ color: '#EA580C' }}
                           title="Settings"
                         >
-                          <Settings className="w-4 h-4" />
+                          <Settings className="w-3.5 h-3.5" />
                         </button>
-                        
-                        {/* ✅ Edit Button */}
                         <button
                           onClick={() => navigate(`/admin/stores/edit/${store._id}`)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="w-7 h-7 inline-flex items-center justify-center rounded-md border border-gray-200 hover:bg-blue-50 transition-colors"
+                          style={{ color: '#2563EB' }}
                           title="Edit"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-3.5 h-3.5" />
                         </button>
-                        
-                        {/* ✅ Delete Button */}
                         <button
                           onClick={() => handleDelete(store._id, store.name)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="w-7 h-7 inline-flex items-center justify-center rounded-md border border-gray-200 hover:bg-red-50 transition-colors"
+                          style={{ color: '#DC2626' }}
                           title="Delete"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -169,8 +195,15 @@ export const StoreList = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={user?.role === 'admin' ? 6 : 5} className="px-6 py-8 text-center text-gray-500">
-                    No stores found.
+                  <td colSpan={user?.role === 'admin' ? 6 : 5} className="px-6 py-12 text-center">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3 border border-dashed border-gray-200"
+                      style={{ backgroundColor: '#EEF2FF' }}
+                    >
+                      <StoreIcon className="w-5 h-5" style={{ color: '#818CF8' }} />
+                    </div>
+                    <p className="text-[13px] font-medium text-gray-500">No stores found</p>
+                    <p className="text-[12px] text-gray-400 mt-1">Try adjusting your search</p>
                   </td>
                 </tr>
               )}
@@ -178,24 +211,23 @@ export const StoreList = () => {
           </table>
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-            <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
-            <div className="flex space-x-2">
+          <div className="px-5 py-3.5 border-t border-gray-100 flex items-center justify-between">
+            <p className="text-[12px] text-gray-400">Page {currentPage} of {totalPages}</p>
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => dispatch(fetchStores({ page: currentPage - 1, search: searchTerm }))}
                 disabled={currentPage === 1}
-                className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 hover:bg-gray-50"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-[12px] font-medium border border-gray-200 rounded-md disabled:opacity-40 hover:bg-gray-50 transition-colors text-gray-600"
               >
-                Previous
+                <ChevronLeft className="w-3.5 h-3.5" /> Prev
               </button>
               <button
                 onClick={() => dispatch(fetchStores({ page: currentPage + 1, search: searchTerm }))}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 hover:bg-gray-50"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-[12px] font-medium border border-gray-200 rounded-md disabled:opacity-40 hover:bg-gray-50 transition-colors text-gray-600"
               >
-                Next
+                Next <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
