@@ -1,21 +1,30 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchVendors, updateVendorStatus } from '../../app/store/vendorSlice';
+import { fetchVendors, updateVendorStatus, createVendor } from '../../app/store/vendorSlice';
 import { PageLoader } from '../../components/loaders/PageLoader';
-import { Search, CheckCircle, XCircle, Clock, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { 
+  Search, CheckCircle, XCircle, Clock, Plus, ChevronLeft, ChevronRight, 
+  X, Eye, EyeOff, User, Mail, Lock 
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const VendorList = ({ defaultStatus = '' }) => {
   const dispatch = useDispatch();
-  const location = useLocation();
   const navigate = useNavigate();
   const { vendors, isLoading, error, currentPage, totalPages } = useSelector((state) => state.vendors);
+  
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState(defaultStatus);
+  
+  // Use activeTab for switching when defaultStatus is not fixed (i.e. 'All Vendors' page)
+  const [activeTab, setActiveTab] = useState('');
+  const statusFilter = defaultStatus || activeTab;
 
-  useEffect(() => {
-    setStatusFilter(defaultStatus);
-  }, [defaultStatus, location.pathname]);
+  // Modal State
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [modalFormData, setModalFormData] = useState({ name: '', email: '', password: '' });
+  const [modalError, setModalError] = useState('');
+  const [modalLoading, setModalLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     dispatch(fetchVendors({ page: currentPage, search: searchTerm, status: statusFilter }));
@@ -26,6 +35,34 @@ export const VendorList = ({ defaultStatus = '' }) => {
     const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
     if (window.confirm(`Are you sure you want to ${newStatus} this vendor?`)) {
       dispatch(updateVendorStatus({ vendorId, status: newStatus }));
+    }
+  };
+
+  const handleAddVendorSubmit = async (e) => {
+    e.preventDefault();
+    setModalError('');
+    setModalLoading(true);
+
+    if (!modalFormData.name || !modalFormData.email || !modalFormData.password) {
+      setModalError('All fields are required');
+      setModalLoading(false);
+      return;
+    }
+
+    try {
+      const resultAction = await dispatch(createVendor(modalFormData));
+      if (createVendor.fulfilled.match(resultAction)) {
+        // Success
+        setShowAddModal(false);
+        setModalFormData({ name: '', email: '', password: '' });
+      } else {
+        // Error
+        setModalError(resultAction.payload || 'Failed to create vendor');
+      }
+    } catch {
+      setModalError('An unexpected error occurred');
+    } finally {
+      setModalLoading(false);
     }
   };
 
@@ -81,7 +118,13 @@ export const VendorList = ({ defaultStatus = '' }) => {
         </div>
         {!statusFilter && (
           <button
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-white rounded-lg transition-colors"
+            onClick={() => {
+              setModalError('');
+              setModalFormData({ name: '', email: '', password: '' });
+              setShowPassword(false);
+              setShowAddModal(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-white rounded-lg transition-colors cursor-pointer"
             style={{ backgroundColor: '#4338CA' }}
             onMouseEnter={e => e.currentTarget.style.backgroundColor = '#312E81'}
             onMouseLeave={e => e.currentTarget.style.backgroundColor = '#4338CA'}
@@ -99,8 +142,8 @@ export const VendorList = ({ defaultStatus = '' }) => {
             {tabs.map((tab) => (
               <button
                 key={tab.value}
-                onClick={() => setStatusFilter(tab.value)}
-                className="px-3 py-1.5 text-[12px] font-medium rounded-md transition-all"
+                onClick={() => setActiveTab(tab.value)}
+                className="px-3 py-1.5 text-[12px] font-medium rounded-md transition-all cursor-pointer"
                 style={
                   statusFilter === tab.value
                     ? { backgroundColor: '#4338CA', color: '#fff' }
@@ -171,7 +214,7 @@ export const VendorList = ({ defaultStatus = '' }) => {
                     <td className="px-5 py-3.5 text-right">
                       <button
                         onClick={(e) => handleStatusChange(e, vendor._id, vendor.status)}
-                        className="text-[12px] font-medium px-3 py-1.5 rounded-md border transition-colors"
+                        className="text-[12px] font-medium px-3 py-1.5 rounded-md border transition-colors cursor-pointer"
                         style={
                           vendor.status === 'active'
                             ? { color: '#dc2626', borderColor: '#fecaca', backgroundColor: '#fff' }
@@ -203,14 +246,14 @@ export const VendorList = ({ defaultStatus = '' }) => {
               <button
                 onClick={() => dispatch(fetchVendors({ page: currentPage - 1, search: searchTerm, status: statusFilter }))}
                 disabled={currentPage === 1}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-[12px] font-medium border border-gray-200 rounded-md disabled:opacity-40 hover:bg-gray-50 transition-colors text-gray-600"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-[12px] font-medium border border-gray-200 rounded-md disabled:opacity-40 hover:bg-gray-50 transition-colors text-gray-600 cursor-pointer"
               >
                 <ChevronLeft className="w-3.5 h-3.5" /> Prev
               </button>
               <button
                 onClick={() => dispatch(fetchVendors({ page: currentPage + 1, search: searchTerm, status: statusFilter }))}
                 disabled={currentPage === totalPages}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-[12px] font-medium border border-gray-200 rounded-md disabled:opacity-40 hover:bg-gray-50 transition-colors text-gray-600"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-[12px] font-medium border border-gray-200 rounded-md disabled:opacity-40 hover:bg-gray-50 transition-colors text-gray-600 cursor-pointer"
               >
                 Next <ChevronRight className="w-3.5 h-3.5" />
               </button>
@@ -218,6 +261,127 @@ export const VendorList = ({ defaultStatus = '' }) => {
           </div>
         )}
       </div>
+
+      {/* Add Vendor Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+            onClick={() => setShowAddModal(false)}
+          />
+
+          {/* Modal Content */}
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 max-w-md w-full relative z-10 overflow-hidden transform transition-all duration-300 scale-100">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <div>
+                <h3 className="text-base font-bold text-gray-900">Add New Vendor</h3>
+                <p className="text-[11px] text-gray-400 mt-0.5">Register a manual vendor account directly.</p>
+              </div>
+              <button 
+                onClick={() => setShowAddModal(false)}
+                className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-500 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleAddVendorSubmit} className="p-6 space-y-4">
+              {modalError && (
+                <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-lg text-xs font-medium">
+                  {modalError}
+                </div>
+              )}
+
+              {/* Name */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">Full Name</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. John Doe"
+                    value={modalFormData.name}
+                    onChange={e => setModalFormData({ ...modalFormData, name: e.target.value })}
+                    className="w-full pl-10 pr-4 py-2.5 text-[13px] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="email"
+                    required
+                    placeholder="e.g. john@example.com"
+                    value={modalFormData.email}
+                    onChange={e => setModalFormData({ ...modalFormData, email: e.target.value })}
+                    className="w-full pl-10 pr-4 py-2.5 text-[13px] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    placeholder="••••••••"
+                    value={modalFormData.password}
+                    onChange={e => setModalFormData({ ...modalFormData, password: e.target.value })}
+                    className="w-full pl-10 pr-10 py-2.5 text-[13px] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 bg-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-gray-100 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  disabled={modalLoading}
+                  className="px-4 py-2 text-[12px] font-semibold text-gray-500 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={modalLoading}
+                  className="px-4 py-2 text-[12px] font-semibold text-white rounded-xl transition-all shadow-sm shadow-indigo-100 flex items-center gap-1.5 cursor-pointer"
+                  style={{ backgroundColor: '#4338CA' }}
+                  onMouseEnter={e => !modalLoading && (e.currentTarget.style.backgroundColor = '#312E81')}
+                  onMouseLeave={e => !modalLoading && (e.currentTarget.style.backgroundColor = '#4338CA')}
+                >
+                  {modalLoading ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    'Add Vendor'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
