@@ -48,10 +48,27 @@ export const updateVendorStatus = createAsyncThunk(
   }
 );
 
+export const createVendor = createAsyncThunk(
+  'vendors/createVendor',
+  async (vendorData, { rejectWithValue, dispatch }) => {
+    try {
+      const data = await vendorService.createVendor(vendorData);
+      dispatch(fetchVendors({ page: 1 }));
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to create vendor');
+    }
+  }
+);
+
 const vendorSlice = createSlice({
   name: 'vendors',
   initialState,
-  reducers: {},
+  reducers: {
+    clearError: (state) => {
+      state.error = null;
+    }
+  },
   extraReducers: (builder) => {
     builder
       // fetchVendors
@@ -77,8 +94,20 @@ const vendorSlice = createSlice({
       .addCase(fetchVendorById.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+      })
+
+      // createVendor
+      .addCase(createVendor.pending, (state) => { state.isLoading = true; })
+      .addCase(createVendor.fulfilled, (state) => {
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(createVendor.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
       });
   },
 });
 
+export const { clearError } = vendorSlice.actions;
 export default vendorSlice.reducer;
