@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { createStore } from '../../app/store/storeSlice';
 import { fetchVendors } from '../../app/store/vendorSlice';
-import { ArrowLeft, Store, Mail, Phone, DollarSign } from 'lucide-react';
+import { ArrowLeft, Store, Mail, Phone, DollarSign, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export const CreateStore = () => {
@@ -22,8 +22,13 @@ export const CreateStore = () => {
       contactEmail: '',
       contactPhone: '',
       returnPolicy: '7 days return policy'
-    }
+    },
+    logo: null,
+    banner: null
   });
+  
+  const [logoPreview, setLogoPreview] = useState('');
+  const [bannerPreview, setBannerPreview] = useState('');
   const [localError, setLocalError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,13 +49,69 @@ export const CreateStore = () => {
     setLocalError('');
   };
 
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        setLocalError('Only image files are allowed for Logo');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setLocalError('Logo size cannot exceed 5MB');
+        return;
+      }
+      setFormData({ ...formData, logo: file });
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+      setLocalError('');
+    }
+  };
+
+  const handleBannerChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        setLocalError('Only image files are allowed for Banner');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setLocalError('Banner size cannot exceed 5MB');
+        return;
+      }
+      setFormData({ ...formData, banner: file });
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBannerPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+      setLocalError('');
+    }
+  };
+
+  const removeLogo = () => {
+    setFormData({ ...formData, logo: null });
+    setLogoPreview('');
+  };
+
+  const removeBanner = () => {
+    setFormData({ ...formData, banner: null });
+    setBannerPreview('');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim()) { setLocalError('Store name is required'); return; }
     if (user?.role === 'admin' && !formData.vendor) { setLocalError('Please select a vendor'); return; }
 
     setIsSubmitting(true);
-    const storeData = { ...formData, name: formData.name.trim(), description: formData.description.trim() };
+    const storeData = { 
+      ...formData, 
+      name: formData.name.trim(), 
+      description: formData.description.trim() 
+    };
     const resultAction = await dispatch(createStore(storeData));
     setIsSubmitting(false);
 
@@ -157,6 +218,75 @@ export const CreateStore = () => {
               </select>
             </div>
 
+          </div>
+        </div>
+
+        {/* Store Branding */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#EEF2FF' }}>
+              <ImageIcon className="w-4 h-4" style={{ color: '#4338CA' }} />
+            </div>
+            <p className="text-[13px] font-semibold text-gray-900">Store Branding</p>
+          </div>
+          <div className="p-5 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              
+              {/* Logo Upload */}
+              <div className="sm:col-span-1 flex flex-col items-center">
+                <label className="block text-[12px] font-medium text-gray-600 mb-1.5 self-start">Store Logo</label>
+                <div className="relative group w-28 h-28 bg-gray-50 rounded-xl border border-dashed border-gray-300 flex items-center justify-center overflow-hidden hover:border-indigo-500 transition-colors">
+                  {logoPreview ? (
+                    <>
+                      <img src={logoPreview} alt="Logo Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={removeLogo}
+                        className="absolute top-1.5 right-1.5 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-md"
+                        title="Remove Logo"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </>
+                  ) : (
+                    <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full p-3 text-center">
+                      <ImageIcon className="w-6 h-6 text-gray-400 mb-1" />
+                      <span className="text-[11px] font-semibold text-gray-500">Upload Logo</span>
+                      <span className="text-[9px] text-gray-400 mt-0.5">1:1 Ratio</span>
+                      <input type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              {/* Banner Upload */}
+              <div className="sm:col-span-2 flex flex-col">
+                <label className="block text-[12px] font-medium text-gray-600 mb-1.5">Store Banner</label>
+                <div className="relative group w-full h-28 bg-gray-50 rounded-xl border border-dashed border-gray-300 flex items-center justify-center overflow-hidden hover:border-indigo-500 transition-colors">
+                  {bannerPreview ? (
+                    <>
+                      <img src={bannerPreview} alt="Banner Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={removeBanner}
+                        className="absolute top-1.5 right-1.5 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-md"
+                        title="Remove Banner"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </>
+                  ) : (
+                    <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full p-3 text-center">
+                      <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                      <span className="text-[11px] font-semibold text-gray-500">Upload Banner Image</span>
+                      <span className="text-[9px] text-gray-400 mt-0.5">Recommended 1200x400 px</span>
+                      <input type="file" accept="image/*" onChange={handleBannerChange} className="hidden" />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
 

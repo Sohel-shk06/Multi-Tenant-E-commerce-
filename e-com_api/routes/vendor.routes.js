@@ -2,7 +2,7 @@ import { Router } from 'express';
 import * as vendorController from '../controllers/vendor.controller.js';
 import { verifyJWT } from '../middlewares/auth.middleware.js';
 import { authorizeRoles } from '../middlewares/role.middleware.js';
-import { uploadProductImages } from '../middlewares/upload.middleware.js';
+import { uploadProductImages, uploadStoreImages } from '../middlewares/upload.middleware.js';
 
 const router = Router();
 router.use(verifyJWT);
@@ -15,9 +15,9 @@ router.get('/dashboard/recent-orders', authorizeRoles('vendor', 'admin'), vendor
 // ===== VENDOR STORE ROUTES (Specific paths PEHLE) =====
 router.get('/stores', authorizeRoles('vendor', 'admin'), vendorController.getVendorStores);
 router.get('/stores/list', authorizeRoles('vendor', 'admin'), vendorController.getVendorStoresList);
-router.post('/stores', authorizeRoles('vendor'), vendorController.createVendorStore);
+router.post('/stores', authorizeRoles('vendor'), uploadStoreImages, vendorController.createVendorStore);
 router.get('/stores/:storeId', authorizeRoles('vendor', 'admin'), vendorController.getVendorStore);
-router.patch('/stores/:storeId', authorizeRoles('vendor'), vendorController.updateVendorStore);
+router.patch('/stores/:storeId', authorizeRoles('vendor'), uploadStoreImages, vendorController.updateVendorStore);
 router.delete('/stores/:storeId', authorizeRoles('vendor'), vendorController.deleteVendorStore);
 
 // ===== VENDOR PRODUCT ROUTES (Specific paths PEHLE) =====

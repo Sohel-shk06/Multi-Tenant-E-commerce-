@@ -20,3 +20,9 @@ export const upload = multer({
 
 // For vendor routes
 export const uploadProductImages = upload.array('images', 10);
+
+// For store routes (logo and banner)
+export const uploadStoreImages = upload.fields([
+  { name: 'logo', maxCount: 1 },
+  { name: 'banner', maxCount: 1 }
+]);

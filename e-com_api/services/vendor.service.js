@@ -447,10 +447,22 @@ export const getVendorStoreById = async (vendorId, storeId) => {
 
 // Create store
 export const createVendorStore = async (vendorId, storeData) => {
-  const { name, description, settings } = storeData;
+  let { name, description, settings, logo, banner } = storeData;
 
   if (!name || !name.trim()) {
     throw new ApiError(400, 'Store name is required');
+  }
+
+  // Parse settings if it is a JSON string (due to multipart/form-data)
+  if (settings && typeof settings === 'string') {
+    try {
+      settings = JSON.parse(settings);
+    } catch (e) {
+      settings = {
+        currency: 'INR',
+        returnPolicy: '7 days return policy'
+      };
+    }
   }
 
   // Auto-generate slug
@@ -474,6 +486,8 @@ export const createVendorStore = async (vendorId, storeData) => {
     description: description?.trim() || '',
     vendor: vendorId,
     status: 'active',
+    logo: logo || '',
+    banner: banner || '',
     settings: settings || {
       currency: 'INR',
       returnPolicy: '7 days return policy'
@@ -488,6 +502,15 @@ export const updateVendorStore = async (vendorId, storeId, updateData) => {
   const store = await Store.findOne({ _id: storeId, vendor: vendorId });
   if (!store) {
     throw new ApiError(404, 'Store not found or you are not authorized');
+  }
+
+  // Parse settings if it is a JSON string (due to multipart/form-data)
+  if (updateData.settings && typeof updateData.settings === 'string') {
+    try {
+      updateData.settings = JSON.parse(updateData.settings);
+    } catch (e) {
+      delete updateData.settings;
+    }
   }
 
   // If name is being changed, update slug

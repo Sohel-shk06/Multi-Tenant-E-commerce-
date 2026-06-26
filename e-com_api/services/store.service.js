@@ -71,6 +71,18 @@ export const createStore = async (storeData, vendorId) => {
     console.log('⚠️ Slug already exists, using:', slug);
   }
 
+  // Parse settings if it is a JSON string (due to multipart/form-data)
+  if (storeData.settings && typeof storeData.settings === 'string') {
+    try {
+      storeData.settings = JSON.parse(storeData.settings);
+    } catch (e) {
+      storeData.settings = {
+        currency: 'INR',
+        returnPolicy: '7 days return policy'
+      };
+    }
+  }
+
   try {
     const store = await Store.create({
       name: storeData.name.trim(),
@@ -78,6 +90,8 @@ export const createStore = async (storeData, vendorId) => {
       description: storeData.description?.trim() || '',
       vendor: vendorId,
       status: storeData.status || 'active',
+      logo: storeData.logo || '',
+      banner: storeData.banner || '',
       settings: storeData.settings || {
         currency: 'INR',
         returnPolicy: '7 days return policy'
@@ -240,6 +254,15 @@ export const updateStoreById = async (storeId, updateData) => {
   const store = await Store.findById(storeId);
   if (!store) {
     throw new ApiError(404, 'Store not found');
+  }
+
+  // Parse settings if it is a JSON string (due to multipart/form-data)
+  if (updateData.settings && typeof updateData.settings === 'string') {
+    try {
+      updateData.settings = JSON.parse(updateData.settings);
+    } catch (e) {
+      delete updateData.settings;
+    }
   }
 
   // If name changed, update slug
