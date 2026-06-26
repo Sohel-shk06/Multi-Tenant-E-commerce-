@@ -2,19 +2,17 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createCategory, updateCategory, fetchCategory } from '../../app/store/categorySlice';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
 import { PageLoader } from '../../components/loaders/PageLoader';
-import { ArrowLeft, Save, Edit, Plus } from 'lucide-react';
+import { ArrowLeft, Save, Edit, Plus, Tag } from 'lucide-react';
 
 export const CreateCategory = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { categoryId } = useParams();  // ✅ URL se categoryId milega agar edit mode hai
-  const isEditMode = Boolean(categoryId);  // ✅ Edit mode detect karein
-  
+  const { categoryId } = useParams();
+  const isEditMode = Boolean(categoryId);
+
   const { categories, currentCategory, isLoading } = useSelector((state) => state.categories);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -22,29 +20,26 @@ export const CreateCategory = () => {
   });
   const [localError, setLocalError] = useState('');
   const [loadingCategory, setLoadingCategory] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ✅ Categories load karein (parent dropdown ke liye)
   useEffect(() => {
     dispatch({ type: 'categories/fetchCategories/pending' });
     import('../../services/category.service').then(({ categoryService }) => {
       categoryService.getCategories({ page: 1, limit: 100 })
-        .then(data => {
-          dispatch({ type: 'categories/fetchCategories/fulfilled', payload: data });
-        })
-        .catch(err => {
-          dispatch({ type: 'categories/fetchCategories/rejected', payload: err.message });
-        });
+        .then(data => dispatch({ type: 'categories/fetchCategories/fulfilled', payload: data }))
+        .catch(err => dispatch({ type: 'categories/fetchCategories/rejected', payload: err.message }));
     });
   }, [dispatch]);
 
-  // ✅ Edit mode mein category data load karein
   useEffect(() => {
     if (isEditMode) {
-      loadCategoryData();
+      setLoadingCategory(true);
+      dispatch(fetchCategory(categoryId)).unwrap()
+        .catch(() => setLocalError('Failed to load category data'))
+        .finally(() => setLoadingCategory(false));
     }
   }, [categoryId]);
 
-  // ✅ Category data form mein populate karein
   useEffect(() => {
     if (isEditMode && currentCategory) {
       setFormData({
@@ -55,18 +50,6 @@ export const CreateCategory = () => {
     }
   }, [currentCategory, isEditMode]);
 
-  const loadCategoryData = async () => {
-    setLoadingCategory(true);
-    try {
-      await dispatch(fetchCategory(categoryId)).unwrap();
-    } catch (err) {
-      setLocalError('Failed to load category data');
-      console.error(err);
-    } finally {
-      setLoadingCategory(false);
-    }
-  };
-
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setLocalError('');
@@ -74,133 +57,137 @@ export const CreateCategory = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.name.trim()) {
-      setLocalError('Category name is required');
-      return;
-    }
+    if (!formData.name.trim()) { setLocalError('Category name is required'); return; }
 
-    let resultAction;
-    
-    if (isEditMode) {
-      // ✅ Edit mode - updateCategory call karein
-      resultAction = await dispatch(updateCategory({ 
-        categoryId, 
-        categoryData: formData 
-      }));
-    } else {
-      // ✅ Create mode - createCategory call karein
-      resultAction = await dispatch(createCategory(formData));
-    }
-    
+    setIsSubmitting(true);
+    const resultAction = isEditMode
+      ? await dispatch(updateCategory({ categoryId, categoryData: formData }))
+      : await dispatch(createCategory(formData));
+    setIsSubmitting(false);
+
     if (resultAction.type.endsWith('/fulfilled')) {
-      alert(`✅ Category ${isEditMode ? 'updated' : 'created'} successfully!`);
       navigate('/admin/categories');
     } else {
       setLocalError(resultAction.payload || `Failed to ${isEditMode ? 'update' : 'create'} category`);
     }
   };
 
-  // ✅ Loading state
-  if (isEditMode && loadingCategory) {
-    return <PageLoader />;
-  }
+  if (isEditMode && loadingCategory) return <PageLoader />;
+
+  const inputClass = "w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white text-gray-900 placeholder:text-gray-400";
+  const labelClass = "block text-[12px] font-medium text-gray-600 mb-1.5";
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate('/admin/categories')}
-        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span className="text-sm font-medium">Back to Categories</span>
-      </button>
+    <div className="p-6 max-w-2xl mx-auto space-y-5">
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-        {/* ✅ Dynamic Title */}
-        <div className="flex items-center space-x-3 mb-6">
-          {isEditMode ? (
-            <Edit className="w-6 h-6 text-blue-600" />
-          ) : (
-            <Plus className="w-6 h-6 text-blue-600" />
-          )}
-          <h1 className="text-2xl font-bold text-gray-900">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => navigate('/admin/categories')}
+          className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 text-gray-600" />
+        </button>
+        <div>
+          <h1 className="text-[18px] font-semibold text-gray-900">
             {isEditMode ? 'Edit Category' : 'Create New Category'}
           </h1>
+          <p className="text-[12px] text-gray-400 mt-0.5">
+            {isEditMode ? 'Update category details' : 'Add a new product category'}
+          </p>
+        </div>
+      </div>
+
+      {localError && (
+        <div className="p-3 bg-red-50 text-red-600 rounded-lg text-[13px] border border-red-100">
+          {localError}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+
+        {/* Category Info */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#EEF2FF' }}>
+              <Tag className="w-4 h-4" style={{ color: '#4338CA' }} />
+            </div>
+            <p className="text-[13px] font-semibold text-gray-900">Category Details</p>
+          </div>
+          <div className="p-5 space-y-4">
+
+            <div>
+              <label className={labelClass}>Category Name *</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                placeholder="e.g., Electronics, Fashion, Books"
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>Description</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                rows="3"
+                placeholder="Brief description of the category..."
+                className={inputClass}
+                style={{ resize: 'none' }}
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>Parent Category (Optional)</label>
+              <select
+                name="parent"
+                value={formData.parent}
+                onChange={handleChange}
+                className={inputClass}
+              >
+                <option value="">No Parent (Top Level)</option>
+                {categories
+                  .filter(cat => cat._id !== categoryId)
+                  .map((cat) => (
+                    <option key={cat._id} value={cat._id}>{cat.name}</option>
+                  ))}
+              </select>
+            </div>
+
+          </div>
         </div>
 
-        {localError && (
-          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg text-sm border border-red-200">
-            {localError}
-          </div>
-        )}
+        {/* Buttons */}
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            disabled={isSubmitting || isLoading}
+            className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 text-[13px] font-semibold text-white rounded-lg transition-colors disabled:opacity-50"
+            style={{ backgroundColor: '#4338CA' }}
+            onMouseEnter={e => !(isSubmitting || isLoading) && (e.currentTarget.style.backgroundColor = '#312E81')}
+            onMouseLeave={e => !(isSubmitting || isLoading) && (e.currentTarget.style.backgroundColor = '#4338CA')}
+          >
+            <Save className="w-3.5 h-3.5" />
+            {isSubmitting || isLoading
+              ? (isEditMode ? 'Updating...' : 'Creating...')
+              : (isEditMode ? 'Update Category' : 'Create Category')
+            }
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/admin/categories')}
+            className="flex-1 py-2.5 text-[13px] font-medium text-gray-700 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Input
-            label="Category Name"
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            placeholder="e.g., Electronics, Fashion, Books"
-          />
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows="4"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Brief description of the category..."
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Parent Category (Optional)</label>
-            <select
-              name="parent"
-              value={formData.parent}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-            >
-              <option value="">No Parent (Top Level)</option>
-              {categories
-                .filter(cat => cat._id !== categoryId)  // ✅ Edit mode mein khud ko parent nahi bana sakte
-                .map((cat) => (
-                  <option key={cat._id} value={cat._id}>
-                    {cat.name}
-                  </option>
-                ))}
-            </select>
-          </div>
-
-          <div className="flex space-x-3 pt-4">
-            <Button type="submit" className="flex-1" disabled={isLoading}>
-              <div className="flex items-center justify-center space-x-2">
-                <Save className="w-4 h-4" />
-                <span>
-                  {isLoading 
-                    ? (isEditMode ? 'Updating...' : 'Creating...') 
-                    : (isEditMode ? 'Update Category' : 'Create Category')
-                  }
-                </span>
-              </div>
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => navigate('/admin/categories')}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </div>
+      </form>
     </div>
   );
 };

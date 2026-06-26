@@ -2,18 +2,15 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCommission, updateCommissionStatus } from '../../app/store/commissionSlice';
-import { 
-  ArrowLeft, DollarSign, ShoppingCart, Calendar, 
-  CheckCircle, Clock, XCircle, Store, AlertCircle
-} from 'lucide-react';
+import { ArrowLeft, DollarSign, ShoppingCart, CheckCircle, Clock, XCircle, Store } from 'lucide-react';
 
 export const CommissionDetails = () => {
   const { commissionId } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { currentCommission: commission, isLoading, error } = 
+  const { currentCommission: commission, isLoading, error } =
     useSelector((state) => state.commissions);
-  
+
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
@@ -21,233 +18,240 @@ export const CommissionDetails = () => {
   }, [dispatch, commissionId]);
 
   const handleCollect = async () => {
-    if (window.confirm('Are you sure you want to collect this commission?')) {
+    if (window.confirm('Collect this commission?')) {
       setIsUpdating(true);
       try {
-        await dispatch(updateCommissionStatus({ 
-          commissionId, 
-          data: { 
-            status: 'collected',
-            notes: 'Manually collected by admin'
-          } 
-        }));
+        await dispatch(updateCommissionStatus({ commissionId, data: { status: 'collected', notes: 'Manually collected by admin' } }));
         dispatch(fetchCommission(commissionId));
-        alert('✅ Commission collected successfully!');
-      } catch (error) {
-        alert('❌ Failed to collect commission: ' + error.message);
-      } finally {
-        setIsUpdating(false);
-      }
+      } catch (e) { alert('Failed: ' + e.message); }
+      finally { setIsUpdating(false); }
     }
   };
 
   const handleRefund = async () => {
-    if (window.confirm('Are you sure you want to refund this commission?')) {
+    if (window.confirm('Refund this commission?')) {
       setIsUpdating(true);
       try {
-        await dispatch(updateCommissionStatus({ 
-          commissionId, 
-          data: { 
-            status: 'refunded',
-            notes: 'Commission refunded by admin'
-          } 
-        }));
+        await dispatch(updateCommissionStatus({ commissionId, data: { status: 'refunded', notes: 'Commission refunded by admin' } }));
         dispatch(fetchCommission(commissionId));
-        alert('✅ Commission refunded successfully!');
-      } catch (error) {
-        alert('❌ Failed to refund commission: ' + error.message);
-      } finally {
-        setIsUpdating(false);
-      }
+      } catch (e) { alert('Failed: ' + e.message); }
+      finally { setIsUpdating(false); }
     }
   };
 
   if (isLoading || !commission) {
     return (
-      <div className="p-6 flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-[#F3F8F4] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-9 w-9 border-b-2 border-green-700"></div>
       </div>
     );
   }
 
-  const getStatusBadge = (status) => {
-    const styles = {
-      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      earned: 'bg-green-100 text-green-800 border-green-200',
-      collected: 'bg-blue-100 text-blue-800 border-blue-200',
-      refunded: 'bg-gray-100 text-gray-800 border-gray-200'
-    };
-    const icons = {
-      pending: <Clock className="w-4 h-4" />,
-      earned: <CheckCircle className="w-4 h-4" />,
-      collected: <DollarSign className="w-4 h-4" />,
-      refunded: <XCircle className="w-4 h-4" />
-    };
-    return (
-      <span className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium border ${styles[status]}`}>
-        {icons[status]}
-        <span>{status?.charAt(0).toUpperCase() + status?.slice(1)}</span>
-      </span>
-    );
+  const statusConfig = {
+    pending:   { label: 'Pending',   icon: <Clock className="w-3.5 h-3.5" />,      cls: 'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200' },
+    earned:    { label: 'Earned',    icon: <CheckCircle className="w-3.5 h-3.5" />, cls: 'bg-green-50 text-green-700 ring-1 ring-green-200' },
+    collected: { label: 'Collected', icon: <DollarSign className="w-3.5 h-3.5" />,  cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' },
+    refunded:  { label: 'Refunded',  icon: <XCircle className="w-3.5 h-3.5" />,     cls: 'bg-gray-100 text-gray-500 ring-1 ring-gray-200' },
   };
+  const sc = statusConfig[commission.status] || statusConfig.refunded;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <button 
-        onClick={() => navigate('/admin/commissions')} 
-        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span className="text-sm font-medium">Back to Commissions</span>
-      </button>
+    <div className="min-h-screen bg-[#F3F8F4]">
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Commission Details</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Created on {new Date(commission.createdAt).toLocaleString()}
-            </p>
+      {/* ── Header ── */}
+      <div className="bg-gradient-to-r from-green-900 via-green-800 to-green-900 px-8 py-8">
+        <div className="max-w-6xl mx-auto">
+          <button
+            onClick={() => navigate('/admin/commissions')}
+            className="flex items-center gap-2 text-green-400 hover:text-white transition-colors text-sm font-medium mb-6"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Commissions
+          </button>
+
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold text-green-400 uppercase tracking-widest mb-1">Commission</p>
+              <h1 className="text-3xl font-bold text-white tracking-tight font-mono">
+                #{commission.order?.orderNumber || commissionId?.slice(-8).toUpperCase()}
+              </h1>
+              <p className="text-green-300/70 text-sm mt-1">
+                {new Date(commission.createdAt).toLocaleString('en-IN', {
+                  day: '2-digit', month: 'long', year: 'numeric',
+                  hour: '2-digit', minute: '2-digit'
+                })}
+              </p>
+            </div>
+            <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold tracking-wide self-start sm:self-auto ${sc.cls}`}>
+              {sc.icon}{sc.label}
+            </span>
           </div>
-          {getStatusBadge(commission.status)}
+
+          {/* Financial summary in header */}
+          <div className="grid grid-cols-3 gap-4 mt-6">
+            {[
+              { label: 'Order Amount',       value: `₹${commission.orderAmount?.toLocaleString()}`,      color: 'text-white',      iconBg: 'bg-white/10',      icon: <DollarSign className="w-3.5 h-3.5 text-white/70" /> },
+              { label: 'Commission Earned',  value: `₹${commission.commissionAmount?.toLocaleString()}`, color: 'text-green-400',  iconBg: 'bg-green-500/20',  icon: <DollarSign className="w-3.5 h-3.5 text-green-400" /> },
+              { label: 'Vendor Receives',    value: `₹${commission.vendorAmount?.toLocaleString()}`,     color: 'text-blue-400',   iconBg: 'bg-blue-500/20',   icon: <DollarSign className="w-3.5 h-3.5 text-blue-400" /> },
+            ].map(({ label, value, color, iconBg, icon }) => (
+              <div key={label} className="bg-white/5 border border-white/10 rounded-2xl px-5 py-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs text-green-300/70 font-medium uppercase tracking-wider">{label}</span>
+                  <div className={`w-7 h-7 rounded-lg ${iconBg} flex items-center justify-center`}>{icon}</div>
+                </div>
+                <p className={`text-xl font-bold ${color}`}>{value}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {error && (
-        <div className="p-4 bg-red-50 text-red-700 rounded-lg text-sm mb-6">
-          {error}
-        </div>
-      )}
+      {/* ── Body ── */}
+      <div className="max-w-6xl mx-auto px-8 py-6">
+        {error && (
+          <div className="p-4 mb-5 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm">{error}</div>
+        )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-              <DollarSign className="w-5 h-5 mr-2 text-green-600" />
-              Financial Details
-            </h2>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                <span className="text-sm text-gray-600">Order Amount</span>
-                <span className="text-lg font-bold text-gray-900">
-                  ₹{commission.orderAmount?.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg border border-green-200">
-                <div>
-                  <span className="text-sm text-gray-600">Platform Commission</span>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {(commission.commissionRate * 100).toFixed(0)}% of order amount
-                  </p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          {/* Left */}
+          <div className="lg:col-span-2 space-y-5">
+
+            {/* Financial Breakdown */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
+                  <DollarSign className="w-4 h-4 text-green-600" />
                 </div>
-                <span className="text-xl font-bold text-green-600">
-                  ₹{commission.commissionAmount?.toLocaleString()}
-                </span>
+                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Financial Breakdown</h2>
               </div>
-              <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <div>
-                  <span className="text-sm text-gray-600">Vendor Receives</span>
-                  <p className="text-xs text-gray-500 mt-1">After commission deduction</p>
+              <div className="p-6 space-y-3">
+                <div className="flex justify-between items-center px-4 py-3.5 bg-gray-50 rounded-xl">
+                  <span className="text-sm text-gray-500">Order Amount</span>
+                  <span className="text-base font-bold text-gray-900">₹{commission.orderAmount?.toLocaleString()}</span>
                 </div>
-                <span className="text-xl font-bold text-blue-600">
-                  ₹{commission.vendorAmount?.toLocaleString()}
-                </span>
+                <div className="flex justify-between items-center px-4 py-3.5 bg-green-50 rounded-xl border border-green-100">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700">Platform Commission</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{(commission.commissionRate * 100).toFixed(0)}% of order</p>
+                  </div>
+                  <span className="text-xl font-bold text-green-600">₹{commission.commissionAmount?.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center px-4 py-3.5 bg-blue-50 rounded-xl border border-blue-100">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700">Vendor Receives</p>
+                    <p className="text-xs text-gray-400 mt-0.5">After deduction</p>
+                  </div>
+                  <span className="text-xl font-bold text-blue-600">₹{commission.vendorAmount?.toLocaleString()}</span>
+                </div>
               </div>
             </div>
+
+            {/* Order Details */}
+            {commission.order && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                    <ShoppingCart className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Order Details</h2>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  <div className="flex justify-between items-center px-6 py-4">
+                    <span className="text-sm text-gray-400">Order Number</span>
+                    <Link
+                      to={`/admin/orders/${commission.order._id}`}
+                      className="text-sm font-mono font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                      #{commission.order.orderNumber}
+                    </Link>
+                  </div>
+                  <div className="flex justify-between items-center px-6 py-4">
+                    <span className="text-sm text-gray-400">Order Status</span>
+                    <span className="text-sm font-semibold capitalize text-gray-700">{commission.order.status}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {commission.order && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                <ShoppingCart className="w-5 h-5 mr-2 text-blue-600" />
-                Order Details
-              </h2>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Order Number</span>
-                  <Link 
-                    to={`/admin/orders/${commission.order._id}`}
-                    className="text-sm font-mono font-medium text-blue-600 hover:underline"
-                  >
-                    {commission.order.orderNumber}
-                  </Link>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Order Status</span>
-                  <span className="text-sm font-medium capitalize text-gray-900">
-                    {commission.order.status}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+          {/* Right */}
+          <div className="space-y-5">
 
-        <div className="space-y-6">
-          {commission.vendor && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                <Store className="w-5 h-5 mr-2 text-purple-600" />
-                Vendor Information
-              </h2>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
-                  <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                    {commission.vendor.name?.charAt(0).toUpperCase()}
+            {/* Vendor */}
+            {commission.vendor && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-yellow-50 flex items-center justify-center">
+                    <Store className="w-4 h-4 text-yellow-600" />
                   </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">{commission.vendor.name}</p>
-                    <p className="text-xs text-gray-500">{commission.vendor.email}</p>
+                  <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Vendor</h2>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-md">
+                      {commission.vendor.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-gray-900 truncate">{commission.vendor.name}</p>
+                      <p className="text-xs text-gray-400 truncate mt-0.5">{commission.vendor.email}</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Actions</h2>
-            <div className="space-y-3">
-              {(commission.status === 'pending' || commission.status === 'earned') && (
-                <>
-                  <button
-                    onClick={handleCollect}
-                    disabled={isUpdating}
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    {isUpdating ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    ) : (
-                      <DollarSign className="w-4 h-4" />
-                    )}
-                    <span>Collect Commission</span>
-                  </button>
+            {/* Actions */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Actions</h2>
+              </div>
+              <div className="p-6 space-y-3">
+                {(commission.status === 'pending' || commission.status === 'earned') && (
+                  <>
+                    <button
+                      onClick={handleCollect}
+                      disabled={isUpdating}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors disabled:opacity-50 shadow-sm"
+                    >
+                      {isUpdating
+                        ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        : <DollarSign className="w-4 h-4" />}
+                      Collect Commission
+                    </button>
+                    <button
+                      onClick={handleRefund}
+                      disabled={isUpdating}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition-colors disabled:opacity-50"
+                    >
+                      {isUpdating
+                        ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-400"></div>
+                        : <XCircle className="w-4 h-4" />}
+                      Refund Commission
+                    </button>
+                  </>
+                )}
 
-                  <button
-                    onClick={handleRefund}
-                    disabled={isUpdating}
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    {isUpdating ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    ) : (
-                      <XCircle className="w-4 h-4" />
-                    )}
-                    <span>Refund Commission</span>
-                  </button>
-                </>
-              )}
-
-              {commission.status === 'collected' && (
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <CheckCircle className="w-5 h-5 text-blue-600" />
-                    <p className="font-semibold text-blue-900">Commission Collected</p>
+                {commission.status === 'collected' && (
+                  <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                    <CheckCircle className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-bold text-blue-800">Commission Collected</p>
+                      <p className="text-xs text-blue-500 mt-0.5">Successfully collected from this order.</p>
+                    </div>
                   </div>
-                  <p className="text-xs text-blue-700">
-                    This commission has been successfully collected.
-                  </p>
-                </div>
-              )}
+                )}
+
+                {commission.status === 'refunded' && (
+                  <div className="flex items-start gap-3 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                    <XCircle className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-bold text-gray-600">Commission Refunded</p>
+                      <p className="text-xs text-gray-400 mt-0.5">This commission has been refunded.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
