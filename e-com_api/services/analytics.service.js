@@ -2,17 +2,13 @@ import { User } from '../models/User.js';
 import { Order } from '../models/Order.js';
 import { Subscription } from '../models/Subscription.js';
 import { Commission } from '../models/Commission.js';
-
-
 import mongoose from 'mongoose';
-
-
 import { Product } from '../models/Product.js';
 import { ApiError } from '../utils/ApiError.js';
 
 
 export const getAdminDashboardStats = async () => {
-  // Total Revenue (from completed orders)
+
   const revenueResult = await Order.aggregate([
     { $match: { status: { $in: ['delivered', 'completed'] } } }, 
     { $group: { _id: null, total: { $sum: '$totalAmount' } } }
@@ -143,7 +139,7 @@ export const getTopVendors = async (limit = 5) => {
 };
 
 
-// ============================================
+
 // ADMIN: Revenue Analytics
 // ============================================
 export const getAdminRevenueAnalytics = async (query) => {
