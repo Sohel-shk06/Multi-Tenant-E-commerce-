@@ -2,31 +2,26 @@ import { User } from '../models/User.js';
 import { Order } from '../models/Order.js';
 import { Subscription } from '../models/Subscription.js';
 import { Commission } from '../models/Commission.js';
-
-
 import mongoose from 'mongoose';
-
-
 import { Product } from '../models/Product.js';
 import { ApiError } from '../utils/ApiError.js';
 
-// Get Admin Dashboard Stats
-// Get Admin Dashboard Stats
+
 export const getAdminDashboardStats = async () => {
-  // Total Revenue (from completed orders)
+
   const revenueResult = await Order.aggregate([
-    { $match: { status: { $in: ['delivered', 'completed'] } } }, // ✅ delivered bhi add kiya
+    { $match: { status: { $in: ['delivered', 'completed'] } } }, 
     { $group: { _id: null, total: { $sum: '$totalAmount' } } }
   ]);
   const totalRevenue = revenueResult[0]?.total || 0;
 
-  // Total Vendors
+  
   const totalVendors = await User.countDocuments({ role: 'vendor' });
 
-  // Total Customers
+  
   const totalCustomers = await User.countDocuments({ role: 'customer' });
 
-  // Total Orders
+  
   const totalOrders = await Order.countDocuments();
 
   // Subscription MRR (Monthly Recurring Revenue)
@@ -144,7 +139,7 @@ export const getTopVendors = async (limit = 5) => {
 };
 
 
-// ============================================
+
 // ADMIN: Revenue Analytics
 // ============================================
 export const getAdminRevenueAnalytics = async (query) => {
