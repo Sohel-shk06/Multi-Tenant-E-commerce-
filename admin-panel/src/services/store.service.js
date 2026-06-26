@@ -13,12 +13,49 @@ export const storeService = {
   },
   
   createStore: async (storeData) => {
-    const response = await api.post('/stores', storeData);
+    const formData = new FormData();
+    formData.append('name', storeData.name);
+    formData.append('description', storeData.description || '');
+    if (storeData.vendor) formData.append('vendor', storeData.vendor);
+    if (storeData.status) formData.append('status', storeData.status);
+    if (storeData.settings) {
+      formData.append('settings', JSON.stringify(storeData.settings));
+    }
+    if (storeData.logo) {
+      formData.append('logo', storeData.logo);
+    }
+    if (storeData.banner) {
+      formData.append('banner', storeData.banner);
+    }
+
+    const response = await api.post('/stores', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
     return response.data.data;
   },
   
   updateStore: async (storeId, storeData) => {
-    const response = await api.patch(`/stores/${storeId}`, storeData);
+    const formData = new FormData();
+    if (storeData.name !== undefined) formData.append('name', storeData.name);
+    if (storeData.description !== undefined) formData.append('description', storeData.description);
+    if (storeData.status !== undefined) formData.append('status', storeData.status);
+    if (storeData.settings !== undefined) {
+      formData.append('settings', JSON.stringify(storeData.settings));
+    }
+    if (storeData.logo !== undefined) {
+      formData.append('logo', storeData.logo);
+    }
+    if (storeData.banner !== undefined) {
+      formData.append('banner', storeData.banner);
+    }
+
+    const response = await api.patch(`/stores/${storeId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
     return response.data.data;
   },
   

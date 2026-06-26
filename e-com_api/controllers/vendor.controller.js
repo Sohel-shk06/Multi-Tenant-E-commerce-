@@ -87,12 +87,64 @@ export const getVendorStore = asyncHandler(async (req, res) => {
 });
 
 export const createVendorStore = asyncHandler(async (req, res) => {
-  const store = await vendorService.createVendorStore(req.user._id, req.body);
+  const storeData = { ...req.body };
+  if (req.files) {
+    const { uploadToCloudinary } = await import('../utils/cloudinaryUploader.js');
+    if (req.files.logo && req.files.logo[0]) {
+      const uploadResult = await uploadToCloudinary(req.files.logo[0].buffer, 'stores');
+      storeData.logo = uploadResult.url;
+    }
+    if (req.files.banner && req.files.banner[0]) {
+      const uploadResult = await uploadToCloudinary(req.files.banner[0].buffer, 'stores');
+      storeData.banner = uploadResult.url;
+    }
+  }
+
+  const store = await vendorService.createVendorStore(req.user._id, storeData);
   return res.status(201).json(new ApiResponse(201, store, 'Store created successfully'));
 });
 
 export const updateVendorStore = asyncHandler(async (req, res) => {
-  const store = await vendorService.updateVendorStore(req.user._id, req.params.storeId, req.body);
+  const storeData = { ...req.body };
+  
+  // Get current store to delete old images if new ones are uploaded
+  const currentStore = await vendorService.getVendorStoreById(req.user._id, req.params.storeId);
+  
+  if (req.files) {
+    const { uploadToCloudinary, deleteFromCloudinary } = await import('../utils/cloudinaryUploader.js');
+    
+    const getPublicIdFromUrl = (url) => {
+      if (!url || !url.includes('cloudinary')) return null;
+      try {
+        const parts = url.split('/upload/');
+        if (parts.length < 2) return null;
+        const pathAndExt = parts[1].replace(/^v\d+\//, '');
+        return pathAndExt.substring(0, pathAndExt.lastIndexOf('.'));
+      } catch (error) {
+        return null;
+      }
+    };
+
+    if (req.files.logo && req.files.logo[0]) {
+      if (currentStore && currentStore.logo) {
+        const oldPublicId = getPublicIdFromUrl(currentStore.logo);
+        if (oldPublicId) await deleteFromCloudinary(oldPublicId);
+      }
+      const uploadResult = await uploadToCloudinary(req.files.logo[0].buffer, 'stores');
+      storeData.logo = uploadResult.url;
+    }
+    
+    if (req.files.banner && req.files.banner[0]) {
+      if (currentStore && currentStore.banner) {
+        const oldPublicId = getPublicIdFromUrl(currentStore.banner);
+        if (oldPublicId) await deleteFromCloudinary(oldPublicId);
+      }
+      const uploadResult = await uploadToCloudinary(req.files.banner[0].buffer, 'stores');
+      storeData.banner = uploadResult.url;
+    }
+  }
+
+  const store = await vendorService.updateVendorStore(req.user._id, req.params.storeId, storeData);
   return res.status(200).json(new ApiResponse(200, store, 'Store updated successfully'));
 });
 
