@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCommission, updateCommissionStatus } from '../../app/store/commissionSlice';
 import { ArrowLeft, DollarSign, ShoppingCart, CheckCircle, Clock, XCircle, Store } from 'lucide-react';
+import { PageLoader } from '../../components/loaders/PageLoader';
 
 export const CommissionDetails = () => {
   const { commissionId } = useParams();
@@ -39,221 +40,249 @@ export const CommissionDetails = () => {
     }
   };
 
-  if (isLoading || !commission) {
-    return (
-      <div className="min-h-screen bg-[#F3F8F4] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-9 w-9 border-b-2 border-green-700"></div>
-      </div>
-    );
-  }
+  if (isLoading || !commission) return <PageLoader />;
 
-  const statusConfig = {
-    pending:   { label: 'Pending',   icon: <Clock className="w-3.5 h-3.5" />,      cls: 'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200' },
-    earned:    { label: 'Earned',    icon: <CheckCircle className="w-3.5 h-3.5" />, cls: 'bg-green-50 text-green-700 ring-1 ring-green-200' },
-    collected: { label: 'Collected', icon: <DollarSign className="w-3.5 h-3.5" />,  cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' },
-    refunded:  { label: 'Refunded',  icon: <XCircle className="w-3.5 h-3.5" />,     cls: 'bg-gray-100 text-gray-500 ring-1 ring-gray-200' },
+  const getStatusBadge = (status) => {
+    const styles = {
+      pending:   { bg: '#FEF9C3', color: '#A16207', border: '#FDE047', icon: <Clock className="w-3.5 h-3.5" /> },
+      earned:    { bg: '#DCFCE7', color: '#15803D', border: '#86EFAC', icon: <CheckCircle className="w-3.5 h-3.5" /> },
+      collected: { bg: '#EEF2FF', color: '#4338CA', border: '#C7D2FE', icon: <DollarSign className="w-3.5 h-3.5" /> },
+      refunded:  { bg: '#F3F4F6', color: '#374151', border: '#D1D5DB', icon: <XCircle className="w-3.5 h-3.5" /> },
+    };
+    const s = styles[status] || styles.refunded;
+    return (
+      <span
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] font-semibold border"
+        style={{ backgroundColor: s.bg, color: s.color, borderColor: s.border }}
+      >
+        {s.icon}
+        {status?.charAt(0).toUpperCase() + status?.slice(1)}
+      </span>
+    );
   };
-  const sc = statusConfig[commission.status] || statusConfig.refunded;
+
+  const card3d = {
+    background: '#fff',
+    border: '1px solid #e0e4f7',
+    boxShadow: '0 3px 0 #C7D2FE, 0 6px 16px rgba(67,56,202,0.07)',
+    borderRadius: '14px',
+    overflow: 'hidden',
+  };
+
+  const iconWrap = (bg, color, Icon) => (
+    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: bg }}>
+      <Icon className="w-4 h-4" style={{ color }} />
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-[#F3F8F4]">
+    <div className="p-6 max-w-5xl mx-auto space-y-5" style={{ backgroundColor: '#F0F2FF', minHeight: '100vh' }}>
 
-      {/* ── Header ── */}
-      <div className="bg-gradient-to-r from-green-900 via-green-800 to-green-900 px-8 py-8">
-        <div className="max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/admin/commissions')}
-            className="flex items-center gap-2 text-green-400 hover:text-white transition-colors text-sm font-medium mb-6"
+            className="w-8 h-8 flex items-center justify-center rounded-lg border bg-white transition-all hover:-translate-y-0.5"
+            style={{ borderColor: '#e0e4f7', boxShadow: '0 2px 0 #C7D2FE' }}
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Commissions
+            <ArrowLeft className="w-4 h-4 text-gray-600" />
           </button>
-
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold text-green-400 uppercase tracking-widest mb-1">Commission</p>
-              <h1 className="text-3xl font-bold text-white tracking-tight font-mono">
-                #{commission.order?.orderNumber || commissionId?.slice(-8).toUpperCase()}
-              </h1>
-              <p className="text-green-300/70 text-sm mt-1">
-                {new Date(commission.createdAt).toLocaleString('en-IN', {
-                  day: '2-digit', month: 'long', year: 'numeric',
-                  hour: '2-digit', minute: '2-digit'
-                })}
-              </p>
-            </div>
-            <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold tracking-wide self-start sm:self-auto ${sc.cls}`}>
-              {sc.icon}{sc.label}
-            </span>
-          </div>
-
-          {/* Financial summary in header */}
-          <div className="grid grid-cols-3 gap-4 mt-6">
-            {[
-              { label: 'Order Amount',       value: `₹${commission.orderAmount?.toLocaleString()}`,      color: 'text-white',      iconBg: 'bg-white/10',      icon: <DollarSign className="w-3.5 h-3.5 text-white/70" /> },
-              { label: 'Commission Earned',  value: `₹${commission.commissionAmount?.toLocaleString()}`, color: 'text-green-400',  iconBg: 'bg-green-500/20',  icon: <DollarSign className="w-3.5 h-3.5 text-green-400" /> },
-              { label: 'Vendor Receives',    value: `₹${commission.vendorAmount?.toLocaleString()}`,     color: 'text-blue-400',   iconBg: 'bg-blue-500/20',   icon: <DollarSign className="w-3.5 h-3.5 text-blue-400" /> },
-            ].map(({ label, value, color, iconBg, icon }) => (
-              <div key={label} className="bg-white/5 border border-white/10 rounded-2xl px-5 py-4">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs text-green-300/70 font-medium uppercase tracking-wider">{label}</span>
-                  <div className={`w-7 h-7 rounded-lg ${iconBg} flex items-center justify-center`}>{icon}</div>
-                </div>
-                <p className={`text-xl font-bold ${color}`}>{value}</p>
-              </div>
-            ))}
+          <div>
+            <h1 className="text-[18px] font-semibold" style={{ color: '#1E1B4B' }}>
+              Commission #{commission.order?.orderNumber || commissionId?.slice(-8).toUpperCase()}
+            </h1>
+            <p className="text-[12px] text-gray-400 mt-0.5">
+              {new Date(commission.createdAt).toLocaleString('en-IN', {
+                day: '2-digit', month: 'long', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+              })}
+            </p>
           </div>
         </div>
+        {getStatusBadge(commission.status)}
       </div>
 
-      {/* ── Body ── */}
-      <div className="max-w-6xl mx-auto px-8 py-6">
-        {error && (
-          <div className="p-4 mb-5 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm">{error}</div>
-        )}
+      {error && (
+        <div className="p-3 bg-red-50 text-red-600 rounded-lg text-[13px] border border-red-100">{error}</div>
+      )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-          {/* Left */}
-          <div className="lg:col-span-2 space-y-5">
-
-            {/* Financial Breakdown */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
-                  <DollarSign className="w-4 h-4 text-green-600" />
-                </div>
-                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Financial Breakdown</h2>
-              </div>
-              <div className="p-6 space-y-3">
-                <div className="flex justify-between items-center px-4 py-3.5 bg-gray-50 rounded-xl">
-                  <span className="text-sm text-gray-500">Order Amount</span>
-                  <span className="text-base font-bold text-gray-900">₹{commission.orderAmount?.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between items-center px-4 py-3.5 bg-green-50 rounded-xl border border-green-100">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-700">Platform Commission</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{(commission.commissionRate * 100).toFixed(0)}% of order</p>
-                  </div>
-                  <span className="text-xl font-bold text-green-600">₹{commission.commissionAmount?.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between items-center px-4 py-3.5 bg-blue-50 rounded-xl border border-blue-100">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-700">Vendor Receives</p>
-                    <p className="text-xs text-gray-400 mt-0.5">After deduction</p>
-                  </div>
-                  <span className="text-xl font-bold text-blue-600">₹{commission.vendorAmount?.toLocaleString()}</span>
-                </div>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {[
+          { label: 'Order Amount', value: `₹${commission.orderAmount?.toLocaleString()}`, color: '#1E1B4B', border: '#6366F1', iconBg: '#EEF2FF', iconColor: '#4338CA', Icon: DollarSign },
+          { label: 'Commission Earned', value: `₹${commission.commissionAmount?.toLocaleString()}`, color: '#15803D', border: '#10B981', iconBg: '#DCFCE7', iconColor: '#15803D', Icon: DollarSign },
+          { label: 'Vendor Receives', value: `₹${commission.vendorAmount?.toLocaleString()}`, color: '#4338CA', border: '#4338CA', iconBg: '#EEF2FF', iconColor: '#4338CA', Icon: DollarSign },
+        ].map((s, i) => (
+          <div
+            key={i}
+            className="bg-white rounded-xl p-4 relative overflow-hidden hover:-translate-y-0.5 transition-all"
+            style={{ border: '1px solid #e0e4f7', boxShadow: `0 2px 0 #C7D2FE, 0 4px 12px rgba(67,56,202,0.08)` }}
+          >
+            <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl" style={{ background: s.border }} />
+            <div className="flex items-center justify-between mb-2 mt-1">
+              <p className="text-[11px] text-gray-400 uppercase font-medium tracking-wide">{s.label}</p>
+              <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ backgroundColor: s.iconBg }}>
+                <s.Icon className="w-3.5 h-3.5" style={{ color: s.iconColor }} />
               </div>
             </div>
-
-            {/* Order Details */}
-            {commission.order && (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                    <ShoppingCart className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Order Details</h2>
-                </div>
-                <div className="divide-y divide-gray-50">
-                  <div className="flex justify-between items-center px-6 py-4">
-                    <span className="text-sm text-gray-400">Order Number</span>
-                    <Link
-                      to={`/admin/orders/${commission.order._id}`}
-                      className="text-sm font-mono font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg hover:bg-blue-100 transition-colors"
-                    >
-                      #{commission.order.orderNumber}
-                    </Link>
-                  </div>
-                  <div className="flex justify-between items-center px-6 py-4">
-                    <span className="text-sm text-gray-400">Order Status</span>
-                    <span className="text-sm font-semibold capitalize text-gray-700">{commission.order.status}</span>
-                  </div>
-                </div>
-              </div>
-            )}
+            <p className="text-[22px] font-bold leading-none" style={{ color: s.color }}>{s.value}</p>
           </div>
+        ))}
+      </div>
 
-          {/* Right */}
-          <div className="space-y-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-            {/* Vendor */}
-            {commission.vendor && (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-yellow-50 flex items-center justify-center">
-                    <Store className="w-4 h-4 text-yellow-600" />
-                  </div>
-                  <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Vendor</h2>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-md">
-                      {commission.vendor.name?.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-bold text-gray-900 truncate">{commission.vendor.name}</p>
-                      <p className="text-xs text-gray-400 truncate mt-0.5">{commission.vendor.email}</p>
-                    </div>
-                  </div>
-                </div>
+        {/* Left */}
+        <div className="lg:col-span-2 space-y-4">
+
+          {/* Financial Breakdown */}
+          <div style={card3d}>
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
+              {iconWrap('#DCFCE7', '#15803D', DollarSign)}
+              <p className="text-[13px] font-semibold text-gray-900">Financial Breakdown</p>
+            </div>
+            <div className="p-5 space-y-3">
+              <div className="flex justify-between items-center px-4 py-3 rounded-xl" style={{ backgroundColor: '#f9fafb' }}>
+                <span className="text-[13px] text-gray-500">Order Amount</span>
+                <span className="text-[14px] font-bold text-gray-900">₹{commission.orderAmount?.toLocaleString()}</span>
               </div>
-            )}
-
-            {/* Actions */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100">
-                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Actions</h2>
+              <div className="flex justify-between items-center px-4 py-3 rounded-xl border" style={{ backgroundColor: '#DCFCE7', borderColor: '#86EFAC' }}>
+                <div>
+                  <p className="text-[13px] font-semibold text-gray-800">Platform Commission</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">{(commission.commissionRate * 100).toFixed(0)}% of order</p>
+                </div>
+                <span className="text-[18px] font-bold" style={{ color: '#15803D' }}>₹{commission.commissionAmount?.toLocaleString()}</span>
               </div>
-              <div className="p-6 space-y-3">
-                {(commission.status === 'pending' || commission.status === 'earned') && (
-                  <>
-                    <button
-                      onClick={handleCollect}
-                      disabled={isUpdating}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors disabled:opacity-50 shadow-sm"
-                    >
-                      {isUpdating
-                        ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        : <DollarSign className="w-4 h-4" />}
-                      Collect Commission
-                    </button>
-                    <button
-                      onClick={handleRefund}
-                      disabled={isUpdating}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition-colors disabled:opacity-50"
-                    >
-                      {isUpdating
-                        ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-400"></div>
-                        : <XCircle className="w-4 h-4" />}
-                      Refund Commission
-                    </button>
-                  </>
-                )}
-
-                {commission.status === 'collected' && (
-                  <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl">
-                    <CheckCircle className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-bold text-blue-800">Commission Collected</p>
-                      <p className="text-xs text-blue-500 mt-0.5">Successfully collected from this order.</p>
-                    </div>
-                  </div>
-                )}
-
-                {commission.status === 'refunded' && (
-                  <div className="flex items-start gap-3 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                    <XCircle className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-bold text-gray-600">Commission Refunded</p>
-                      <p className="text-xs text-gray-400 mt-0.5">This commission has been refunded.</p>
-                    </div>
-                  </div>
-                )}
+              <div className="flex justify-between items-center px-4 py-3 rounded-xl border" style={{ backgroundColor: '#EEF2FF', borderColor: '#C7D2FE' }}>
+                <div>
+                  <p className="text-[13px] font-semibold text-gray-800">Vendor Receives</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">After deduction</p>
+                </div>
+                <span className="text-[18px] font-bold" style={{ color: '#4338CA' }}>₹{commission.vendorAmount?.toLocaleString()}</span>
               </div>
             </div>
           </div>
+
+          {/* Order Details */}
+          {commission.order && (
+            <div style={card3d}>
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
+                {iconWrap('#EEF2FF', '#4338CA', ShoppingCart)}
+                <p className="text-[13px] font-semibold text-gray-900">Order Details</p>
+              </div>
+              <div>
+                <div className="flex justify-between items-center px-5 py-3.5 border-b border-gray-50">
+                  <span className="text-[12px] text-gray-400">Order Number</span>
+                  <Link
+                    to={`/admin/orders/${commission.order._id}`}
+                    className="text-[12px] font-mono font-bold px-2 py-0.5 rounded-md border transition-colors"
+                    style={{ backgroundColor: '#EEF2FF', color: '#4338CA', borderColor: '#C7D2FE' }}
+                  >
+                    #{commission.order.orderNumber}
+                  </Link>
+                </div>
+                <div className="flex justify-between items-center px-5 py-3.5">
+                  <span className="text-[12px] text-gray-400">Order Status</span>
+                  <span className="text-[13px] font-semibold capitalize text-gray-700">{commission.order.status}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right */}
+        <div className="space-y-4">
+
+          {/* Vendor */}
+          {commission.vendor && (
+            <div style={card3d}>
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
+                {iconWrap('#FEF9C3', '#A16207', Store)}
+                <p className="text-[13px] font-semibold text-gray-900">Vendor</p>
+              </div>
+              <div className="p-5">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-[16px] font-bold flex-shrink-0"
+                    style={{ background: 'linear-gradient(135deg,#6366F1,#4338CA)', boxShadow: '0 3px 0 #312E81, 0 4px 10px rgba(99,102,241,0.3)' }}
+                  >
+                    {commission.vendor.name?.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[14px] font-semibold text-gray-900 truncate">{commission.vendor.name}</p>
+                    <p className="text-[11px] text-gray-400 truncate mt-0.5">{commission.vendor.email}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div style={card3d}>
+            <div className="px-5 py-4 border-b border-gray-100">
+              <p className="text-[13px] font-semibold text-gray-900">Actions</p>
+            </div>
+            <div className="p-5 space-y-3">
+              {(commission.status === 'pending' || commission.status === 'earned') && (
+                <>
+                  <button
+                    onClick={handleCollect}
+                    disabled={isUpdating}
+                    className="w-full inline-flex items-center justify-center gap-2 py-2.5 text-[13px] font-semibold text-white rounded-lg transition-all disabled:opacity-50"
+                    style={{
+                      background: 'linear-gradient(135deg,#6366F1,#4338CA)',
+                      boxShadow: '0 3px 0 #312E81, 0 4px 10px rgba(67,56,202,0.25)'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 0 #312E81, 0 6px 14px rgba(67,56,202,0.3)' }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 3px 0 #312E81, 0 4px 10px rgba(67,56,202,0.25)' }}
+                  >
+                    {isUpdating
+                      ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      : <DollarSign className="w-4 h-4" />}
+                    Collect Commission
+                  </button>
+                  <button
+                    onClick={handleRefund}
+                    disabled={isUpdating}
+                    className="w-full inline-flex items-center justify-center gap-2 py-2.5 text-[13px] font-semibold rounded-lg border transition-all disabled:opacity-50"
+                    style={{
+                      color: '#DC2626', backgroundColor: '#FEE2E2',
+                      borderColor: '#FECACA', boxShadow: '0 2px 0 #FECACA'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = ''}
+                  >
+                    {isUpdating
+                      ? <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                      : <XCircle className="w-4 h-4" />}
+                    Refund Commission
+                  </button>
+                </>
+              )}
+
+              {commission.status === 'collected' && (
+                <div className="flex items-start gap-3 p-3.5 rounded-xl border" style={{ backgroundColor: '#EEF2FF', borderColor: '#C7D2FE' }}>
+                  <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#4338CA' }} />
+                  <div>
+                    <p className="text-[13px] font-semibold" style={{ color: '#312E81' }}>Commission Collected</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">Successfully collected from this order.</p>
+                  </div>
+                </div>
+              )}
+
+              {commission.status === 'refunded' && (
+                <div className="flex items-start gap-3 p-3.5 rounded-xl border border-gray-200 bg-gray-50">
+                  <XCircle className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-[13px] font-semibold text-gray-600">Commission Refunded</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">This commission has been refunded.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
