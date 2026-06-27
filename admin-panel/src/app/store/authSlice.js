@@ -59,6 +59,7 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+// ✅ UPDATED: Forgot Password Thunk
 export const forgotPassword = createAsyncThunk(
   'auth/forgotPassword',
   async (email, { rejectWithValue }) => {
@@ -66,7 +67,33 @@ export const forgotPassword = createAsyncThunk(
       const data = await authService.forgotPassword(email);
       return data.message; 
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to send reset email');
+      return rejectWithValue(error.response?.data?.message || 'Failed to send OTP');
+    }
+  }
+);
+
+// ✅ NEW: Verify Reset OTP Thunk
+export const verifyResetOtp = createAsyncThunk(
+  'auth/verifyResetOtp',
+  async ({ email, otp }, { rejectWithValue }) => {
+    try {
+      const data = await authService.verifyResetOtp(email, otp);
+      return data.message;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Invalid OTP');
+    }
+  }
+);
+
+// ✅ NEW: Reset Password with OTP Thunk
+export const resetPasswordWithOtp = createAsyncThunk(
+  'auth/resetPasswordWithOtp',
+  async ({ email, otp, newPassword }, { rejectWithValue }) => {
+    try {
+      const data = await authService.resetPasswordWithOtp(email, otp, newPassword);
+      return data.message;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to reset password');
     }
   }
 );
@@ -107,13 +134,11 @@ export const verifyEmailChange = createAsyncThunk(
   }
 );
 
-
 // ✅ FIXED: Change Password Thunk
 export const changePassword = createAsyncThunk(
   'auth/changePassword',
-  async ({ oldPassword, newPassword }, { rejectWithValue }) => {  // ✅ oldPassword use karein
+  async ({ oldPassword, newPassword }, { rejectWithValue }) => {
     try {
-      // ✅ Backend ko bhi oldPassword bhejein
       const response = await authService.changePassword({ oldPassword, newPassword });
       return response.message;
     } catch (error) {
@@ -181,6 +206,34 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+
+      // ✅ NEW: Verify Reset OTP Cases
+      .addCase(verifyResetOtp.pending, (state) => { 
+        state.isLoading = true; 
+        state.error = null; 
+      })
+      .addCase(verifyResetOtp.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.successMessage = action.payload;
+      })
+      .addCase(verifyResetOtp.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      // ✅ NEW: Reset Password with OTP Cases
+      .addCase(resetPasswordWithOtp.pending, (state) => { 
+        state.isLoading = true; 
+        state.error = null; 
+      })
+      .addCase(resetPasswordWithOtp.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.successMessage = action.payload;
+      })
+      .addCase(resetPasswordWithOtp.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
       
       // Reset Password Cases
       .addCase(resetPassword.pending, (state) => { state.isLoading = true; state.error = null; })
@@ -227,7 +280,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // ✅ NEW: Change Password Cases
+      // Change Password Cases
       .addCase(changePassword.pending, (state) => { 
         state.isLoading = true; 
         state.error = null; 

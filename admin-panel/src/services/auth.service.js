@@ -19,9 +19,20 @@ export const authService = {
     return response.data;
   },
 
-  // Forgot Password (Initiate email flow)
-  forgotPassword: async (email) => {
+   forgotPassword: async (email) => {
     const response = await api.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  // ✅ NEW: Verify Reset OTP
+  verifyResetOtp: async (email, otp) => {
+    const response = await api.post('/auth/verify-reset-otp', { email, otp });
+    return response.data;
+  },
+
+  // ✅ NEW: Reset Password with OTP
+  resetPasswordWithOtp: async (email, otp, newPassword) => {
+    const response = await api.post('/auth/reset-password-with-otp', { email, otp, newPassword });
     return response.data;
   },
 
