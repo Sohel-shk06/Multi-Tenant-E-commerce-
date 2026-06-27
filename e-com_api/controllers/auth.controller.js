@@ -43,3 +43,16 @@ export const changePassword = asyncHandler(async (req, res) => {
   await authService.changePasswordService(req.user._id, oldPassword, newPassword);
   return res.status(200).json(new ApiResponse(200, null, 'Password changed successfully'));
 });
+
+
+export const requestEmailChange = asyncHandler(async (req, res) => {
+  const { newEmail } = req.body;
+  await authService.requestEmailChangeService(req.user._id, newEmail);
+  return res.status(200).json(new ApiResponse(200, null, 'OTP sent to new email address'));
+});
+
+export const verifyEmailChange = asyncHandler(async (req, res) => {
+  const { otp } = req.body;
+  const { email } = await authService.verifyEmailChangeService(req.user._id, otp);
+  return res.status(200).json(new ApiResponse(200, { email }, 'Email updated successfully'));
+});

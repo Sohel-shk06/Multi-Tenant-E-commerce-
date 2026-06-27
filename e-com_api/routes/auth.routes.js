@@ -12,6 +12,9 @@ router.post('/reset-password/:token', authController.resetPassword);
 router.post('/verify-email/:token', authController.verifyEmail); // ✅ Added
 router.post('/resend-verification', authController.resendVerification); // ✅ Added
 
+router.post('/request-email-change', verifyJWT, authController.requestEmailChange);
+router.post('/verify-email-change', verifyJWT, authController.verifyEmailChange);
+
 // Protected Routes
 router.get('/me', verifyJWT, authController.getCurrentUser);
 router.post('/change-password', verifyJWT, authController.changePassword); // ✅ Added

@@ -57,6 +57,8 @@ import { StoreDetails } from '../../pages/stores/StoreDetails';
 import { EditStore } from '../../pages/stores/EditStore';
 import { StoreAnalytics } from '../../pages/stores/StoreAnalytics';
 import { StoreSettings } from '../../pages/stores/StoreSettings';
+import { ChangeEmail } from '../../pages/auth/ChangeEmail'; 
+import { ChangePassword } from '../../pages/auth/ChangePassword';
 
 // Error Pages
 import { NotFound } from '../../pages/errors/NotFound';
@@ -142,6 +144,8 @@ export const AppRouter = () => {
               <Route path="/admin/settings/notifications" element={<NotificationSettings />} />
               <Route path="/admin/settings/storage" element={<StorageSettings />} />
               <Route path="/admin/settings/system" element={<SystemSettings />} />
+          <Route path="/admin/change-email" element={<ChangeEmail />} />
+          <Route path="/admin/change-password" element={<ChangePassword />} />
 
               {/* Stores */}
               <Route path="/admin/stores" element={<StoreList />} />
