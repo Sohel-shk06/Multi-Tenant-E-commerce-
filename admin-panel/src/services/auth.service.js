@@ -42,4 +42,20 @@ export const authService = {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   },
+
+   requestEmailChange: async (newEmail) => {
+    const response = await api.post('/auth/request-email-change', { newEmail });
+    return response.data;
+  },
+
+  // Verify Email Change (Verify OTP & Update Email)
+  verifyEmailChange: async (otp) => {
+    const response = await api.post('/auth/verify-email-change', { otp });
+    return response.data;
+  },
+  
+    changePassword: async (data) => {
+    const response = await api.post('/auth/change-password', data);
+    return response.data;
+  },
 };
