@@ -217,6 +217,9 @@ const userSchema = new mongoose.Schema({
   emailChangeOtp: { type: String, default: null },
   emailChangeOtpExpire: { type: Date, default: null },
 
+    registrationOtp: { type: String, default: null },
+  registrationOtpExpire: { type: Date, default: null },
+
 }, { timestamps: true });
 
 // 🔥 FIX: Mongoose 8+ mein async function mein 'next' pass nahi hota.
