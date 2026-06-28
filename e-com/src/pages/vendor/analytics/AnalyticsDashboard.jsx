@@ -32,44 +32,14 @@ import {
   BarChart2,
 } from "lucide-react";
 
-// ─── Dummy fallback data (matches your existing analytics components style) ───
-// const revenueData = [
-//   { period: "May 12", revenue: 18000 },
-//   { period: "May 19", revenue: 27000 },
-//   { period: "May 26", revenue: 22000 },
-//   { period: "Jun 02", revenue: 35000 },
-//   { period: "Jun 09", revenue: 42760 },
-//   { period: "Jun 12", revenue: 38000 },
+// const customerGrowthData = [
+//   { period: "May 12", customers: 400 },
+//   { period: "May 19", customers: 900 },
+//   { period: "May 26", customers: 1200 },
+//   { period: "Jun 02", customers: 1600 },
+//   { period: "Jun 09", customers: 2000 },
+//   { period: "Jun 12", customers: 2345 },
 // ];
-const orderData = [
-  { period: "May 12", orders: 120 },
-  { period: "May 19", orders: 180 },
-  { period: "May 26", orders: 150 },
-  { period: "Jun 02", orders: 210 },
-  { period: "Jun 09", orders: 182 },
-  { period: "Jun 12", orders: 195 },
-];
-const salesByCategoryData = [
-  { name: "Electronics", value: 40.1, amount: 98560 },
-  { name: "Fashion", value: 23.8, amount: 58420 },
-  { name: "Beauty", value: 13.3, amount: 32750 },
-  { name: "Fitness", value: 11.6, amount: 28540 },
-  { name: "Home & Living", value: 11.2, amount: 27489 },
-];
-const customerGrowthData = [
-  { period: "May 12", customers: 400 },
-  { period: "May 19", customers: 900 },
-  { period: "May 26", customers: 1200 },
-  { period: "Jun 02", customers: 1600 },
-  { period: "Jun 09", customers: 2000 },
-  { period: "Jun 12", customers: 2345 },
-];
-const revenueBreakdown = [
-  { name: "Product Revenue", value: 75.1, amount: 184450, color: "#a855f7" },
-  { name: "Shipping Revenue", value: 11.6, amount: 28560, color: "#6366f1" },
-  { name: "Tax Collected", value: 7.5, amount: 18750, color: "#f59e0b" },
-  { name: "Discount Impact", value: -6.1, amount: -15000, color: "#ef4444" },
-];
 const PIE_COLORS = ["#a855f7", "#6366f1", "#ec4899", "#f59e0b", "#10b981"];
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
@@ -628,7 +598,7 @@ export const AnalyticsDashboard = () => {
           <p className="text-xs text-slate-500 mb-2">Customer Growth</p>
 
           <ResponsiveContainer width="100%" height={130}>
-            <AreaChart data={customerGrowthData?.acquisitionTrend}>
+            <AreaChart data={customerData?.acquisitionTrend}>
               <defs>
                 <linearGradient id="custGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />

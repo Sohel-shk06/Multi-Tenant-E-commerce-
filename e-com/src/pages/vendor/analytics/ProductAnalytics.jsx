@@ -45,7 +45,7 @@ export const ProductAnalytics = () => {
     try {
       const result = await vendorService.getProductAnalytics();
       setData(result);
-      // console.log("Product analytics data loaded:", result);
+      console.log("Product analytics data loaded:", result);
     } catch (error) {
       console.error("Failed to load product analytics", error);
     } finally {
@@ -67,74 +67,6 @@ export const ProductAnalytics = () => {
       setLoading(false);
     }
   };
-
-  const [dataa] = useState({
-    stats: {
-      totalProducts: 25,
-      activeProducts: 18,
-      draftProducts: 7,
-      totalStock: 320,
-      totalStockValue: 125000,
-    },
-
-    topProducts: [
-      {
-        _id: {
-          title: "Wireless Headphones",
-          images: [],
-        },
-        totalSold: 45,
-        totalRevenue: 67500,
-      },
-      {
-        _id: {
-          title: "Smart Watch",
-          images: [],
-        },
-        totalSold: 30,
-        totalRevenue: 45000,
-      },
-    ],
-
-    lowStockProducts: [
-      {
-        title: "Gaming Mouse",
-        price: 1499,
-        stock: 3,
-      },
-    ],
-
-    productsWithoutReviews: [
-      {
-        title: "Laptop Stand",
-        price: 999,
-      },
-    ],
-
-    allProducts: [
-      {
-        title: "Wireless Headphones",
-        price: 1500,
-        stock: 25,
-        status: "active",
-        images: [],
-      },
-      {
-        title: "Smart Watch",
-        price: 2500,
-        stock: 18,
-        status: "active",
-        images: [],
-      },
-      {
-        title: "Gaming Mouse",
-        price: 1499,
-        stock: 3,
-        status: "draft",
-        images: [],
-      },
-    ],
-  });
 
   if (loading) {
     return (
@@ -210,17 +142,6 @@ export const ProductAnalytics = () => {
     0,
   );
 
-  // List of all products (requires backend to return data.allProducts)
-  const pieDataa = [
-    { name: "Active", value: dataa.stats.activeProducts },
-    { name: "Draft", value: dataa.stats.draftProducts },
-  ];
-
-  const barDataa = dataa.topProducts.map((product) => ({
-    name: product._id.title,
-    sold: product.totalSold,
-  }));
-
   const COLORS = ["#22C55E", "#F59E0B"];
   const priceData = [
     { range: "₹0-500", products: 5 },
@@ -244,7 +165,7 @@ export const ProductAnalytics = () => {
         </div>
         <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-600 border border-indigo-100 px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-sm">
           <Sparkles className="w-3.5 h-3.5" />
-          Live store dataa
+          Live store data
         </span>
       </div>
 
@@ -376,7 +297,7 @@ export const ProductAnalytics = () => {
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">Needs reviews</span>
               <span className="text-sm font-extrabold text-amber-500">
-                {dataa.productsWithoutReviews.length}
+                {data.productsWithoutReviews.length}
               </span>
             </div>
           </div>
@@ -408,7 +329,7 @@ export const ProductAnalytics = () => {
               These products have no reviews yet. Encourage customers to review!
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {dataa.productsWithoutReviews.map((product, idx) => (
+              {data.productsWithoutReviews.map((product, idx) => (
                 <div
                   key={idx}
                   className="p-3.5 bg-gradient-to-br from-yellow-50 to-amber-50 border border-yellow-100 rounded-xl hover:shadow-sm transition-shadow"
