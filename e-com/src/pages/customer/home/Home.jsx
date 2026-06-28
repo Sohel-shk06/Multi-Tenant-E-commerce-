@@ -142,16 +142,27 @@ export const Home = () => {
     setActiveSlide((prev) => (prev + 1) % heroSlides.length);
   };
 
-  const getMappedCategories = () => {
-    return categoryMapping.map(mapItem => {
-      const dbCat = categories.find(c => 
-        mapItem.match.some(m => c.name.toLowerCase().includes(m))
-      );
+  const getCategoryStyle = (categoryName) => {
+    if (!categoryName) {
       return {
-        ...mapItem,
-        id: dbCat ? dbCat._id : null
+        color: "bg-[#F3ECFF]",
+        icon: <Package className="w-6 h-6 text-[#6C4DF6]" />
       };
-    });
+    }
+    const nameLower = categoryName.toLowerCase();
+    const matched = categoryMapping.find(item =>
+      item.match.some(m => nameLower.includes(m))
+    );
+    if (matched) {
+      return {
+        color: matched.color,
+        icon: matched.icon
+      };
+    }
+    return {
+      color: "bg-[#F3ECFF]",
+      icon: <Package className="w-6 h-6 text-[#6C4DF6]" />
+    };
   };
 
   if (loading) {
@@ -161,8 +172,6 @@ export const Home = () => {
       </div>
     );
   }
-
-  const mappedCategoriesList = getMappedCategories();
 
   return (
     <div className="min-h-screen bg-[#F8F7FC] pb-16">
@@ -316,24 +325,42 @@ export const Home = () => {
           </Link>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-          {mappedCategoriesList.map((cat, idx) => {
-            const linkPath = cat.id ? `/products?category=${cat.id}` : `/products?search=${cat.title.toLowerCase()}`;
-            return (
-              <Link 
-                key={idx} 
-                to={linkPath}
-                className="bg-white p-6 rounded-[20px] border border-[#E9E7F5] text-center hover:border-[#6C4DF6] hover:-translate-y-1 hover:shadow-md transition-all duration-300 group flex flex-col items-center"
-              >
-                <div className={`w-14 h-14 ${cat.color} rounded-full flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-105`}>
-                  {cat.icon}
-                </div>
-                <p className="text-sm font-bold text-[#1E1E2F] mb-1">{cat.title}</p>
-                <p className="text-[11px] text-[#6B7280] font-medium leading-tight">{cat.subtext}</p>
-              </Link>
-            );
-          })}
-        </div>
+        {categories.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            {categories.map((cat) => {
+              const linkPath = `/products?category=${cat._id}`;
+              const matchedStyle = getCategoryStyle(cat.name);
+              return (
+                <Link 
+                  key={cat._id} 
+                  to={linkPath}
+                  className="bg-white p-6 rounded-[20px] border border-[#E9E7F5] text-center hover:border-[#6C4DF6] hover:-translate-y-1 hover:shadow-md transition-all duration-300 group flex flex-col items-center"
+                >
+                  <div className={`w-14 h-14 ${matchedStyle.color} rounded-full flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-105 overflow-hidden`}>
+                    {cat.image ? (
+                      <img 
+                        src={cat.image} 
+                        alt={cat.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      matchedStyle.icon
+                    )}
+                  </div>
+                  <p className="text-sm font-bold text-[#1E1E2F] mb-1 truncate w-full">{cat.name}</p>
+                  <p className="text-[11px] text-[#6B7280] font-medium leading-tight line-clamp-2 w-full">
+                    {cat.description || "Explore collection"}
+                  </p>
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-white border border-[#E9E7F5] rounded-[24px]">
+            <Package className="w-12 h-12 text-[#6B7280]/40 mx-auto mb-3" />
+            <p className="text-sm text-[#6B7280] font-semibold">No categories available at the moment.</p>
+          </div>
+        )}
       </div>
 
       {/* Trending Products Section */}
