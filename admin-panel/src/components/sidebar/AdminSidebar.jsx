@@ -1,9 +1,11 @@
+
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Store, Users, Package, ShoppingCart,
   DollarSign, CreditCard, Percent, AlertCircle, BarChart3,
-  Settings, LogOut, ChevronDown, X, Menu, TrendingUp
+  Settings, LogOut, ChevronDown, X, Menu, TrendingUp,
+  Mail, Lock, User
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -62,15 +64,6 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
         { title: 'Analytics', path: '/admin/payments/analytics' },
       ],
     },
-    // {
-    //   title: 'Subscriptions',
-    //   icon: DollarSign,
-    //   children: [
-    //     { title: 'Plans', path: '/admin/subscriptions/plans' },
-    //     { title: 'Active Subscriptions', path: '/admin/subscriptions/active' },
-    //     { title: 'Billing History', path: '/admin/subscriptions/billing' },
-    //   ],
-    // },
     {
       title: 'Commissions',
       icon: Percent,
@@ -99,14 +92,17 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
       title: 'Settings',
       icon: Settings,
       children: [
-        { title: 'General', path: '/admin/settings/general'},
-        { title: 'Security', path: '/admin/settings/security' },
-        { title: 'Commission', path: '/admin/settings/commission' },
-        { title: 'Payment', path: '/admin/settings/payment' },
-        { title: 'Email', path: '/admin/settings/email' },
-        { title: 'Notifications', path: '/admin/settings/notifications' },
-        { title: 'Storage', path: '/admin/settings/storage' },
-        { title: 'System', path: '/admin/settings/system' },
+        // { title: 'General', path: '/admin/settings/general' },
+        // { title: 'Security', path: '/admin/settings/security' },
+        // { title: 'Commission', path: '/admin/settings/commission' },
+        // { title: 'Payment', path: '/admin/settings/payment' },
+        // { title: 'Email', path: '/admin/settings/email' },
+        // { title: 'Notifications', path: '/admin/settings/notifications' },
+        // { title: 'Storage', path: '/admin/settings/storage' },
+        // { title: 'System', path: '/admin/settings/system' },
+        
+        { title: 'Change Email', path: '/admin/change-email' },
+        { title: 'Change Password', path: '/admin/change-password' },
       ]
     }
   ];
@@ -199,22 +195,26 @@ export const AdminSidebar = ({ isOpen, onClose }) => {
 
                     {isExpanded && (
                       <div className="ml-8 mt-1 space-y-1">
-                        {item.children.map((child) => (
-                          <NavLink
-                            key={child.path}
-                            to={child.path}
-                            onClick={onClose}
-                            className={`
-                              block px-3 py-2 rounded-lg text-sm transition-colors
-                              ${isActive(child.path)
-                                ? 'bg-blue-600 text-white font-medium'
-                                : 'text-gray-600 hover:bg-gray-100'
-                              }
-                            `}
-                          >
-                            {child.title}
-                          </NavLink>
-                        ))}
+                        {item.children.map((child) => {
+                          const ChildIcon = child.icon;
+                          return (
+                            <NavLink
+                              key={child.path}
+                              to={child.path}
+                              onClick={onClose}
+                              className={`
+                                flex items-center space-x-2 px-3 py-2 rounded-lg text-sm transition-colors
+                                ${isActive(child.path)
+                                  ? 'bg-blue-600 text-white font-medium'
+                                  : 'text-gray-600 hover:bg-gray-100'
+                                }
+                              `}
+                            >
+                              {ChildIcon && <ChildIcon className="w-4 h-4" />}
+                              <span>{child.title}</span>
+                            </NavLink>
+                          );
+                        })}
                       </div>
                     )}
                   </div>

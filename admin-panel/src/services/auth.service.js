@@ -19,9 +19,20 @@ export const authService = {
     return response.data;
   },
 
-  // Forgot Password (Initiate email flow)
-  forgotPassword: async (email) => {
+   forgotPassword: async (email) => {
     const response = await api.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  // ✅ NEW: Verify Reset OTP
+  verifyResetOtp: async (email, otp) => {
+    const response = await api.post('/auth/verify-reset-otp', { email, otp });
+    return response.data;
+  },
+
+  // ✅ NEW: Reset Password with OTP
+  resetPasswordWithOtp: async (email, otp, newPassword) => {
+    const response = await api.post('/auth/reset-password-with-otp', { email, otp, newPassword });
     return response.data;
   },
 
@@ -41,5 +52,21 @@ export const authService = {
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+  },
+
+   requestEmailChange: async (newEmail) => {
+    const response = await api.post('/auth/request-email-change', { newEmail });
+    return response.data;
+  },
+
+  // Verify Email Change (Verify OTP & Update Email)
+  verifyEmailChange: async (otp) => {
+    const response = await api.post('/auth/verify-email-change', { otp });
+    return response.data;
+  },
+  
+    changePassword: async (data) => {
+    const response = await api.post('/auth/change-password', data);
+    return response.data;
   },
 };

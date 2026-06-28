@@ -13,28 +13,21 @@ const initialState = {
   isAuthenticated: !!localStorage.getItem('token'),
   isLoading: false,
   error: null,
-  successMessage: null, // Added for forgot/reset password success messages
+  successMessage: null,
 };
 
 // --- Async Thunks ---
 
-// ... (upar ke imports aur initialState wahi rahenge)
-
-// 🔥 FIX 1: loginUser Thunk
 export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await authService.login(credentials);
-      
-      // Backend ApiResponse ke andar actual data 'response.data' mein aata hai
       const { token, user } = response.data; 
       
-      // Ab token aur user sahi se save honge
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       
-      // Component mein easily access karne ke liye sirf { user, token } return karein
       return { token, user }; 
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Login failed');
@@ -42,21 +35,17 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// 🔥 FIX 2: fetchCurrentUser Thunk (Page refresh ke liye)
 export const fetchCurrentUser = createAsyncThunk(
   'auth/fetchCurrentUser',
   async (_, { rejectWithValue }) => {
     try {
       const response = await authService.getCurrentUser();
-      // Backend se response.data.user aayega
       return response.data.user; 
     } catch (error) {
       return rejectWithValue('Failed to fetch user');
     }
   }
 );
-
-
 
 export const registerUser = createAsyncThunk(
   'auth/register',
@@ -70,8 +59,7 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-
-
+// ✅ UPDATED: Forgot Password Thunk
 export const forgotPassword = createAsyncThunk(
   'auth/forgotPassword',
   async (email, { rejectWithValue }) => {
@@ -79,7 +67,33 @@ export const forgotPassword = createAsyncThunk(
       const data = await authService.forgotPassword(email);
       return data.message; 
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to send reset email');
+      return rejectWithValue(error.response?.data?.message || 'Failed to send OTP');
+    }
+  }
+);
+
+// ✅ NEW: Verify Reset OTP Thunk
+export const verifyResetOtp = createAsyncThunk(
+  'auth/verifyResetOtp',
+  async ({ email, otp }, { rejectWithValue }) => {
+    try {
+      const data = await authService.verifyResetOtp(email, otp);
+      return data.message;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Invalid OTP');
+    }
+  }
+);
+
+// ✅ NEW: Reset Password with OTP Thunk
+export const resetPasswordWithOtp = createAsyncThunk(
+  'auth/resetPasswordWithOtp',
+  async ({ email, otp, newPassword }, { rejectWithValue }) => {
+    try {
+      const data = await authService.resetPasswordWithOtp(email, otp, newPassword);
+      return data.message;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to reset password');
     }
   }
 );
@@ -96,7 +110,44 @@ export const resetPassword = createAsyncThunk(
   }
 );
 
-// --- Slice (Single Definition) ---
+export const requestEmailChange = createAsyncThunk(
+  'auth/requestEmailChange',
+  async (newEmail, { rejectWithValue }) => {
+    try {
+      const response = await authService.requestEmailChange(newEmail);
+      return response.message;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to send OTP');
+    }
+  }
+);
+
+export const verifyEmailChange = createAsyncThunk(
+  'auth/verifyEmailChange',
+  async (otp, { rejectWithValue }) => {
+    try {
+      const response = await authService.verifyEmailChange(otp);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to verify OTP');
+    }
+  }
+);
+
+// ✅ FIXED: Change Password Thunk
+export const changePassword = createAsyncThunk(
+  'auth/changePassword',
+  async ({ oldPassword, newPassword }, { rejectWithValue }) => {
+    try {
+      const response = await authService.changePassword({ oldPassword, newPassword });
+      return response.message;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to change password');
+    }
+  }
+);
+
+// --- Slice ---
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -155,6 +206,34 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+
+      // ✅ NEW: Verify Reset OTP Cases
+      .addCase(verifyResetOtp.pending, (state) => { 
+        state.isLoading = true; 
+        state.error = null; 
+      })
+      .addCase(verifyResetOtp.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.successMessage = action.payload;
+      })
+      .addCase(verifyResetOtp.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      // ✅ NEW: Reset Password with OTP Cases
+      .addCase(resetPasswordWithOtp.pending, (state) => { 
+        state.isLoading = true; 
+        state.error = null; 
+      })
+      .addCase(resetPasswordWithOtp.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.successMessage = action.payload;
+      })
+      .addCase(resetPasswordWithOtp.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
       
       // Reset Password Cases
       .addCase(resetPassword.pending, (state) => { state.isLoading = true; state.error = null; })
@@ -163,6 +242,55 @@ const authSlice = createSlice({
         state.successMessage = action.payload;
       })
       .addCase(resetPassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      // Request Email Change Cases
+      .addCase(requestEmailChange.pending, (state) => { 
+        state.isLoading = true; 
+        state.error = null; 
+        state.successMessage = null;
+      })
+      .addCase(requestEmailChange.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.successMessage = action.payload;
+      })
+      .addCase(requestEmailChange.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      // Verify Email Change Cases
+      .addCase(verifyEmailChange.pending, (state) => { 
+        state.isLoading = true; 
+        state.error = null; 
+        state.successMessage = null;
+      })
+      .addCase(verifyEmailChange.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.successMessage = 'Email updated successfully!';
+        if (state.user) {
+          state.user.email = action.payload.email;
+          localStorage.setItem('user', JSON.stringify(state.user));
+        }
+      })
+      .addCase(verifyEmailChange.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+      // Change Password Cases
+      .addCase(changePassword.pending, (state) => { 
+        state.isLoading = true; 
+        state.error = null; 
+        state.successMessage = null;
+      })
+      .addCase(changePassword.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.successMessage = action.payload;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       });
