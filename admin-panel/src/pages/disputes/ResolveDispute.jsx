@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { resolveDispute } from '../../app/store/disputeSlice';
-import { X, AlertCircle } from 'lucide-react';
+import { X, AlertCircle, CheckCircle } from 'lucide-react';
 
 export const ResolveDispute = ({ dispute, onClose }) => {
   const dispatch = useDispatch();
@@ -12,17 +12,10 @@ export const ResolveDispute = ({ dispute, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!resolution) {
-      alert('Please select a resolution type');
-      return;
-    }
-
+    if (!resolution) { alert('Please select a resolution type'); return; }
     if (resolution === 'partial_refund' && (!refundAmount || refundAmount <= 0)) {
-      alert('Please enter a valid refund amount');
-      return;
+      alert('Please enter a valid refund amount'); return;
     }
-
     setIsSubmitting(true);
     try {
       await dispatch(resolveDispute({
@@ -33,48 +26,60 @@ export const ResolveDispute = ({ dispute, onClose }) => {
           adminNotes
         }
       }));
-      alert('✅ Dispute resolved successfully!');
       onClose();
     } catch (error) {
-      alert('❌ Failed to resolve dispute: ' + error.message);
+      alert('Failed to resolve dispute: ' + error.message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const inputClass = "w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white text-gray-900 placeholder:text-gray-400";
+  const labelClass = "block text-[12px] font-medium text-gray-600 mb-1.5";
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div
+        className="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        style={{ borderRadius: '16px', border: '1px solid #e0e4f7', boxShadow: '0 4px 0 #C7D2FE, 0 8px 30px rgba(67,56,202,0.15)' }}
+      >
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">Resolve Dispute</h2>
+        <div className="sticky top-0 bg-white px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <h2 className="text-[15px] font-semibold" style={{ color: '#1E1B4B' }}>Resolve Dispute</h2>
+            <p className="text-[11px] text-gray-400 mt-0.5">Choose resolution and provide notes</p>
+          </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+            className="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 text-gray-500" />
           </button>
         </div>
 
-        {/* Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+
           {/* Order Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm font-medium text-blue-900 mb-1">Order Details</p>
-            <p className="text-sm text-blue-700">
-              Order: {dispute.order?.orderNumber} | Total: ₹{dispute.order?.totalAmount?.toLocaleString()}
+          <div
+            className="p-3.5 rounded-xl border"
+            style={{ backgroundColor: '#EEF2FF', borderColor: '#C7D2FE' }}
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-wide mb-1" style={{ color: '#4338CA' }}>Order Details</p>
+            <p className="text-[13px] font-medium" style={{ color: '#312E81' }}>
+              Order #{dispute.order?.orderNumber}
+            </p>
+            <p className="text-[12px] text-gray-500 mt-0.5">
+              Total: ₹{dispute.order?.totalAmount?.toLocaleString()}
             </p>
           </div>
 
           {/* Resolution Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Resolution Type <span className="text-red-500">*</span>
-            </label>
+            <label className={labelClass}>Resolution Type *</label>
             <select
               value={resolution}
               onChange={(e) => setResolution(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClass}
               required
             >
               <option value="">Select resolution...</option>
@@ -85,12 +90,10 @@ export const ResolveDispute = ({ dispute, onClose }) => {
             </select>
           </div>
 
-          {/* Refund Amount (only for partial refund) */}
+          {/* Partial Refund Amount */}
           {resolution === 'partial_refund' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Refund Amount (₹) <span className="text-red-500">*</span>
-              </label>
+              <label className={labelClass}>Refund Amount (₹) *</label>
               <input
                 type="number"
                 value={refundAmount}
@@ -98,11 +101,11 @@ export const ResolveDispute = ({ dispute, onClose }) => {
                 max={dispute.order?.totalAmount}
                 min="1"
                 step="0.01"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={inputClass}
                 placeholder="Enter refund amount"
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-[11px] text-gray-400 mt-1">
                 Maximum: ₹{dispute.order?.totalAmount?.toLocaleString()}
               </p>
             </div>
@@ -110,56 +113,67 @@ export const ResolveDispute = ({ dispute, onClose }) => {
 
           {/* Admin Notes */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Admin Notes (Optional)
-            </label>
+            <label className={labelClass}>Admin Notes (Optional)</label>
             <textarea
               value={adminNotes}
               onChange={(e) => setAdminNotes(e.target.value)}
-              rows="4"
+              rows="3"
               maxLength="1000"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClass}
               placeholder="Explain your decision..."
+              style={{ resize: 'none' }}
             />
-            <p className="text-xs text-gray-500 mt-1">
-              {adminNotes.length}/1000 characters
-            </p>
+            <p className="text-[11px] text-gray-400 mt-1">{adminNotes.length}/1000</p>
           </div>
 
-          {/* Warning */}
+          {/* Refund Warning */}
           {(resolution === 'full_refund' || resolution === 'partial_refund') && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start space-x-3">
-              <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-yellow-800">
-                <p className="font-semibold mb-1">Refund Warning</p>
-                <p>
-                  {resolution === 'full_refund' 
-                    ? `Full refund of ₹${dispute.order?.totalAmount?.toLocaleString()} will be processed to the customer.`
-                    : `Partial refund of ₹${refundAmount || 0} will be processed to the customer.`
+            <div
+              className="flex items-start gap-3 p-3.5 rounded-xl border"
+              style={{ backgroundColor: '#FEF9C3', borderColor: '#FDE047' }}
+            >
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#A16207' }} />
+              <div>
+                <p className="text-[12px] font-semibold" style={{ color: '#A16207' }}>Refund Warning</p>
+                <p className="text-[12px] mt-0.5" style={{ color: '#A16207' }}>
+                  {resolution === 'full_refund'
+                    ? `Full refund of ₹${dispute.order?.totalAmount?.toLocaleString()} will be processed.`
+                    : `Partial refund of ₹${refundAmount || 0} will be processed.`
                   }
                 </p>
               </div>
             </div>
           )}
 
-          {/* Actions */}
-          <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+          {/* Buttons */}
+          <div className="flex gap-3 pt-2 border-t border-gray-100">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               disabled={isSubmitting}
+              className="flex-1 py-2.5 text-[13px] font-medium text-gray-700 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
+              className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 text-[13px] font-semibold text-white rounded-lg transition-all disabled:opacity-50"
+              style={{
+                background: 'linear-gradient(135deg,#6366F1,#4338CA)',
+                boxShadow: '0 2px 0 #312E81, 0 3px 8px rgba(67,56,202,0.25)'
+              }}
+              onMouseEnter={e => { if (!isSubmitting) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 3px 0 #312E81, 0 5px 12px rgba(67,56,202,0.3)' } }}
+              onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 2px 0 #312E81, 0 3px 8px rgba(67,56,202,0.25)' }}
             >
+              {isSubmitting
+                ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <CheckCircle className="w-4 h-4" />
+              }
               {isSubmitting ? 'Resolving...' : 'Resolve Dispute'}
             </button>
           </div>
+
         </form>
       </div>
     </div>
