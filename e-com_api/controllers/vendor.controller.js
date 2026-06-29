@@ -70,6 +70,7 @@ export const deleteVendorProduct = asyncHandler(async (req, res) => {
 });
 
 // ===== VENDOR: Store Management =====
+// ===== VENDOR: Store Management =====
 
 export const getVendorStores = asyncHandler(async (req, res) => {
   const stores = await vendorService.getVendorStores(req.user._id, req.query);
@@ -86,6 +87,7 @@ export const getVendorStore = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, store, 'Store fetched successfully'));
 });
 
+// ✅ UPDATED: createVendorStore with file upload
 export const createVendorStore = asyncHandler(async (req, res) => {
   const storeData = { ...req.body };
   if (req.files) {
@@ -104,6 +106,7 @@ export const createVendorStore = asyncHandler(async (req, res) => {
   return res.status(201).json(new ApiResponse(201, store, 'Store created successfully'));
 });
 
+// ✅ UPDATED: updateVendorStore with file upload
 export const updateVendorStore = asyncHandler(async (req, res) => {
   const storeData = { ...req.body };
   

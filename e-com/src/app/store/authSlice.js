@@ -56,16 +56,32 @@ export const resendRegistrationOtp = createAsyncThunk(
 );
 
 // ✅ Login User Thunk
+// ✅ Login User Thunk - UPDATED with suspended check
 export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await authService.login(credentials);
       const { user, token } = response.data;
+      
+      // ✅ NEW: Check if user is suspended (double check on frontend)
+      if (user.status === 'suspended') {
+        return rejectWithValue('Your account has been suspended. Please contact support.');
+      }
+      
+      // ✅ NEW: Check if user is pending
+      if (user.status === 'pending') {
+        return rejectWithValue('Your account is pending approval. Please wait for admin approval.');
+      }
+      
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       return { user, token };
     } catch (error) {
+      // ✅ NEW: Handle 403 error specifically
+      if (error.response?.status === 403) {
+        return rejectWithValue(error.response?.data?.message || 'Access denied');
+      }
       return rejectWithValue(error.response?.data?.message || 'Login failed');
     }
   }

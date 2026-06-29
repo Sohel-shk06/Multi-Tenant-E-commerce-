@@ -21,7 +21,7 @@ router.post('/', uploadStoreImages, storeController.createStore);
 router.patch('/:storeId', uploadStoreImages, storeController.updateStore);
 router.delete('/:storeId', storeController.deleteStore);
 
-// ✅ NEW: Store Analytics Route
+// ✅ Store Analytics Route
 router.get('/:storeId/analytics', authorizeRoles('admin'), storeController.getStoreAnalytics);
 
 export default router;

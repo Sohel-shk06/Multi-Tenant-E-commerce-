@@ -144,15 +144,31 @@ updateVendorProduct: async (productId, productData) => {
         return response.data.data;
     },
 
-    createVendorStore: async (storeData) => {
-        const response = await api.post('/vendor/stores', storeData);
-        return response.data.data;
-    },
+    // ✅ UPDATED: createVendorStore with FormData support
+createVendorStore: async (storeData) => {
+    const isFormData = storeData instanceof FormData;
+    const response = await api.post('/vendor/stores', storeData, {
+        headers: isFormData ? {
+            'Content-Type': 'multipart/form-data'
+        } : {
+            'Content-Type': 'application/json'
+        }
+    });
+    return response.data.data;
+},
 
-    updateVendorStore: async (storeId, storeData) => {
-        const response = await api.patch(`/vendor/stores/${storeId}`, storeData);
-        return response.data.data;
-    },
+// ✅ UPDATED: updateVendorStore with FormData support
+updateVendorStore: async (storeId, storeData) => {
+    const isFormData = storeData instanceof FormData;
+    const response = await api.patch(`/vendor/stores/${storeId}`, storeData, {
+        headers: isFormData ? {
+            'Content-Type': 'multipart/form-data'
+        } : {
+            'Content-Type': 'application/json'
+        }
+    });
+    return response.data.data;
+},
 
     deleteVendorStore: async (storeId) => {
         const response = await api.delete(`/vendor/stores/${storeId}`);

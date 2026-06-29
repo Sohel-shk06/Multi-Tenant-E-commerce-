@@ -154,6 +154,10 @@ import { User } from '../models/User.js';
 import { ApiError } from '../utils/ApiError.js';
 import { sendOtpEmail } from '../utils/mailer.js';
 
+import jwt from 'jsonwebtoken';
+
+import { config } from '../config/env.js';
+
 // ✅ UPDATED: Register User - OTP Generate Kare
 export const registerUser = async (userData) => {
   const { name, email, password, role } = userData;
@@ -257,21 +261,58 @@ export const resendRegistrationOtpService = async (email) => {
 
 
 
+
 export const loginUser = async (credentials) => {
   const { email, password } = credentials;
-  
+
+  if (!email || !password) {
+    throw new ApiError(400, 'Email and password are required');
+  }
+
   const user = await User.findOne({ email });
+
   if (!user) {
     throw new ApiError(401, 'Invalid email or password');
   }
 
-  const isMatch = await user.comparePassword(password);
-  if (!isMatch) {
+  // ✅ FIXED: comparePassword use karo (isPasswordCorrect nahi)
+  const isPasswordValid = await user.comparePassword(password);
+
+  if (!isPasswordValid) {
     throw new ApiError(401, 'Invalid email or password');
   }
 
-  const token = user.getJwtToken();
-  return { user, token };
+  // ✅ NEW: Check if user is suspended
+  if (user.status === 'suspended') {
+    throw new ApiError(403, 'Your account has been suspended. Please contact support.');
+  }
+
+  // ✅ NEW: Check if user is pending
+  if (user.status === 'pending') {
+    throw new ApiError(403, 'Your account is pending approval. Please wait for admin approval.');
+  }
+
+  // ✅ FIXED: getJwtToken use karo (generateAccessToken nahi)
+  const accessToken = user.getJwtToken();
+  
+  // Refresh token bhi generate karo (same method use kar sakte ho)
+  const refreshToken = jwt.sign(
+    { id: user._id, role: user.role },
+    config.JWT_SECRET,
+    { expiresIn: '30d' }
+  );
+
+  // Save refresh token to database
+  user.refreshToken = refreshToken;
+  await user.save({ validateBeforeSave: false });
+
+  // Remove sensitive fields
+  const { password: _, refreshToken: __, resetPasswordToken, verifyEmailToken, ...userWithoutSensitive } = user.toObject();
+
+  return {
+    user: userWithoutSensitive,
+    token: accessToken
+  };
 };
 
 // ... existing code ...
