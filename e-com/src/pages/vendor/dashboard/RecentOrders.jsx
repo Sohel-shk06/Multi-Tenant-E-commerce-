@@ -21,9 +21,7 @@ const RecentOrders = ({ orders = [] }) => {
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">
-          Recent Orders
-        </h2>
+        <h2 className="text-lg font-semibold text-gray-900">Recent Orders</h2>
 
         <Link
           to="/vendor/orders"
@@ -33,8 +31,8 @@ const RecentOrders = ({ orders = [] }) => {
         </Link>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
+      {/*Desktop Table */}
+      <div className="overflow-x-auto hidden md:block">
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200">
@@ -83,7 +81,7 @@ const RecentOrders = ({ orders = [] }) => {
                 <td className="py-4">
                   <span
                     className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                      order.status
+                      order.status,
                     )}`}
                   >
                     {order.status}
@@ -105,6 +103,47 @@ const RecentOrders = ({ orders = [] }) => {
 
         {recentOrders.length === 0 && (
           <div className="text-center py-10 text-gray-500">
+            No recent orders found
+          </div>
+        )}
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {recentOrders.length > 0 ? (
+          recentOrders.map((order) => (
+            <Link
+              key={order._id}
+              to={`/vendor/orders/${order._id}`}
+              className="block rounded-lg border border-gray-200 p-3 hover:bg-gray-50"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-gray-900">
+                  #{order._id?.slice(-6)}
+                </span>
+
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                    order.status,
+                  )}`}
+                >
+                  {order.status}
+                </span>
+              </div>
+
+              <p className="mt-2 text-sm text-gray-600">
+                {order.shippingAddress?.fullName ||
+                  order.user?.name ||
+                  "Customer"}
+              </p>
+
+              <p className="mt-1 text-lg font-bold text-gray-900">
+                ₹{order.totalAmount?.toLocaleString()}
+              </p>
+            </Link>
+          ))
+        ) : (
+          <div className="text-center py-8 text-gray-500">
             No recent orders found
           </div>
         )}
