@@ -1,7 +1,8 @@
+import { useState, useEffect } from 'react';
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useAuth } from '../hooks/useAuth';
-import { ShoppingCart, Heart, Package, Bell } from 'lucide-react';
+import { ShoppingCart, Heart, Package, Bell, Sun, Moon } from 'lucide-react';
 import {
   NotificationProvider,
   useNotificationContext,
@@ -23,6 +24,22 @@ const CustomerLayoutInner = () => {
 
   // Read unread count from shared context (kept in sync by NotificationProvider)
   const { unreadCount } = useNotificationContext();
+
+  // Dark Mode State
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('theme') === 'dark';
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -36,7 +53,7 @@ const CustomerLayoutInner = () => {
   ];
 
   return (
-    <div className="customer-shell min-h-screen bg-[#F8F7FC] text-[#1E1E2F] font-sans antialiased">
+    <div className={`customer-shell min-h-screen ${isDarkMode ? 'dark' : ''} bg-[#F8F7FC] text-[#1E1E2F] font-sans antialiased`}>
       {/* Top Navbar - Fixed at the top */}
       <nav className="bg-white/85 backdrop-blur-md border-b border-[#E9E7F5]/90 sticky top-0 z-50 transition-all duration-300 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -72,6 +89,19 @@ const CustomerLayoutInner = () => {
 
             {/* Right Side Controls */}
             <div className="flex items-center space-x-5">
+              {/* Theme Toggle Button */}
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="p-2 text-[#6B7280] hover:text-[#6C4EFF] relative transition-colors duration-300 group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C4EFF]/30 cursor-pointer"
+                aria-label="Toggle Dark Mode"
+              >
+                {isDarkMode ? (
+                  <Sun className="w-5.5 h-5.5 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-45 text-yellow-500" />
+                ) : (
+                  <Moon className="w-5.5 h-5.5 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-12" />
+                )}
+              </button>
+
               {/* Wishlist Icon */}
               <Link to="/wishlist" className="p-2 text-[#6B7280] hover:text-[#6C4EFF] relative transition-colors duration-300 group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C4EFF]/30">
                 <Heart className="w-5.5 h-5.5 transition-transform duration-300 group-hover:scale-110" />

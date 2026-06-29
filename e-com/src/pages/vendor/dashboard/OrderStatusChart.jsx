@@ -52,7 +52,7 @@ const OrderStatusChart = () => {
   const totalOrders = chartData.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <div className="relative overflow-hidden bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+    <div className="relative overflow-hidden bg-white rounded-3xl p-6 shadow-sm border border-slate-200 h-full">
       <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-100 blur-3xl opacity-50" />
 
       <h2 className="text-lg font-bold text-slate-900 mb-6">📊 Order Status</h2>

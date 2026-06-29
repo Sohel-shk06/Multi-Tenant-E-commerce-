@@ -1,4 +1,4 @@
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuth } from "../../../hooks/useAuth";
 import { Link } from "react-router-dom";
@@ -23,7 +23,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { vendorService } from '../../../services/vendor.service';
+import { vendorService } from "../../../services/vendor.service";
 //component
 import OrderStatusChart from "./OrderStatusChart";
 import RevenueChart from "./RevenueChart";
@@ -33,9 +33,8 @@ import DashboardHero from "./DashboardHero";
 import RecentOrders from "./RecentOrders";
 
 export const Dashboard = () => {
-  
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true)
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const dispatch = useDispatch();
   const { stats, chartData, recentOrders, isLoading, error } = useSelector(
@@ -48,7 +47,7 @@ export const Dashboard = () => {
       setData(result);
       // console.log('dash data',result.topProducts)
     } catch (error) {
-      console.error('Failed to load product analytics', error);
+      console.error("Failed to load product analytics", error);
     } finally {
       setLoading(false);
     }
@@ -86,8 +85,8 @@ export const Dashboard = () => {
   }
 
   // Access products from vendorProducts slice for InventoryAlerts
-  console.log("data:-",data);
-const { products } = useSelector((state) => state.vendorProducts);
+  console.log("data:-", data);
+  const { products } = useSelector((state) => state.vendorProducts);
 
   const lowStockProducts = products.filter((product) => product.stock <= 10);
 
@@ -95,7 +94,6 @@ const { products } = useSelector((state) => state.vendorProducts);
     (sum, p) => sum + (p.totalSold || 0),
     0,
   );
-
 
   // Stats data array
   const statsData = [
@@ -115,7 +113,13 @@ const { products } = useSelector((state) => state.vendorProducts);
     },
     {
       title: "Total Revenue",
-      value: `₹${(stats?.totalRevenue || 0).toLocaleString()}`,
+      value: stats?.totalRevenue
+        ? stats.totalRevenue >= 1000
+          ? `${(stats.totalRevenue / 1000).toFixed(
+              stats.totalRevenue % 1000 === 0 ? 0 : 1,
+            )}k`
+          : stats.totalRevenue.toFixed(2)
+        : "0.00",
       icon: DollarSign,
       color: "purple",
       link: "/vendor/earnings",
@@ -138,48 +142,68 @@ const { products } = useSelector((state) => state.vendorProducts);
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-2 md:p-6 space-y-6">
       {/* Welcome Header */}
       <DashboardHero user={user} recentOrders={recentOrders} />
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statsData.map((stat, idx) => {
-          const Icon = stat.icon;
-          return (
-            <Link
-              key={idx}
-              to={stat.link}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div
-                  className={`w-12 h-12 rounded-lg flex items-center justify-center ${colorClasses[stat.color]}`}
-                >
-                  <Icon className="w-6 h-6" />
+      <div className="overflow-x-auto hide-scrollbar md:overflow-visible pb-2">
+        <div className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 min-w-max md:min-w-0">
+          {statsData.map((stat, idx) => {
+            const Icon = stat.icon;
+
+            return (
+              <Link
+                key={idx}
+                to={stat.link}
+                className="w-48 md:w-auto flex-shrink-0 bg-white rounded-xl shadow-sm border border-gray-200 p-3 md:p-6 hover:shadow-md transition-all duration-300"
+              >
+                {/* Mobile Layout */}
+                <div className="flex items-center gap-3 md:hidden">
+                  <div
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClasses[stat.color]}`}
+                  >
+                    <Icon className="w-5 h-5" />
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500 truncate">
+                      {stat.title}
+                    </p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {stat.value}
+                    </p>
+                  </div>
                 </div>
-                {stat.title === "Total Revenue" && (
-                  <span className="text-xs font-medium text-green-600 flex items-center">
-                    +12% <ArrowUpRight className="w-3 h-3 ml-1" />
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-gray-500">{stat.title}</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {stat.value}
-              </p>
-            </Link>
-          );
-        })}
+
+                {/* Tablet/Desktop Layout */}
+                <div className="hidden md:block">
+                  <div className="flex items-center justify-between mb-4">
+                    <div
+                      className={`w-12 h-12 rounded-lg flex items-center justify-center ${colorClasses[stat.color]}`}
+                    >
+                      <Icon className="w-6 h-6" />
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-gray-500">{stat.title}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                    {stat.value}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
       {/* Charts & Recent Orders Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="lg:col-span-1">
+        <div className="col-span-2 xl:col-span-1">
           <RevenueChart chartData={chartData} />
         </div>
 
-        <div className="lg:col-span-1 h-full">
+        <div className="hidden xl:block xl:col-span-1 h-full">
           <OrderStatusChart />
         </div>
       </div>
@@ -187,9 +211,9 @@ const { products } = useSelector((state) => state.vendorProducts);
       {/* Top Products & Inventory Alerts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         <div className="lg:col-span-1">
-          <TopProducts 
-          products={data?.topProducts} 
-          totalSold={totalUnitsSold}
+          <TopProducts
+            products={data?.topProducts}
+            totalSold={totalUnitsSold}
           />
         </div>
 

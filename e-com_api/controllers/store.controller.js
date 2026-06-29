@@ -48,6 +48,19 @@ export const createStore = asyncHandler(async (req, res) => {
   console.log('📁 Files received:', req.files);
   console.log('👤 User:', req.user);
   
+  const storeData = { ...req.body };
+  if (req.files) {
+    const { uploadToCloudinary } = await import('../utils/cloudinaryUploader.js');
+    if (req.files.logo && req.files.logo[0]) {
+      const uploadResult = await uploadToCloudinary(req.files.logo[0].buffer, 'stores');
+      storeData.logo = uploadResult.url;
+    }
+    if (req.files.banner && req.files.banner[0]) {
+      const uploadResult = await uploadToCloudinary(req.files.banner[0].buffer, 'stores');
+      storeData.banner = uploadResult.url;
+    }
+  }
+
   let vendorId;
   
   if (req.user.role === 'vendor') {
@@ -68,7 +81,7 @@ export const createStore = asyncHandler(async (req, res) => {
   }
 
   try {
-    const store = await storeService.createStore(req.body, vendorId, req.files);
+    const store = await storeService.createStore(storeData, vendorId);
     console.log('✅ Store created:', store._id);
     return res.status(201).json(new ApiResponse(201, store, 'Store created successfully'));
   } catch (error) {
@@ -118,7 +131,47 @@ export const getStoreById = asyncHandler(async (req, res) => {
 });
 
 export const updateStore = asyncHandler(async (req, res) => {
-  const store = await storeService.updateStoreById(req.params.storeId, req.body);
+  const storeData = { ...req.body };
+  
+  // Get current store to delete old images if new ones are uploaded
+  const { Store } = await import('../models/Store.js');
+  const currentStore = await Store.findById(req.params.storeId);
+  
+  if (req.files) {
+    const { uploadToCloudinary, deleteFromCloudinary } = await import('../utils/cloudinaryUploader.js');
+    
+    const getPublicIdFromUrl = (url) => {
+      if (!url || !url.includes('cloudinary')) return null;
+      try {
+        const parts = url.split('/upload/');
+        if (parts.length < 2) return null;
+        const pathAndExt = parts[1].replace(/^v\d+\//, '');
+        return pathAndExt.substring(0, pathAndExt.lastIndexOf('.'));
+      } catch (error) {
+        return null;
+      }
+    };
+
+    if (req.files.logo && req.files.logo[0]) {
+      if (currentStore && currentStore.logo) {
+        const oldPublicId = getPublicIdFromUrl(currentStore.logo);
+        if (oldPublicId) await deleteFromCloudinary(oldPublicId);
+      }
+      const uploadResult = await uploadToCloudinary(req.files.logo[0].buffer, 'stores');
+      storeData.logo = uploadResult.url;
+    }
+    
+    if (req.files.banner && req.files.banner[0]) {
+      if (currentStore && currentStore.banner) {
+        const oldPublicId = getPublicIdFromUrl(currentStore.banner);
+        if (oldPublicId) await deleteFromCloudinary(oldPublicId);
+      }
+      const uploadResult = await uploadToCloudinary(req.files.banner[0].buffer, 'stores');
+      storeData.banner = uploadResult.url;
+    }
+  }
+
+  const store = await storeService.updateStoreById(req.params.storeId, storeData);
   return res.status(200).json(new ApiResponse(200, store, 'Store updated successfully'));
 });
 

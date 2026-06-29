@@ -55,10 +55,14 @@ const DashboardHero = ({ user, recentOrders = [] }) => {
             Here's what's happening with your store today.
           </p>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-8">
+          <div className="hidden md:grid md:grid-cols-4 gap-8 mt-8">
             <div>
               <p className="text-sm text-white/70">Today's Revenue</p>
-              <h3 className="text-2xl font-bold">{todayRevenue}</h3>
+              <h3 className="text-2xl font-bold">
+                {todayRevenue >= 1000
+                  ? `${(todayRevenue / 1000).toFixed(todayRevenue % 1000 === 0 ? 0 : 1)}k`
+                  : todayRevenue.toFixed(2)}
+              </h3>
             </div>
 
             <div>

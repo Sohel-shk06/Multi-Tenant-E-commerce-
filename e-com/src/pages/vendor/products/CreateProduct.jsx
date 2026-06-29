@@ -184,7 +184,7 @@ export const CreateProduct = () => {
     return (
       <div className="p-6 flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading stores and categories...</p>
         </div>
       </div>
@@ -233,8 +233,8 @@ export const CreateProduct = () => {
           </div>
         ) : (
           <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-2">
-            <Store className="w-4 h-4 text-green-600" />
-            <p className="text-sm text-green-700">
+            <Store className="w-4 h-4 text-blue-600" />
+            <p className="text-sm text-blue-700">
               ✅ {stores.length} store{stores.length > 1 ? 's' : ''} available
             </p>
           </div>
@@ -255,7 +255,7 @@ export const CreateProduct = () => {
             </div>
 
             {/* Upload Area */}
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-green-500 transition-colors">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-500 transition-colors">
               <div className="flex flex-col items-center justify-center">
                 <Upload className="w-12 h-12 text-gray-400 mb-3" />
                 <p className="text-sm font-medium text-gray-700 mb-1">
@@ -264,7 +264,7 @@ export const CreateProduct = () => {
                 <p className="text-xs text-gray-500 mb-3">
                   PNG, JPG, WEBP up to 5MB each • Minimum {MIN_IMAGES} images required
                 </p>
-                <label className="cursor-pointer px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
+                <label className="cursor-pointer px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
                   <input
                     type="file"
                     multiple
@@ -324,13 +324,13 @@ export const CreateProduct = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Product Title *</label>
               <input type="text" name="title" value={formData.title} onChange={handleChange} required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="e.g., Wireless Bluetooth Headphones" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
               <textarea name="description" value={formData.description} onChange={handleChange} rows="5" required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Detailed product description..." />
             </div>
           </div>
@@ -342,22 +342,22 @@ export const CreateProduct = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹) *</label>
                 <input type="number" name="price" value={formData.price} onChange={handleChange} required min="0" step="0.01"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" />
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Compare Price (₹)</label>
                 <input type="number" name="comparePrice" value={formData.comparePrice} onChange={handleChange} min="0" step="0.01"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" />
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Stock Quantity</label>
                 <input type="number" name="stock" value={formData.stock} onChange={handleChange} min="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" />
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">SKU</label>
                 <input type="text" name="sku" value={formData.sku} onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g., WBH-001" />
               </div>
             </div>
@@ -370,7 +370,7 @@ export const CreateProduct = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
                 <select name="category" value={formData.category} onChange={handleChange} required disabled={categories.length === 0}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                   <option value="">Select a category</option>
                   {categories.map((cat) => (
                     <option key={cat._id} value={cat._id}>{cat.name}</option>
@@ -382,7 +382,7 @@ export const CreateProduct = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Store *</label>
                 <select name="store" value={formData.store} onChange={handleChange} required disabled={stores.length === 0}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                   <option value="">Select your store</option>
                   {stores.map((s) => (
                     <option key={s._id} value={s._id}>{s.name}</option>
@@ -394,7 +394,7 @@ export const CreateProduct = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma separated)</label>
               <input type="text" name="tags" value={formData.tags} onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="e.g., electronics, audio, wireless" />
             </div>
           </div>
@@ -403,7 +403,7 @@ export const CreateProduct = () => {
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b pb-2">
               <h2 className="text-lg font-semibold text-gray-900">Variants (Optional)</h2>
-              <button type="button" onClick={addVariant} className="flex items-center space-x-1 text-sm text-green-600 hover:text-green-700 font-medium">
+              <button type="button" onClick={addVariant} className="flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-700 font-medium">
                 <Plus className="w-4 h-4" />
                 <span>Add Variant</span>
               </button>
@@ -444,7 +444,7 @@ export const CreateProduct = () => {
           {/* Submit */}
           <div className="flex space-x-3 pt-6 border-t">
             <button type="submit" disabled={isSubmitting || stores.length === 0}
-              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
               {isSubmitting ? 'Creating...' : 'Create Product'}
             </button>
             <button type="button" onClick={() => navigate('/vendor/products')}

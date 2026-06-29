@@ -161,3 +161,149 @@
 .customer-shell .rounded-\[24px\].bg-white {
   border-radius: 1rem !important;
 }
+
+/* ==========================================================================
+   Dark Mode Overrides
+   ========================================================================== */
+.customer-shell.dark {
+  --customer-bg: #09080F;
+  --customer-card: #13111E;
+  --customer-accent: #1F1B33;
+  --customer-text: #F4F2FA;
+  --customer-muted: #A09BA9;
+  --customer-border: #231E3D;
+  --customer-soft-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  --customer-hover-shadow: 0 16px 48px rgba(108, 78, 255, 0.18);
+  background: var(--customer-bg) !important;
+  color: var(--customer-text) !important;
+}
+
+/* Force elements using bg-white to use card bg in dark mode */
+.customer-shell.dark .bg-white,
+.customer-shell.dark .bg-white\/85,
+.customer-shell.dark .bg-white\/95,
+.customer-shell.dark .bg-white\/90,
+.customer-shell.dark [class*="bg-white"] {
+  background-color: var(--customer-card) !important;
+}
+
+/* Force elements using bg-[#F8F7FC] and bg-gray-50/100 to use page background */
+.customer-shell.dark.bg-\[\#F8F7FC\],
+.customer-shell.dark .bg-\[\#F8F7FC\],
+.customer-shell.dark [class*="bg-[#F8F7FC]"],
+.customer-shell.dark .bg-gray-50,
+.customer-shell.dark .bg-gray-100,
+.customer-shell.dark [class*="bg-gray-"] {
+  background-color: var(--customer-bg) !important;
+}
+
+.customer-shell.dark .bg-blue-50,
+.customer-shell.dark .bg-purple-100,
+.customer-shell.dark [class*="bg-blue-50"],
+.customer-shell.dark [class*="bg-purple-100"] {
+  background-color: var(--customer-accent) !important;
+}
+
+/* Hover background classes override */
+.customer-shell.dark .hover\:bg-gray-50:hover,
+.customer-shell.dark .hover\:bg-gray-100:hover,
+.customer-shell.dark .hover\:bg-\[\#F8F7FC\]:hover,
+.customer-shell.dark .hover\:bg-\[\#ECE7FD\]:hover,
+.customer-shell.dark [class*="hover:bg-"]:hover {
+  background-color: var(--customer-accent) !important;
+}
+
+/* Text color overrides */
+.customer-shell.dark .text-gray-900,
+.customer-shell.dark .text-gray-800,
+.customer-shell.dark .text-\[\#1E1E2F\],
+.customer-shell.dark .text-purple-900,
+.customer-shell.dark .text-indigo-900,
+.customer-shell.dark .text-blue-900,
+.customer-shell.dark [class*="text-[#1E1E2F]"],
+.customer-shell.dark [class*="text-gray-900"],
+.customer-shell.dark [class*="text-gray-800"] {
+  color: var(--customer-text) !important;
+}
+
+.customer-shell.dark .text-gray-700,
+.customer-shell.dark .text-gray-600,
+.customer-shell.dark .text-gray-500,
+.customer-shell.dark .text-gray-400,
+.customer-shell.dark .text-\[\#6B7280\],
+.customer-shell.dark .text-indigo-600,
+.customer-shell.dark .text-purple-600,
+.customer-shell.dark [class*="text-[#6B7280]"],
+.customer-shell.dark [class*="text-gray-700"],
+.customer-shell.dark [class*="text-gray-600"],
+.customer-shell.dark [class*="text-gray-500"],
+.customer-shell.dark [class*="text-gray-400"] {
+  color: var(--customer-muted) !important;
+}
+
+/* Border overrides */
+.customer-shell.dark .border-gray-100,
+.customer-shell.dark .border-gray-200,
+.customer-shell.dark .border-gray-300,
+.customer-shell.dark .border-\[\#E9E7F5\],
+.customer-shell.dark .border-\[\#E9E7F5\]\/90,
+.customer-shell.dark [class*="border-[#E9E7F5]"],
+.customer-shell.dark [class*="border-gray-"] {
+  border-color: var(--customer-border) !important;
+}
+
+/* Divide and line overrides */
+.customer-shell.dark .divide-\[\#E9E7F5\] > * + *,
+.customer-shell.dark [class*="divide-[#E9E7F5]"] > * + *,
+.customer-shell.dark [class*="divide-gray-"] > * + * {
+  border-color: var(--customer-border) !important;
+}
+
+/* Category icons background */
+.customer-shell.dark .bg-\[\#EAF2FF\],
+.customer-shell.dark .bg-\[\#FFF0F5\],
+.customer-shell.dark .bg-\[\#E8F8F0\],
+.customer-shell.dark .bg-\[\#FDF0F7\],
+.customer-shell.dark .bg-\[\#EEF2FF\],
+.customer-shell.dark .bg-\[\#FFF5E6\],
+.customer-shell.dark [class*="bg-[#EAF2FF]"],
+.customer-shell.dark [class*="bg-[#FFF0F5]"],
+.customer-shell.dark [class*="bg-[#E8F8F0]"],
+.customer-shell.dark [class*="bg-[#FDF0F7]"],
+.customer-shell.dark [class*="bg-[#EEF2FF]"],
+.customer-shell.dark [class*="bg-[#FFF5E6]"] {
+  background-color: var(--customer-accent) !important;
+}
+
+/* Icons background in details list (Home page features) */
+.customer-shell.dark [class*="bg-[#F3ECFF]"] {
+  background-color: rgba(108, 78, 255, 0.15) !important;
+}
+
+/* Inputs and Forms */
+.customer-shell.dark input:not([type='checkbox']):not([type='radio']),
+.customer-shell.dark select,
+.customer-shell.dark textarea {
+  background-color: var(--customer-bg) !important;
+  color: var(--customer-text) !important;
+  border-color: var(--customer-border) !important;
+}
+
+/* User Profile & Other Dropdowns */
+.customer-shell.dark .group-hover\:opacity-100 {
+  background-color: var(--customer-card) !important;
+  border-color: var(--customer-border) !important;
+}
+
+.customer-shell.dark .border-t {
+  border-color: var(--customer-border) !important;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE & Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}

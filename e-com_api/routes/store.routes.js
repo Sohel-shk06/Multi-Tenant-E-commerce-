@@ -17,8 +17,6 @@ router.use(authorizeRoles('admin', 'vendor'));
 
 router.get('/', storeController.getStores);
 router.get('/:storeId', storeController.getStore);
-
-// ✅ UPDATED: Add uploadStoreImages middleware
 router.post('/', uploadStoreImages, storeController.createStore);
 router.patch('/:storeId', uploadStoreImages, storeController.updateStore);
 router.delete('/:storeId', storeController.deleteStore);

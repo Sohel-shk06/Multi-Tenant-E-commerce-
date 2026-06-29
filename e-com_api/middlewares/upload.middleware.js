@@ -18,10 +18,10 @@ export const upload = multer({
   },
 });
 
-// ✅ FOR PRODUCTS: Multiple images (array)
+// For vendor routes
 export const uploadProductImages = upload.array('images', 10);
 
-// ✅ FOR STORES: Logo + Banner (2 separate fields)
+// For store routes (logo and banner)
 export const uploadStoreImages = upload.fields([
   { name: 'logo', maxCount: 1 },
   { name: 'banner', maxCount: 1 }

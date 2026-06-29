@@ -12,31 +12,52 @@ export const storeService = {
     return response.data.data;
   },
   
- // ✅ UPDATED: Create store with FormData support
-createStore: async (storeData) => {
-  const isFormData = storeData instanceof FormData;
-  const response = await api.post('/stores', storeData, {
-    headers: isFormData ? {
-      'Content-Type': 'multipart/form-data'
-    } : {
-      'Content-Type': 'application/json'
+  createStore: async (storeData) => {
+    const formData = new FormData();
+    formData.append('name', storeData.name);
+    formData.append('description', storeData.description || '');
+    if (storeData.vendor) formData.append('vendor', storeData.vendor);
+    if (storeData.status) formData.append('status', storeData.status);
+    if (storeData.settings) {
+      formData.append('settings', JSON.stringify(storeData.settings));
     }
-  });
-  return response.data.data;
-},
+    if (storeData.logo) {
+      formData.append('logo', storeData.logo);
+    }
+    if (storeData.banner) {
+      formData.append('banner', storeData.banner);
+    }
 
-// ✅ UPDATED: Update store with FormData support
-updateStore: async (storeId, storeData) => {
-  const isFormData = storeData instanceof FormData;
-  const response = await api.patch(`/stores/${storeId}`, storeData, {
-    headers: isFormData ? {
-      'Content-Type': 'multipart/form-data'
-    } : {
-      'Content-Type': 'application/json'
+    const response = await api.post('/stores', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data.data;
+  },
+  
+  updateStore: async (storeId, storeData) => {
+    const formData = new FormData();
+    if (storeData.name !== undefined) formData.append('name', storeData.name);
+    if (storeData.description !== undefined) formData.append('description', storeData.description);
+    if (storeData.status !== undefined) formData.append('status', storeData.status);
+    if (storeData.settings !== undefined) {
+      formData.append('settings', JSON.stringify(storeData.settings));
     }
-  });
-  return response.data.data;
-},
+    if (storeData.logo !== undefined) {
+      formData.append('logo', storeData.logo);
+    }
+    if (storeData.banner !== undefined) {
+      formData.append('banner', storeData.banner);
+    }
+
+    const response = await api.patch(`/stores/${storeId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data.data;
+  },
   
   deleteStore: async (storeId) => {
     const response = await api.delete(`/stores/${storeId}`);

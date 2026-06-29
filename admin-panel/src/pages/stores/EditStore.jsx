@@ -259,7 +259,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchStore, updateStore } from '../../app/store/storeSlice';
 import { fetchVendors } from '../../app/store/vendorSlice';
-import { ArrowLeft, Save, Upload, X } from 'lucide-react';
+import { Button } from '../../components/ui/Button';
+import { Input } from '../../components/ui/Input';
+import { ArrowLeft, Save, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export const EditStore = () => {
@@ -284,13 +286,12 @@ export const EditStore = () => {
       address: ''
     }
   });
-  
-  // ✅ NEW: Image states
-  const [logo, setLogo] = useState(null);
+
+  const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState('');
-  const [banner, setBanner] = useState(null);
+  const [bannerFile, setBannerFile] = useState(null);
   const [bannerPreview, setBannerPreview] = useState('');
-  
+
   const [localError, setLocalError] = useState('');
   const [loadingStore, setLoadingStore] = useState(true);
 
@@ -328,14 +329,10 @@ export const EditStore = () => {
           address: currentStore.settings?.address || ''
         }
       });
-      
-      // ✅ Set existing images
-      if (currentStore.logo) {
-        setLogoPreview(currentStore.logo);
-      }
-      if (currentStore.banner) {
-        setBannerPreview(currentStore.banner);
-      }
+      setLogoPreview(currentStore.logo || '');
+      setBannerPreview(currentStore.banner || '');
+      setLogoFile(null);
+      setBannerFile(null);
     }
   }, [currentStore]);
 
@@ -353,42 +350,56 @@ export const EditStore = () => {
     setLocalError('');
   };
 
-  // ✅ NEW: Handle logo upload
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setLocalError('Logo size must be less than 5MB');
+      if (!file.type.startsWith('image/')) {
+        setLocalError('Only image files are allowed for Logo');
         return;
       }
-      setLogo(file);
-      setLogoPreview(URL.createObjectURL(file));
+      if (file.size > 5 * 1024 * 1024) {
+        setLocalError('Logo size cannot exceed 5MB');
+        return;
+      }
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+      setLocalError('');
     }
   };
 
-  // ✅ NEW: Handle banner upload
   const handleBannerChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setLocalError('Banner size must be less than 5MB');
+      if (!file.type.startsWith('image/')) {
+        setLocalError('Only image files are allowed for Banner');
         return;
       }
-      setBanner(file);
-      setBannerPreview(URL.createObjectURL(file));
+      if (file.size > 5 * 1024 * 1024) {
+        setLocalError('Banner size cannot exceed 5MB');
+        return;
+      }
+      setBannerFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBannerPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+      setLocalError('');
     }
   };
 
-  // ✅ NEW: Remove logo
   const removeLogo = () => {
-    setLogo(null);
-    setLogoPreview(currentStore?.logo || '');
+    setLogoFile(null);
+    setLogoPreview('');
   };
 
-  // ✅ NEW: Remove banner
   const removeBanner = () => {
-    setBanner(null);
-    setBannerPreview(currentStore?.banner || '');
+    setBannerFile(null);
+    setBannerPreview('');
   };
 
   const handleSubmit = async (e) => {
@@ -398,20 +409,15 @@ export const EditStore = () => {
       return;
     }
 
-    // ✅ NEW: Create FormData for file upload
-    const formDataToSend = new FormData();
-    formDataToSend.append('name', formData.name.trim());
-    formDataToSend.append('description', formData.description.trim());
-    formDataToSend.append('status', formData.status);
-    formDataToSend.append('settings', JSON.stringify(formData.settings));
-    
-    // Append images if new ones selected
-    if (logo) formDataToSend.append('logo', logo);
-    if (banner) formDataToSend.append('banner', banner);
+    const storeDataPayload = {
+      ...formData,
+      logo: logoFile ? logoFile : (logoPreview ? undefined : ''),
+      banner: bannerFile ? bannerFile : (bannerPreview ? undefined : '')
+    };
 
     const resultAction = await dispatch(updateStore({ 
       storeId, 
-      storeData: formDataToSend 
+      storeData: storeDataPayload 
     }));
     
     if (resultAction.type === 'stores/updateStore/fulfilled') {
@@ -582,6 +588,75 @@ export const EditStore = () => {
                 onChange={handleChange}
                 className={inputClass}
               />
+            </div>
+          </div>
+
+          {/* Store Branding */}
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#EEF2FF' }}>
+                <ImageIcon className="w-4 h-4" style={{ color: '#4338CA' }} />
+              </div>
+              <p className="text-[13px] font-semibold text-gray-900">Store Branding</p>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                
+                {/* Logo Upload */}
+                <div className="sm:col-span-1 flex flex-col items-center">
+                  <label className="block text-[12px] font-medium text-gray-600 mb-1.5 self-start">Store Logo</label>
+                  <div className="relative group w-28 h-28 bg-gray-50 rounded-xl border border-dashed border-gray-300 flex items-center justify-center overflow-hidden hover:border-indigo-500 transition-colors">
+                    {logoPreview ? (
+                      <>
+                        <img src={logoPreview} alt="Logo Preview" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={removeLogo}
+                          className="absolute top-1.5 right-1.5 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-md"
+                          title="Remove Logo"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </>
+                    ) : (
+                      <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full p-3 text-center">
+                        <ImageIcon className="w-6 h-6 text-gray-400 mb-1" />
+                        <span className="text-[11px] font-semibold text-gray-500">Upload Logo</span>
+                        <span className="text-[9px] text-gray-400 mt-0.5">1:1 Ratio</span>
+                        <input type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                {/* Banner Upload */}
+                <div className="sm:col-span-2 flex flex-col">
+                  <label className="block text-[12px] font-medium text-gray-600 mb-1.5">Store Banner</label>
+                  <div className="relative group w-full h-28 bg-gray-50 rounded-xl border border-dashed border-gray-300 flex items-center justify-center overflow-hidden hover:border-indigo-500 transition-colors">
+                    {bannerPreview ? (
+                      <>
+                        <img src={bannerPreview} alt="Banner Preview" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={removeBanner}
+                          className="absolute top-1.5 right-1.5 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-md"
+                          title="Remove Banner"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </>
+                    ) : (
+                      <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full p-3 text-center">
+                        <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                        <span className="text-[11px] font-semibold text-gray-500">Upload Banner Image</span>
+                        <span className="text-[9px] text-gray-400 mt-0.5">Recommended 1200x400 px</span>
+                        <input type="file" accept="image/*" onChange={handleBannerChange} className="hidden" />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+              </div>
             </div>
           </div>
 
