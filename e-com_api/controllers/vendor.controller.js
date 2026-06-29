@@ -70,6 +70,7 @@ export const deleteVendorProduct = asyncHandler(async (req, res) => {
 });
 
 // ===== VENDOR: Store Management =====
+// ===== VENDOR: Store Management =====
 
 export const getVendorStores = asyncHandler(async (req, res) => {
   const stores = await vendorService.getVendorStores(req.user._id, req.query);
@@ -86,13 +87,27 @@ export const getVendorStore = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, store, 'Store fetched successfully'));
 });
 
+// ✅ UPDATED: createVendorStore with file upload
 export const createVendorStore = asyncHandler(async (req, res) => {
-  const store = await vendorService.createVendorStore(req.user._id, req.body);
+  console.log('📥 Creating vendor store with data:', req.body);
+  console.log('📁 Files received:', req.files);
+  console.log('👤 Vendor ID:', req.user._id);
+  
+  const store = await vendorService.createVendorStore(req.user._id, req.body, req.files);
   return res.status(201).json(new ApiResponse(201, store, 'Store created successfully'));
 });
 
+// ✅ UPDATED: updateVendorStore with file upload
 export const updateVendorStore = asyncHandler(async (req, res) => {
-  const store = await vendorService.updateVendorStore(req.user._id, req.params.storeId, req.body);
+  console.log('📥 Updating vendor store:', req.params.storeId);
+  console.log('📁 Files received:', req.files);
+  
+  const store = await vendorService.updateVendorStoreWithImages(
+    req.user._id,
+    req.params.storeId,
+    req.body,
+    req.files
+  );
   return res.status(200).json(new ApiResponse(200, store, 'Store updated successfully'));
 });
 

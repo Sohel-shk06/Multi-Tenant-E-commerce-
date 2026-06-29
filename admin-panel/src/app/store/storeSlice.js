@@ -35,6 +35,7 @@ export const fetchStore = createAsyncThunk(
   }
 );
 
+// ✅ UPDATED: Create store with FormData
 export const createStore = createAsyncThunk(
   'stores/createStore',
   async (storeData, { rejectWithValue, dispatch }) => {
@@ -48,7 +49,7 @@ export const createStore = createAsyncThunk(
   }
 );
 
-// ✅ NEW: Update store
+// ✅ UPDATED: Update store with FormData
 export const updateStore = createAsyncThunk(
   'stores/updateStore',
   async ({ storeId, storeData }, { rejectWithValue, dispatch }) => {

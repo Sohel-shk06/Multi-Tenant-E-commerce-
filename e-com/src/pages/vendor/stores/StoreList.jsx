@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { fetchVendorStoresFull, deleteVendorStore } from '../../../app/store/vendorStoreSlice';
-import { Search, Plus, Edit, Trash2, Store as StoreIcon, ExternalLink, RefreshCw } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Store as StoreIcon, RefreshCw } from 'lucide-react';
 
 export const StoreList = () => {
   const dispatch = useDispatch();
@@ -94,19 +94,52 @@ export const StoreList = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {stores.map((store) => (
             <div key={store._id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+              
+              {/* ✅ NEW: Store Banner (agar hai) */}
+              {store.banner ? (
+                <div className="relative h-32 overflow-hidden">
+                  <img 
+                    src={store.banner} 
+                    alt={`${store.name} banner`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                </div>
+              ) : (
+                <div className="h-32 bg-gradient-to-br from-green-500 to-teal-500"></div>
+              )}
+
               {/* Store Header */}
               <div className="p-6 border-b border-gray-100">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
-                      {store.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{store.name}</h3>
-                      <p className="text-xs text-gray-500 font-mono">/{store.slug}</p>
-                    </div>
+                <div className="flex items-start justify-between -mt-12">
+                  {/* ✅ UPDATED: Store Logo ya Fallback */}
+                  {store.logo ? (
+                    <img 
+                      src={store.logo} 
+                      alt={store.name}
+                      className="w-16 h-16 rounded-lg object-cover border-4 border-white shadow-sm"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-500 rounded-lg flex items-center justify-center text-white font-bold text-2xl border-4 border-white shadow-sm"
+                    style={{ display: store.logo ? 'none' : 'flex' }}
+                  >
+                    {store.name.charAt(0).toUpperCase()}
                   </div>
+                  
                   {getStatusBadge(store.status)}
+                </div>
+                
+                <div className="mt-3">
+                  <h3 className="text-lg font-semibold text-gray-900">{store.name}</h3>
+                  <p className="text-xs text-gray-500 font-mono">/{store.slug}</p>
                 </div>
               </div>
 

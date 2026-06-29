@@ -90,7 +90,7 @@ export const StoreList = () => {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Store Name</th>
+                <th className="px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Store</th>
                 {user?.role === 'admin' && (
                   <th className="px-5 py-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Vendor</th>
                 )}
@@ -107,14 +107,31 @@ export const StoreList = () => {
                     key={store._id}
                     className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
                   >
+                    {/* ✅ UPDATED: Store Name + Logo */}
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2.5">
+                        {/* ✅ Store Logo ya Fallback Icon */}
+                        {store.logo ? (
+                          <img 
+                            src={store.logo} 
+                            alt={store.name}
+                            className="w-9 h-9 rounded-lg object-cover border border-gray-200 flex-shrink-0"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
                         <div
                           className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                          style={{ backgroundColor: '#EEF2FF' }}
+                          style={{ 
+                            backgroundColor: '#EEF2FF',
+                            display: store.logo ? 'none' : 'flex'
+                          }}
                         >
                           <StoreIcon className="w-4 h-4" style={{ color: '#4338CA' }} />
                         </div>
+                        
                         <div>
                           <button
                             onClick={() => navigate(`/admin/stores/${store._id}`)}
@@ -127,6 +144,7 @@ export const StoreList = () => {
                         </div>
                       </div>
                     </td>
+                    
                     {user?.role === 'admin' && (
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">

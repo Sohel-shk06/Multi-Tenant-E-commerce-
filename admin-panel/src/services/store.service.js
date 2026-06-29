@@ -12,15 +12,31 @@ export const storeService = {
     return response.data.data;
   },
   
-  createStore: async (storeData) => {
-    const response = await api.post('/stores', storeData);
-    return response.data.data;
-  },
-  
-  updateStore: async (storeId, storeData) => {
-    const response = await api.patch(`/stores/${storeId}`, storeData);
-    return response.data.data;
-  },
+ // ✅ UPDATED: Create store with FormData support
+createStore: async (storeData) => {
+  const isFormData = storeData instanceof FormData;
+  const response = await api.post('/stores', storeData, {
+    headers: isFormData ? {
+      'Content-Type': 'multipart/form-data'
+    } : {
+      'Content-Type': 'application/json'
+    }
+  });
+  return response.data.data;
+},
+
+// ✅ UPDATED: Update store with FormData support
+updateStore: async (storeId, storeData) => {
+  const isFormData = storeData instanceof FormData;
+  const response = await api.patch(`/stores/${storeId}`, storeData, {
+    headers: isFormData ? {
+      'Content-Type': 'multipart/form-data'
+    } : {
+      'Content-Type': 'application/json'
+    }
+  });
+  return response.data.data;
+},
   
   deleteStore: async (storeId) => {
     const response = await api.delete(`/stores/${storeId}`);

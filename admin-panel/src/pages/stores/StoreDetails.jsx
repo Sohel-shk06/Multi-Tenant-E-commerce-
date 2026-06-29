@@ -45,13 +45,43 @@ export const StoreDetails = () => {
         <span className="text-sm font-medium">Back to Stores</span>
       </button>
 
+      {/* ✅ NEW: Store Banner */}
+      {store.banner && (
+        <div className="mb-6 rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+          <img 
+            src={store.banner} 
+            alt={`${store.name} banner`}
+            className="w-full h-48 object-cover"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+            {/* ✅ UPDATED: Store Logo ya Fallback Icon */}
+            {store.logo ? (
+              <img 
+                src={store.logo} 
+                alt={store.name}
+                className="w-16 h-16 rounded-xl object-cover border-2 border-gray-200 shadow-sm"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div 
+              className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center"
+              style={{ display: store.logo ? 'none' : 'flex' }}
+            >
               <StoreIcon className="w-8 h-8 text-white" />
             </div>
+            
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{store.name}</h1>
               <p className="text-sm text-gray-500 mt-1">/{store.slug}</p>
@@ -88,6 +118,68 @@ export const StoreDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* ✅ NEW: Store Images Section */}
+      {(store.logo || store.banner) && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Store Images</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Logo */}
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-2">Logo</p>
+              {store.logo ? (
+                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                  <img 
+                    src={store.logo} 
+                    alt={`${store.name} logo`}
+                    className="w-32 h-32 object-contain mx-auto"
+                  />
+                  <a 
+                    href={store.logo} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block text-center text-xs text-blue-600 hover:underline mt-2"
+                  >
+                    View Full Size
+                  </a>
+                </div>
+              ) : (
+                <div className="border border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
+                  <StoreIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-xs text-gray-500">No logo uploaded</p>
+                </div>
+              )}
+            </div>
+
+            {/* Banner */}
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-2">Banner</p>
+              {store.banner ? (
+                <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                  <img 
+                    src={store.banner} 
+                    alt={`${store.name} banner`}
+                    className="w-full h-32 object-cover"
+                  />
+                  <a 
+                    href={store.banner} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block text-center text-xs text-blue-600 hover:underline py-2"
+                  >
+                    View Full Size
+                  </a>
+                </div>
+              ) : (
+                <div className="border border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
+                  <StoreIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-xs text-gray-500">No banner uploaded</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

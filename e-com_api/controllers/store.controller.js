@@ -42,13 +42,14 @@ export const getStore = asyncHandler(async (req, res) => {
   }
 });
 
+// ✅ UPDATED: createStore with file upload
 export const createStore = asyncHandler(async (req, res) => {
-  console.log('📥 Creating store with data:', req.body); // Debug log
-  console.log('👤 User:', req.user); // Debug log
+  console.log('📥 Creating store with data:', req.body);
+  console.log('📁 Files received:', req.files);
+  console.log('👤 User:', req.user);
   
   let vendorId;
   
-  // ✅ FIX: Vendor ke liye logged-in user ka ID use karo
   if (req.user.role === 'vendor') {
     vendorId = req.user._id;
   } else if (req.user.role === 'admin') {
@@ -67,13 +68,25 @@ export const createStore = asyncHandler(async (req, res) => {
   }
 
   try {
-    const store = await storeService.createStore(req.body, vendorId);
+    const store = await storeService.createStore(req.body, vendorId, req.files);
     console.log('✅ Store created:', store._id);
     return res.status(201).json(new ApiResponse(201, store, 'Store created successfully'));
   } catch (error) {
     console.error('❌ Error creating store:', error);
     throw error;
   }
+});
+
+// ✅ NEW: updateStore with file upload
+export const updateStoreWithImages = asyncHandler(async (req, res) => {
+  const store = await storeService.updateStoreWithImages(
+    req.params.storeId, 
+    req.body, 
+    req.files,
+    req.user._id,
+    req.user.role
+  );
+  return res.status(200).json(new ApiResponse(200, store, 'Store updated successfully'));
 });
 
 
