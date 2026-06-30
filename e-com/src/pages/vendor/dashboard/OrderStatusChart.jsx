@@ -57,9 +57,9 @@ const OrderStatusChart = () => {
 
       <h2 className="text-lg font-bold text-slate-900 mb-6">📊 Order Status</h2>
 
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
         {/* Chart */}
-        <div className="relative w-[55%] max-w-sm h-64">
+        <div className="relative w-full md:w-[55%] max-w-sm h-64">
           {totalOrders > 0 ? (
             <>
               <ResponsiveContainer width="100%" height="100%">
@@ -94,7 +94,7 @@ const OrderStatusChart = () => {
         </div>
 
         {/* Legend */}
-        <div className="w-[45%] max-w-xs space-y-2">
+        <div className="w-full md:w-[45%] max-w-xs space-y-2">
           {chartData.map((item) => {
             const percentage =
               totalOrders > 0
