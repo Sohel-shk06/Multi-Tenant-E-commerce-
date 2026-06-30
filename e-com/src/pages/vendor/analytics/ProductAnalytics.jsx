@@ -110,7 +110,11 @@ export const ProductAnalytics = () => {
     },
     {
       label: "Stock Value",
-      value: `₹${data.stats.totalStockValue.toLocaleString()}`,
+      value: `₹${
+        data.stats.totalStockValue >= 1000
+          ? `${(data.stats.totalStockValue / 1000).toFixed(1)}K`
+          : data.stats.totalStockValue.toLocaleString()
+      }`,
       icon: IndianRupee,
       from: "#EC4899",
       to: "#F472B6",
@@ -170,33 +174,35 @@ export const ProductAnalytics = () => {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        {statCards.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div
-              key={stat.label}
-              className="relative overflow-hidden rounded-2xl p-4 flex flex-col gap-3 shadow-md hover:-translate-y-1.5 hover:shadow-xl transition-all duration-300 text-white"
-              style={{
-                background: `linear-gradient(135deg, ${stat.from} 0%, ${stat.to} 100%)`,
-              }}
-            >
-              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10"></div>
-              <div className="absolute -right-8 -bottom-8 w-24 h-24 rounded-full bg-white/10"></div>
-              <div className="relative w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                <Icon className="w-[18px] h-[18px]" />
+      <div className="overflow-x-auto hide-scrollbar">
+        <div className="grid grid-flow-col auto-cols-[140px] gap-3">
+          {statCards.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={stat.label}
+                className="relative overflow-hidden rounded-2xl p-4 flex flex-col gap-3 shadow-md hover:-translate-y-1.5 hover:shadow-xl transition-all duration-300 text-white"
+                style={{
+                  background: `linear-gradient(135deg, ${stat.from} 0%, ${stat.to} 100%)`,
+                }}
+              >
+                <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10"></div>
+                <div className="absolute -right-8 -bottom-8 w-24 h-24 rounded-full bg-white/10"></div>
+                <div className="relative w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                  <Icon className="w-[18px] h-[18px]" />
+                </div>
+                <div className="relative">
+                  <p className="text-xs text-white/80 font-medium">
+                    {stat.label}
+                  </p>
+                  <p className="text-2xl font-extrabold tracking-tight">
+                    {stat.value}
+                  </p>
+                </div>
               </div>
-              <div className="relative">
-                <p className="text-xs text-white/80 font-medium">
-                  {stat.label}
-                </p>
-                <p className="text-2xl font-extrabold tracking-tight">
-                  {stat.value}
-                </p>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Quick Insights Row */}
@@ -307,14 +313,15 @@ export const ProductAnalytics = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Selling Products */}
         <div className="lg:col-span-1">
-          <TopProducts products={data?.topProducts}
-          totalSold={totalUnitsSold} />
-          </div>
+          <TopProducts
+            products={data?.topProducts}
+            totalSold={totalUnitsSold}
+          />
+        </div>
         {/*Inventory Alert*/}
-         <div className="lg:col-span-1">
+        <div className="lg:col-span-1">
           <InventoryAlerts products={data?.lowStockProducts} />
         </div>
-
 
         {/* Products without reviews */}
         {data.productsWithoutReviews.length > 0 && (
