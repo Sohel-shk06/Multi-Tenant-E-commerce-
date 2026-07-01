@@ -148,7 +148,7 @@ export const Dashboard = () => {
 
       {/* Stats Grid */}
       <div className="overflow-x-auto hide-scrollbar md:overflow-visible pb-2">
-        <div className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 min-w-max md:min-w-0">
+        <div className="flex md:grid md:grid-cols-4 lg:grid-cols-4 gap-3 md:gap-6 min-w-max md:min-w-0">
           {statsData.map((stat, idx) => {
             const Icon = stat.icon;
 

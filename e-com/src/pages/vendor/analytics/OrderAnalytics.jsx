@@ -63,81 +63,92 @@ export const OrderAnalytics = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Total Orders */}
-        <div className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-lg shadow-slate-200/50 p-6 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-          <div className="absolute -top-8 -right-8 w-28 h-28 bg-blue-100 rounded-full blur-3xl opacity-70"></div>
+      <div className="overflow-x-auto hide-scrollbar">
+        <div className="grid grid-cols-3 min-w-[900px] gap-6">
+          {/* Total Orders */}
+          <div className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-lg shadow-slate-200/50 p-6 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+            <div className="absolute -top-8 -right-8 w-28 h-28 bg-blue-100 rounded-full blur-3xl opacity-70"></div>
 
-          <div className="relative flex items-start justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-500">Total Orders</p>
+            <div className="relative flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500">
+                  Total Orders
+                </p>
 
-              <h3 className="text-4xl font-bold text-slate-900 mt-3">
-                {data.stats.totalOrders}
-              </h3>
+                <h3 className="text-4xl font-bold text-slate-900 mt-3">
+                  {data.stats.totalOrders >= 1000
+                    ? `${(data.stats.totalOrders / 1000).toFixed(1)}K`
+                    : data.stats.totalOrders.toLocaleString()}
+                </h3>
 
-              <span className="inline-flex items-center mt-4 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-medium">
-                Orders Received
-              </span>
-            </div>
+                <span className="inline-flex items-center mt-4 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-medium">
+                  Orders Received
+                </span>
+              </div>
 
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
-              <ShoppingBag className="w-7 h-7 text-white" />
-            </div>
-          </div>
-        </div>
-
-        {/* Revenue */}
-        <div className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-lg shadow-slate-200/50 p-6 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-          <div className="absolute -top-8 -right-8 w-28 h-28 bg-green-100 rounded-full blur-3xl opacity-70"></div>
-
-          <div className="relative flex items-start justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-500">
-                Total Revenue
-              </p>
-
-              <h3 className="text-4xl font-bold text-slate-900 mt-3">
-                ₹{data.stats.totalRevenue.toLocaleString()}
-              </h3>
-
-              <span className="inline-flex items-center mt-4 px-3 py-1 rounded-full bg-green-50 text-green-600 text-xs font-medium">
-                Revenue Generated
-              </span>
-            </div>
-
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
-              <TrendingUp className="w-7 h-7 text-white" />
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                <ShoppingBag className="w-7 h-7 text-white" />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Avg Order Value */}
-        <div className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-lg shadow-slate-200/50 p-6 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-          <div className="absolute -top-8 -right-8 w-28 h-28 bg-purple-100 rounded-full blur-3xl opacity-70"></div>
+          {/* Revenue */}
+          <div className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-lg shadow-slate-200/50 p-6 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+            <div className="absolute -top-8 -right-8 w-28 h-28 bg-green-100 rounded-full blur-3xl opacity-70"></div>
 
-          <div className="relative flex items-start justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-500">
-                Avg Order Value
-              </p>
+            <div className="relative flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500">
+                  Total Revenue
+                </p>
 
-              <h3 className="text-4xl font-bold text-slate-900 mt-3">
-                ₹{Math.round(data.stats.avgOrderValue).toLocaleString()}
-              </h3>
+                <h3 className="text-4xl font-bold text-slate-900 mt-3">
+                  ₹
+                  {data.stats.totalRevenue >= 1000
+                    ? `${(data.stats.totalRevenue / 1000).toFixed(1)}K`
+                    : data.stats.totalRevenue.toLocaleString()}
+                </h3>
 
-              <span className="inline-flex items-center mt-4 px-3 py-1 rounded-full bg-purple-50 text-purple-600 text-xs font-medium">
-                Per Order Average
-              </span>
+                <span className="inline-flex items-center mt-4 px-3 py-1 rounded-full bg-green-50 text-green-600 text-xs font-medium">
+                  Revenue Generated
+                </span>
+              </div>
+
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
+                <TrendingUp className="w-7 h-7 text-white" />
+              </div>
             </div>
+          </div>
 
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center shadow-lg">
-              <CreditCard className="w-7 h-7 text-white" />
+          {/* Avg Order Value */}
+          <div className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-lg shadow-slate-200/50 p-6 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+            <div className="absolute -top-8 -right-8 w-28 h-28 bg-purple-100 rounded-full blur-3xl opacity-70"></div>
+
+            <div className="relative flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500">
+                  Avg Order Value
+                </p>
+
+                <h3 className="text-4xl font-bold text-slate-900 mt-3">
+                  ₹{data.stats.avgOrderValue >= 1000
+                    ? `${(data.stats.avgOrderValue / 1000).toFixed(1)}K`
+                    : data.stats.avgOrderValue.toLocaleString()}
+                </h3>
+
+                <span className="inline-flex items-center mt-4 px-3 py-1 rounded-full bg-purple-50 text-purple-600 text-xs font-medium">
+                  Per Order Average
+                </span>
+              </div>
+
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center shadow-lg">
+                <CreditCard className="w-7 h-7 text-white" />
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Status Breakdown */}
         <OrderStatusChart />
 
@@ -186,63 +197,43 @@ export const OrderAnalytics = () => {
               );
             })}
           </div>
-
-         
         </div>
       </div>
 
       {/* Recent Trend (Last 7 Days) */}
       <div className="relative overflow-hidden bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
+        <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-100 rounded-full blur-3xl opacity-50"></div>
 
-      <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-100 rounded-full blur-3xl opacity-50"></div>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold text-slate-900">
+            📈 Last 7 Days Trend
+          </h2>
 
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-bold text-slate-900">
-          📈 Last 7 Days Trend
-        </h2>
+          <span className="text-sm text-slate-500">Orders Overview</span>
+        </div>
 
-        <span className="text-sm text-slate-500">
-          Orders Overview
-        </span>
+        <div className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data.recentTrend}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+
+              <XAxis dataKey="_id" tickLine={false} axisLine={false} />
+
+              <YAxis tickLine={false} axisLine={false} allowDecimals={false} width={"auto"} />
+
+              <Tooltip
+                contentStyle={{
+                  borderRadius: "16px",
+                  border: "none",
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+                }}
+              />
+
+              <Bar dataKey="orders" radius={[10, 10, 0, 0]} fill="#3B82F6" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
-
-      <div className="h-80">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data.recentTrend}>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={false}
-            />
-
-            <XAxis
-              dataKey="_id"
-              tickLine={false}
-              axisLine={false}
-            />
-
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-            />
-
-            <Tooltip
-              contentStyle={{
-                borderRadius: "16px",
-                border: "none",
-                boxShadow:
-                  "0 10px 25px rgba(0,0,0,0.08)",
-              }}
-            />
-
-            <Bar
-              dataKey="orders"
-              radius={[10, 10, 0, 0]}
-              fill="#3B82F6"
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
     </div>
   );
 };

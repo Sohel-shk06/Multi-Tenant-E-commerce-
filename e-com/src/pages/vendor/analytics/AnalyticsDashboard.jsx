@@ -74,11 +74,11 @@ const StatCard = ({
           ) : (
             <ArrowDownRight className="w-3 h-3" />
           )}
-          {change} vs last 30 days
+          {change} vs last days
         </span>
       </div>
       {sparkData && (
-        <div className="h-12 -mx-1">
+        <div className="h-12 -mx-1 hidden lg:block">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={sparkData}
@@ -294,10 +294,10 @@ export const AnalyticsDashboard = () => {
   const negativePct =
     totalReviews > 0 ? ((negativeCount / totalReviews) * 100).toFixed(1) : 0;
 
-  // console.log();
+  console.log(orderData2);
 
   return (
-    <div className="min-h-screen p-6 space-y-6">
+    <div className="min-h-screen p-3 lg:p-6 space-y-6">
       {/* ── Header ── */}
       <div className="relative rounded-2xl overflow-hidden p-8relative bg-linear-to-br from-blue-700 to-blue-500 p-8 text-white shadow-xl">
         <div className="relative">
@@ -314,60 +314,70 @@ export const AnalyticsDashboard = () => {
       </div>
 
       {/* ── Stat Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard
-          title="Total Revenue"
-          value={`₹${totalRevenue.toLocaleString()}`}
-          change={`${revenueGrowth >= 0 ? "+" : ""}${revenueGrowth}%`}
-          icon={TrendingUp}
-          iconBg="linear-gradient(135deg,#8b5cf6,#6366f1)"
-          sparkData={revenueCard}
-          sparkColor="#8b5cf6"
-          className="bg-white border border-slate-200 shadow-sm hover:shadow-md"
-        />
+      <div className="overflow-x-auto hide-scrollbar">
+        <div className="grid grid-cols-4 min-w-[900px] gap-3">
+          <StatCard
+            title="Total Revenue"
+            value={`₹${
+              totalRevenue >= 1000
+                ? `${(totalRevenue / 1000).toFixed(1)}K`
+                : totalRevenue.toLocaleString()
+            }`}
+            change={`${revenueGrowth >= 0 ? "+" : ""}${revenueGrowth}%`}
+            icon={TrendingUp}
+            iconBg="linear-gradient(135deg,#8b5cf6,#6366f1)"
+            sparkData={revenueCard}
+            sparkColor="#8b5cf6"
+            className="bg-white border border-slate-200 shadow-sm hover:shadow-md"
+          />
 
-        <StatCard
-          title="Total Orders"
-          value={totalOrders.toLocaleString()}
-          change={`${ordersGrowth >= 0 ? "+" : ""}${ordersGrowth}%`}
-          icon={ShoppingBag}
-          iconBg="linear-gradient(135deg,#ec4899,#a855f7)"
-          sparkData={
-            orderData2?.recentTrend?.map((d) => ({
-              revenue: d.orders,
-            })) || []
-          }
-          sparkColor="#ec4899"
-          className="bg-white border border-slate-200 shadow-sm hover:shadow-md"
-        />
+          <StatCard
+            title="Total Orders"
+            value={totalOrders.toLocaleString()}
+            change={`${ordersGrowth >= 0 ? "+" : ""}${ordersGrowth}%`}
+            icon={ShoppingBag}
+            iconBg="linear-gradient(135deg,#ec4899,#a855f7)"
+            sparkData={
+              orderData2?.recentTrend?.map((d) => ({
+                revenue: d.orders,
+              })) || []
+            }
+            sparkColor="#ec4899"
+            className="bg-white border border-slate-200 shadow-sm hover:shadow-md"
+          />
 
-        <StatCard
-          title="Total Customers"
-          value={totalCustomers.toLocaleString()}
-          change={`+${customersGrowth}%`}
-          icon={Users}
-          iconBg="linear-gradient(135deg,#38bdf8,#6366f1)"
-          sparkData={customerData?.acquisitionTrend?.map((d) => ({
-            revenue: d.customers,
-          }))}
-          sparkColor="#38bdf8"
-          className="bg-white border border-slate-200 shadow-sm hover:shadow-md"
-        />
+          <StatCard
+            title="Total Customers"
+            value={totalCustomers.toLocaleString()}
+            change={`+${customersGrowth}%`}
+            icon={Users}
+            iconBg="linear-gradient(135deg,#38bdf8,#6366f1)"
+            sparkData={customerData?.acquisitionTrend?.map((d) => ({
+              revenue: d.customers,
+            }))}
+            sparkColor="#38bdf8"
+            className="bg-white border border-slate-200 shadow-sm hover:shadow-md"
+          />
 
-        <StatCard
-          title="Avg Order Value"
-          value={`₹${avgOrderValue.toFixed(2)}`}
-          change={`+${aovGrowth}%`}
-          icon={CreditCard}
-          iconBg="linear-gradient(135deg,#fbbf24,#f97316)"
-          sparkData={
-            orderData2?.recentTrend?.map((d) => ({
-              revenue: d.revenue,
-            })) || []
-          }
-          sparkColor="#fbbf24"
-          className="bg-white border border-slate-200 shadow-sm hover:shadow-md"
-        />
+          <StatCard
+            title="Avg Order Value"
+            value={`₹${
+              avgOrderValue >= 1000
+                ? `${(avgOrderValue / 1000).toFixed(1)}K`
+                : avgOrderValue.toLocaleString()
+            }`}
+            change={`+${aovGrowth}%`}
+            icon={CreditCard}
+            iconBg="linear-gradient(135deg,#fbbf24,#f97316)"
+            sparkData={
+              orderData2?.recentTrend?.map((d) => ({
+                revenue: d.revenue,
+              })) || []
+            }
+            sparkColor="#fbbf24"
+            className="bg-white border border-slate-200 shadow-sm hover:shadow-md"
+          />
+        </div>
       </div>
 
       {/* ── Revenue Trend + Order Analytics ── */}
@@ -413,6 +423,7 @@ export const AnalyticsDashboard = () => {
               />
 
               <YAxis
+                width={"auto"}
                 tick={{ fill: "#64748b", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
@@ -456,6 +467,9 @@ export const AnalyticsDashboard = () => {
               />
 
               <YAxis
+                dataKey="orders"
+                width="auto"
+                allowDecimals={false}
                 tick={{ fill: "#64748b", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
@@ -528,7 +542,7 @@ export const AnalyticsDashboard = () => {
               ].map((s, i) => (
                 <div
                   key={i}
-                  className="rounded-xl px-4 py-3 bg-slate-50 border border-slate-200 flex justify-between items-center"
+                  className="rounded-xl px-4 py-3 bg-slate-50 border border-slate-200 flex justify-between items-center gap-x-1"
                 >
                   <p className="text-sm font-medium text-slate-600">
                     {s.label}
@@ -792,40 +806,72 @@ export const AnalyticsDashboard = () => {
       <Card>
         <SectionTitle>Customer Reviews</SectionTitle>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-8 space-x-6 justify-between">
           {/* Average Rating */}
-          <div className="flex flex-col items-center justify-center">
-            <p className="text-xs text-slate-500 mb-2">Average Rating</p>
+          <div className="col-span-2 flex flex-col items-center justify-center">
+            {/* Desktop */}
+            <div className="hidden md:flex md:flex-col md:items-center">
+              <p className="text-xs text-slate-500 mb-2">Average Rating</p>
 
-            <p className="text-6xl font-bold text-slate-900">
-              {review?.averageRating}
-            </p>
+              <p className="text-6xl font-bold text-slate-900">
+                {review?.averageRating}
+              </p>
 
-            <p className="text-slate-500 text-sm">/ 5</p>
+              <p className="text-slate-500 text-sm">/5</p>
 
-            <div className="flex gap-1 mt-2">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <Star
-                  key={s}
-                  className={`w-5 h-5 ${
-                    s <= Math.round(review?.averageRating)
-                      ? "text-yellow-400 fill-yellow-400"
-                      : "text-slate-300"
-                  }`}
-                />
-              ))}
+              <div className="flex gap-1 mt-2">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    className={`w-5 h-5 ${
+                      s <= Math.round(review?.averageRating)
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-slate-300"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <p className="text-xs text-slate-500 mt-2">
+                Total Reviews{" "}
+                <span className="text-slate-900 font-medium">
+                  {review?.totalReviews.toLocaleString()}
+                </span>
+              </p>
             </div>
 
-            <p className="text-xs text-slate-500 mt-2">
-              Total Reviews:{" "}
-              <span className="text-slate-900 font-medium">
-                {review?.totalReviews.toLocaleString()}
-              </span>
-            </p>
+            {/* Mobile */}
+            <div className="flex flex-col items-center md:hidden">
+              <p className="text-xs text-slate-500 mb-2">Average Rating</p>
+
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star
+                      key={s}
+                      className={`w-5 h-5 ${
+                        s <= Math.round(review?.averageRating)
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-slate-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <span className="text-lg font-bold text-slate-900">
+                  {review?.averageRating}
+                  <span className="text-sm text-slate-500">/5</span>
+                </span>
+              </div>
+
+              <p className="text-xs text-slate-500 mt-2">
+                {review?.totalReviews.toLocaleString()} Reviews
+              </p>
+            </div>
           </div>
 
           {/* Rating Distribution */}
-          <div>
+          <div className="col-span-3 mt-6">
             <p className="text-xs text-slate-500 mb-3">Rating Distribution</p>
 
             <div className="space-y-2">
@@ -840,7 +886,7 @@ export const AnalyticsDashboard = () => {
                   return (
                     <div
                       key={rating}
-                      className="flex items-center gap-3 text-sm"
+                      className="flex items-center gap-3 text-sm justify-between w-full md:w-[95%]"
                     >
                       <span className="text-slate-600 w-12 text-right">
                         {rating} Stars
@@ -861,7 +907,7 @@ export const AnalyticsDashboard = () => {
                         />
                       </div>
 
-                      <span className="text-slate-500 text-xs w-20">
+                      <span className="text-slate-500 text-xs">
                         {count} ({pct}%)
                       </span>
                     </div>
@@ -871,7 +917,7 @@ export const AnalyticsDashboard = () => {
           </div>
 
           {/* Review Sentiment */}
-          <div className="space-y-3">
+          <div className="col-span-3 space-y-3 hidden md:block">
             {[
               {
                 label: "Positive Reviews",

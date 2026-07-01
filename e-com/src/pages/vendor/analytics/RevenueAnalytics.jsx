@@ -54,7 +54,8 @@ export const RevenueAnalytics = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="overflow-x-auto hide-scrollbar">
+      <div className="grid grid-cols-4 min-w-[700px] gap-4">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-500">Total Revenue</span>
@@ -89,6 +90,7 @@ export const RevenueAnalytics = () => {
             {data.summary.growthRate >= 0 ? '+' : ''}{data.summary.growthRate}%
           </p>
         </div>
+      </div>
       </div>
 
       {/* Chart */}

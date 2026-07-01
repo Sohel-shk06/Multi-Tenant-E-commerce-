@@ -149,7 +149,7 @@ export const OrderList = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
           </div>
         ) : orders.length > 0 ? (
-          <div className="max-h-[500px] overflow-y-auto">
+          <div className="max-h-[500px] overflow-y-auto hide-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead className="bg-blue-50 border-b border-blue-100 sticky top-0 z-10">
                 <tr>

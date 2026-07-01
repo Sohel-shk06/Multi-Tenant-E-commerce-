@@ -485,9 +485,9 @@ export const createVendorStore = async (vendorId, storeData, files = {}) => {
     slug = newSlug;
   }
 
-  // ✅ Upload images to Cloudinary
-  let logoUrl = '';
-  let bannerUrl = '';
+  // ✅ NEW: Upload images to Cloudinary
+  let logo = '';
+  let banner = '';
 
   if (files?.logo?.[0]) {
     const uploaded = await uploadToCloudinary(files.logo[0].buffer, 'stores/logo');
