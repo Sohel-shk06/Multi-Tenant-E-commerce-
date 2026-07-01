@@ -402,6 +402,8 @@ export const deleteVendorProduct = async (vendorId, productId) => {
 
 
 
+// ===== VENDOR: Store Management Functions =====
+
 // Get vendor's all stores (with pagination)
 export const getVendorStores = async (vendorId, query = {}) => {
   const { page = 1, limit = 10, search } = query;
@@ -445,9 +447,12 @@ export const getVendorStoreById = async (vendorId, storeId) => {
   return store;
 };
 
-// Create store
-export const createVendorStore = async (vendorId, storeData) => {
-  let { name, description, settings, logo, banner } = storeData;
+// ✅ FIXED: Create store with image upload (clean version)
+export const createVendorStore = async (vendorId, storeData, files = {}) => {
+  console.log('🔧 Service: Creating vendor store with:', { vendorId, storeData });
+  console.log('📁 Files received:', files);
+  
+  let { name, description, settings } = storeData;
 
   if (!name || !name.trim()) {
     throw new ApiError(400, 'Store name is required');
@@ -480,34 +485,20 @@ export const createVendorStore = async (vendorId, storeData) => {
     slug = newSlug;
   }
 
-  // ✅ NEW: Upload images to Cloudinary
-  let logo = '';
-  let banner = '';
+  // ✅ Upload images to Cloudinary
+  let logoUrl = '';
+  let bannerUrl = '';
 
   if (files?.logo?.[0]) {
     const uploaded = await uploadToCloudinary(files.logo[0].buffer, 'stores/logo');
-    logo = uploaded.url;
-    console.log('✅ Logo uploaded:', logo);
+    logoUrl = uploaded.url;
+    console.log('✅ Logo uploaded:', logoUrl);
   }
 
   if (files?.banner?.[0]) {
     const uploaded = await uploadToCloudinary(files.banner[0].buffer, 'stores/banner');
-    banner = uploaded.url;
-    console.log('✅ Banner uploaded:', banner);
-  }
-
-  // Parse settings if string
-  let parsedSettings = settings || {
-    currency: 'INR',
-    returnPolicy: '7 days return policy'
-  };
-  
-  if (typeof parsedSettings === 'string') {
-    try {
-      parsedSettings = JSON.parse(parsedSettings);
-    } catch (e) {
-      parsedSettings = { currency: 'INR', returnPolicy: '7 days return policy' };
-    }
+    bannerUrl = uploaded.url;
+    console.log('✅ Banner uploaded:', bannerUrl);
   }
 
   const store = await Store.create({
@@ -516,8 +507,8 @@ export const createVendorStore = async (vendorId, storeData) => {
     description: description?.trim() || '',
     vendor: vendorId,
     status: 'active',
-    logo: logo || '',
-    banner: banner || '',
+    logo: logoUrl,
+    banner: bannerUrl,
     settings: settings || {
       currency: 'INR',
       returnPolicy: '7 days return policy'
@@ -526,6 +517,76 @@ export const createVendorStore = async (vendorId, storeData) => {
 
   console.log('✅ Vendor store created successfully:', store._id);
   return store;
+};
+
+// ✅ FIXED: Update store with image upload (clean version)
+export const updateVendorStore = async (vendorId, storeId, updateData, files = {}) => {
+  console.log('🔧 Service: Updating vendor store:', storeId);
+  console.log('📁 Files received:', files);
+  
+  const store = await Store.findOne({ _id: storeId, vendor: vendorId });
+  if (!store) {
+    throw new ApiError(404, 'Store not found or you are not authorized');
+  }
+
+  // If name is being changed, update slug
+  if (updateData.name && updateData.name !== store.name) {
+    let slug = updateData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    let existingStore = await Store.findOne({ slug, _id: { $ne: storeId } });
+    if (existingStore) {
+      let counter = 1;
+      let newSlug = `${slug}-${counter}`;
+      while (await Store.findOne({ slug: newSlug, _id: { $ne: storeId } })) {
+        counter++;
+        newSlug = `${slug}-${counter}`;
+      }
+      slug = newSlug;
+    }
+    updateData.slug = slug;
+  }
+
+  // Parse settings if string
+  if (updateData.settings && typeof updateData.settings === 'string') {
+    try {
+      updateData.settings = JSON.parse(updateData.settings);
+    } catch (e) {
+      delete updateData.settings;
+    }
+  }
+
+  // ✅ Upload new images to Cloudinary (if provided)
+  if (files?.logo?.[0]) {
+    const uploaded = await uploadToCloudinary(files.logo[0].buffer, 'stores/logo');
+    updateData.logo = uploaded.url;
+    console.log('✅ New logo uploaded:', uploaded.url);
+  }
+
+  if (files?.banner?.[0]) {
+    const uploaded = await uploadToCloudinary(files.banner[0].buffer, 'stores/banner');
+    updateData.banner = uploaded.url;
+    console.log('✅ New banner uploaded:', uploaded.url);
+  }
+
+  Object.assign(store, updateData);
+  await store.save();
+  return store;
+};
+
+// Delete store
+export const deleteVendorStore = async (vendorId, storeId) => {
+  const store = await Store.findOne({ _id: storeId, vendor: vendorId });
+  if (!store) {
+    throw new ApiError(404, 'Store not found or you are not authorized');
+  }
+
+  // Check if store has products
+  const productCount = await Product.countDocuments({ store: storeId });
+  if (productCount > 0) {
+    throw new ApiError(400, `Cannot delete store. It has ${productCount} product(s). Please delete or move them first.`);
+  }
+
+  await Store.findByIdAndDelete(storeId);
+  return true;
 };
 
 // ✅ NEW: Update store with image upload
@@ -579,61 +640,6 @@ export const updateVendorStoreWithImages = async (vendorId, storeId, updateData,
 };
 
 
-
-// Update store
-export const updateVendorStore = async (vendorId, storeId, updateData) => {
-  const store = await Store.findOne({ _id: storeId, vendor: vendorId });
-  if (!store) {
-    throw new ApiError(404, 'Store not found or you are not authorized');
-  }
-
-  // Parse settings if it is a JSON string (due to multipart/form-data)
-  if (updateData.settings && typeof updateData.settings === 'string') {
-    try {
-      updateData.settings = JSON.parse(updateData.settings);
-    } catch (e) {
-      delete updateData.settings;
-    }
-  }
-
-  // If name is being changed, update slug
-  if (updateData.name && updateData.name !== store.name) {
-    let slug = updateData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    let existingStore = await Store.findOne({ slug, _id: { $ne: storeId } });
-    if (existingStore) {
-      let counter = 1;
-      let newSlug = `${slug}-${counter}`;
-      while (await Store.findOne({ slug: newSlug, _id: { $ne: storeId } })) {
-        counter++;
-        newSlug = `${slug}-${counter}`;
-      }
-      slug = newSlug;
-    }
-    updateData.slug = slug;
-  }
-
-  Object.assign(store, updateData);
-  await store.save();
-  return store;
-};
-
-// Delete store
-export const deleteVendorStore = async (vendorId, storeId) => {
-  const store = await Store.findOne({ _id: storeId, vendor: vendorId });
-  if (!store) {
-    throw new ApiError(404, 'Store not found or you are not authorized');
-  }
-
-  // Check if store has products
-  const { Product } = await import('../models/Product.js');
-  const productCount = await Product.countDocuments({ store: storeId });
-  if (productCount > 0) {
-    throw new ApiError(400, `Cannot delete store. It has ${productCount} product(s). Please delete or move them first.`);
-  }
-
-  await Store.findByIdAndDelete(storeId);
-  return true;
-};
 
 
 // ===== VENDOR: Order Management Functions =====
