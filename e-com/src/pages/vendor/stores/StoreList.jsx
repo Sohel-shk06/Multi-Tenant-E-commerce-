@@ -108,11 +108,11 @@ export const StoreList = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
         </div>
       ) : stores.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {stores.map((store) => (
             <div
               key={store._id}
-              className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg hover:shadow-2xl hover:border-gray-300 transition-all duration-300 overflow-hidden"
+              className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg hover:shadow-2xl hover:border-gray-300 transition-all duration-300 overflow-hidden max-w-[400px]"
             >
               {/* Store Banner */}
               {store.banner ? (
@@ -126,6 +126,9 @@ export const StoreList = () => {
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                  {/* Status Badge */}
+                  <div className="absolute top-0 right-0 m-4 z-10">{getStatusBadge(store.status)}</div>
+                    
                 </div>
               ) : (
                 <div className="h-32 bg-gradient-to-br from-green-500 to-teal-500"></div>
@@ -135,7 +138,7 @@ export const StoreList = () => {
               <div className="p-6 pt-18 border-b-2 border-gray-200">
                 <div className="flex items-start justify-between -mt-12">
                   {/* Left Side */}
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-8">
                     {/* Store Logo */}
                     {store.logo ? (
                       <img
@@ -168,10 +171,7 @@ export const StoreList = () => {
                     </div>
                   </div>
 
-                  {/* Status Badge */}
-                  <div className="ml-4 py-5">
-                    {getStatusBadge(store.status)}
-                  </div>
+                  
                 </div>
               </div>
 

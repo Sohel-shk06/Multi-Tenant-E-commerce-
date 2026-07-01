@@ -175,7 +175,7 @@ export const ProductAnalytics = () => {
 
       {/* Stat Cards */}
       <div className="overflow-x-auto hide-scrollbar">
-        <div className="grid grid-flow-col auto-cols-[140px] gap-3">
+        <div className="grid grid-cols-5 min-w-[700px] gap-3">
           {statCards.map((stat) => {
             const Icon = stat.icon;
             return (
@@ -323,35 +323,7 @@ export const ProductAnalytics = () => {
           <InventoryAlerts products={data?.lowStockProducts} />
         </div>
 
-        {/* Products without reviews */}
-        {data.productsWithoutReviews.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
-            <h2 className="text-base font-bold text-gray-900 flex items-center gap-2 mb-1">
-              <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-yellow-300 to-amber-400 text-white flex items-center justify-center shadow-sm">
-                <Star className="w-4 h-4" />
-              </span>
-              Products Needing Reviews
-            </h2>
-            <p className="text-xs text-gray-400 mb-4 ml-11">
-              These products have no reviews yet. Encourage customers to review!
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {data.productsWithoutReviews.map((product, idx) => (
-                <div
-                  key={idx}
-                  className="p-3.5 bg-gradient-to-br from-yellow-50 to-amber-50 border border-yellow-100 rounded-xl hover:shadow-sm transition-shadow"
-                >
-                  <p className="text-sm font-semibold text-gray-900 truncate">
-                    {product.title}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    ₹{product.price.toLocaleString()}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+       
       </div>
 
       {/* All Products Table */}

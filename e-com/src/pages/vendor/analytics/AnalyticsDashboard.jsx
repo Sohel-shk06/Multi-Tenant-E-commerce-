@@ -74,7 +74,7 @@ const StatCard = ({
           ) : (
             <ArrowDownRight className="w-3 h-3" />
           )}
-          {change} vs last 30 days
+          {change} vs last days
         </span>
       </div>
       {sparkData && (
@@ -315,7 +315,7 @@ export const AnalyticsDashboard = () => {
 
       {/* ── Stat Cards ── */}
       <div className="overflow-x-auto hide-scrollbar">
-        <div className="grid grid-cols-4 min-w-[700px] gap-3">
+        <div className="grid grid-cols-4 min-w-[900px] gap-3">
           <StatCard
             title="Total Revenue"
             value={`₹${
