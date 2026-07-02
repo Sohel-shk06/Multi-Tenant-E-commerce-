@@ -75,7 +75,7 @@ export const StoreDetails = () => {
             <span className="text-sm">Back</span>
           </button>
 
-          <div className="flex items-center space-x-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6">
             <div className="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center overflow-hidden flex-shrink-0">
               {store.logo ? (
                 <img 
@@ -87,10 +87,10 @@ export const StoreDetails = () => {
                 <StoreIcon className="w-12 h-12 text-blue-600" />
               )}
             </div>
-            <div>
-              <h1 className="text-4xl font-bold mb-2">{store.name}</h1>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-3xl sm:text-4xl font-bold mb-2 truncate">{store.name}</h1>
               {store.description && (
-                <p className="text-lg text-white/90">{store.description}</p>
+                <p className="text-base sm:text-lg text-white/90 leading-relaxed">{store.description}</p>
               )}
               <p className="text-sm text-white/70 mt-2">
                 by {store.vendor?.name || 'Vendor'}

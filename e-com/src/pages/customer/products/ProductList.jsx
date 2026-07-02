@@ -19,6 +19,7 @@ export const ProductList = () => {
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, totalProducts: 0 });
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
+  const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   
   const [filters, setFilters] = useState({
     search: searchParams.get('search') || '',
@@ -176,10 +177,20 @@ export const ProductList = () => {
           </div>
         </div>
 
+        {/* Mobile Toggle Filters Button */}
+        <button
+          type="button"
+          onClick={() => setShowFiltersMobile(!showFiltersMobile)}
+          className="lg:hidden w-full flex items-center justify-center space-x-2 py-3 px-4 bg-white border border-[#E9E7F5]/90 rounded-xl text-sm font-bold text-[#1E1E2F] shadow-sm hover:bg-[#F8F7FC] transition-all duration-200 mb-6 cursor-pointer"
+        >
+          <SlidersHorizontal className="w-4.5 h-4.5 text-[#6C4EFF]" />
+          <span>{showFiltersMobile ? 'Hide Filters' : 'Show Filters'}</span>
+        </button>
+
         <div className="flex flex-col lg:flex-row gap-8">
           
           {/* Sidebar Filters - White Rounded 24px Card */}
-          <div className="w-full lg:w-72 flex-shrink-0">
+          <div className={`w-full lg:w-72 flex-shrink-0 ${showFiltersMobile ? 'block' : 'hidden lg:block'}`}>
             <div className="bg-white rounded-[24px] shadow-sm border border-[#E9E7F5] p-6 sticky top-24 text-left">
               <div className="flex items-center space-x-2.5 mb-6 pb-4 border-b border-[#E9E7F5]">
                 <SlidersHorizontal className="w-5 h-5 text-[#6C4DF6]" />

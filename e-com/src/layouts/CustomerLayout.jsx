@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useAuth } from '../hooks/useAuth';
-import { ShoppingCart, Heart, Package, Bell, Sun, Moon } from 'lucide-react';
+import { ShoppingCart, Heart, Package, Bell, Sun, Moon, Menu, X } from 'lucide-react';
 import {
   NotificationProvider,
   useNotificationContext,
@@ -24,6 +24,9 @@ const CustomerLayoutInner = () => {
 
   // Read unread count from shared context (kept in sync by NotificationProvider)
   const { unreadCount } = useNotificationContext();
+
+  // Mobile Menu State
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Dark Mode State
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -88,7 +91,7 @@ const CustomerLayoutInner = () => {
             </div>
 
             {/* Right Side Controls */}
-            <div className="flex items-center space-x-5">
+            <div className="flex items-center space-x-2 sm:space-x-5">
               {/* Theme Toggle Button */}
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
@@ -166,9 +169,44 @@ const CustomerLayoutInner = () => {
                   <span className="text-sm font-medium text-[#6B7280] hover:text-[#6C4EFF] cursor-pointer">swathi</span>
                 </div>
               )}
+
+              {/* Mobile Hamburger Menu Button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 text-[#6B7280] hover:text-[#6C4EFF] md:hidden relative transition-colors duration-300 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C4EFF]/30 cursor-pointer"
+                aria-label="Toggle Navigation Menu"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="w-5.5 h-5.5 text-[#6C4EFF]" />
+                ) : (
+                  <Menu className="w-5.5 h-5.5" />
+                )}
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-white/95 backdrop-blur-md border-b border-[#E9E7F5]/90 py-3 px-4 space-y-1 transition-all duration-300">
+            {navLinks.map((link) => (
+              <NavLink
+                key={link.path}
+                to={link.path}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  `block px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                    isActive
+                      ? 'bg-[#ECE7FD] text-[#6C4EFF]'
+                      : 'text-[#6B7280] hover:bg-[#F8F7FC] hover:text-[#6C4EFF]'
+                  }`
+                }
+              >
+                {link.name}
+              </NavLink>
+            ))}
+          </div>
+        )}
       </nav>
 
       {/* Main Content Area */}

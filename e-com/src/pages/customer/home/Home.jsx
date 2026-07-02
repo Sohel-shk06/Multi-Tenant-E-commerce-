@@ -179,7 +179,7 @@ export const Home = () => {
       {/* Hero Carousel Section */}
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8">
         <div 
-          className="relative h-[500px] rounded-[24px] overflow-hidden border border-[#E9E7F5] shadow-sm"
+          className="relative h-[280px] sm:h-[400px] lg:h-[500px] rounded-[24px] overflow-hidden border border-[#E9E7F5] shadow-sm"
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
         >
@@ -196,37 +196,37 @@ export const Home = () => {
                 <img 
                   src={slide.image} 
                   alt={slide.subtitle}
-                  className="w-full h-full object-cover object-right scale-[1.04] origin-right transition-transform duration-700"
+                  className="w-full h-full object-cover object-right scale-[1.8] sm:scale-[1.3] lg:scale-[1.04] origin-right transition-transform duration-700"
                 />
               </div>
               
               {/* Text backdrop gradient overlay for perfect copy legibility and seamless image blending */}
               <div 
-                className="absolute inset-y-0 left-0 w-full lg:w-[58%] z-10 pointer-events-none" 
+                className="absolute inset-y-0 left-0 w-[70%] sm:w-[60%] lg:w-[58%] z-10 pointer-events-none" 
                 style={{
                   background: `linear-gradient(to right, ${slide.startColor} 0%, ${slide.startColor} 45%, transparent 100%)`
                 }}
               />
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 w-full h-full items-center px-8 sm:px-16 lg:px-20 gap-8 relative z-20">
+              <div className="w-full h-full flex items-center px-6 sm:px-16 lg:px-20 relative z-20">
                 {/* Slide Text */}
-                <div className="lg:col-span-6 flex flex-col justify-center text-left">
-                  <span className="text-[#6C4DF6] text-xs sm:text-sm font-extrabold tracking-wider mb-3">
+                <div className="max-w-[62%] sm:max-w-[55%] lg:max-w-[50%] flex flex-col justify-center text-left">
+                  <span className="text-[#6C4DF6] text-[10px] sm:text-xs lg:text-sm font-extrabold tracking-wider mb-1 sm:mb-2 lg:mb-3">
                     {slide.subtitle}
                   </span>
-                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#1E1E2F] leading-tight mb-4 tracking-tight">
+                  <h1 className="text-xl sm:text-3xl lg:text-5xl xl:text-6xl font-bold text-[#1E1E2F] leading-tight mb-2 sm:mb-3 lg:mb-4 tracking-tight">
                     {slide.heading}
                   </h1>
-                  <p className="text-sm sm:text-base text-[#6B7280] font-medium max-w-md mb-8 leading-relaxed">
+                  <p className="text-[10px] sm:text-sm lg:text-base text-[#6B7280] font-medium mb-3 sm:mb-6 lg:mb-8 leading-normal sm:leading-relaxed line-clamp-2 sm:line-clamp-none">
                     {slide.description}
                   </p>
                   <div>
                     <Link
                       to={slide.link}
-                      className="inline-flex items-center space-x-2 bg-[#6C4DF6] text-white px-8 py-3.5 rounded-xl font-bold shadow-md hover:bg-[#5B3EE0] transition-colors"
+                      className="inline-flex items-center space-x-1.5 sm:space-x-2 bg-[#6C4DF6] text-white px-4 py-2 sm:px-8 sm:py-3.5 rounded-xl font-bold shadow-md hover:bg-[#5B3EE0] transition-colors text-xs sm:text-base cursor-pointer"
                     >
                       <span>{slide.cta}</span>
-                      <ArrowRight className="w-5 h-5" />
+                      <ArrowRight className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                     </Link>
                   </div>
                 </div>
@@ -237,19 +237,19 @@ export const Home = () => {
           {/* Left Arrow Button */}
           <button
             onClick={handlePrevSlide}
-            className="absolute left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white hover:bg-gray-50 text-[#1E1E2F] flex items-center justify-center shadow-md border border-[#E9E7F5] transition-all hover:scale-105 duration-200"
+            className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white hover:bg-gray-50 text-[#1E1E2F] flex items-center justify-center shadow-md border border-[#E9E7F5] transition-all hover:scale-105 duration-200 cursor-pointer"
             aria-label="Previous Slide"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
           {/* Right Arrow Button */}
           <button
             onClick={handleNextSlide}
-            className="absolute right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white hover:bg-gray-50 text-[#1E1E2F] flex items-center justify-center shadow-md border border-[#E9E7F5] transition-all hover:scale-105 duration-200"
+            className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white hover:bg-gray-50 text-[#1E1E2F] flex items-center justify-center shadow-md border border-[#E9E7F5] transition-all hover:scale-105 duration-200 cursor-pointer"
             aria-label="Next Slide"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
           {/* Pagination Dots */}

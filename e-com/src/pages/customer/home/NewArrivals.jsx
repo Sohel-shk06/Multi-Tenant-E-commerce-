@@ -115,7 +115,7 @@ export const NewArrivals = () => {
           {/* Left Arrow */}
           <button
             onClick={() => scroll('left')}
-            className="absolute left-[-16px] top-1/2 -translate-y-1/2 z-15 bg-white hover:bg-blue-600 hover:text-white text-gray-700 shadow-xl border border-gray-150 rounded-full p-3 transition-all duration-200 opacity-0 group-hover/carousel:opacity-100 focus:opacity-100 hover:scale-105"
+            className="hidden md:block absolute left-[-16px] top-1/2 -translate-y-1/2 z-15 bg-white hover:bg-blue-600 hover:text-white text-gray-700 shadow-xl border border-gray-150 rounded-full p-3 transition-all duration-200 opacity-0 group-hover/carousel:opacity-100 focus:opacity-100 hover:scale-105 cursor-pointer"
             aria-label="Scroll Left"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -233,7 +233,7 @@ export const NewArrivals = () => {
           {/* Right Arrow */}
           <button
             onClick={() => scroll('right')}
-            className="absolute right-[-16px] top-1/2 -translate-y-1/2 z-15 bg-white hover:bg-blue-600 hover:text-white text-gray-700 shadow-xl border border-gray-150 rounded-full p-3 transition-all duration-200 opacity-0 group-hover/carousel:opacity-100 focus:opacity-100 hover:scale-105"
+            className="hidden md:block absolute right-[-16px] top-1/2 -translate-y-1/2 z-15 bg-white hover:bg-blue-600 hover:text-white text-gray-700 shadow-xl border border-gray-150 rounded-full p-3 transition-all duration-200 opacity-0 group-hover/carousel:opacity-100 focus:opacity-100 hover:scale-105 cursor-pointer"
             aria-label="Scroll Right"
           >
             <ChevronRight className="w-5 h-5" />

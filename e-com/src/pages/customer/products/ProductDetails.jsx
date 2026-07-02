@@ -204,11 +204,11 @@ export const ProductDetails = () => {
                   </div>
                 </div>
 
-                <div className="flex space-x-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={handleAddToCart}
                     disabled={product.stock === 0}
-                    className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    className="w-full sm:flex-1 bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 cursor-pointer"
                   >
                     <ShoppingBag className="w-5 h-5" />
                     <span>Add to Cart</span>
@@ -217,7 +217,7 @@ export const ProductDetails = () => {
                   <button
                     onClick={handleBuyNow}
                     disabled={product.stock === 0}
-                    className="flex-1 bg-green-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    className="w-full sm:flex-1 bg-green-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 cursor-pointer"
                   >
                     <Check className="w-5 h-5" />
                     <span>Buy Now</span>
@@ -225,7 +225,7 @@ export const ProductDetails = () => {
 
                   <button 
                     onClick={handleToggleWishlist}
-                    className={`p-3 border rounded-xl transition-colors ${
+                    className={`w-full sm:w-auto p-3 border rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
                       isInWishlist 
                         ? 'bg-red-50 border-red-200 text-red-600' 
                         : 'border-gray-300 hover:bg-gray-50 text-gray-600'
@@ -233,6 +233,9 @@ export const ProductDetails = () => {
                     title={isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
                   >
                     <Heart className={`w-5 h-5 ${isInWishlist ? 'fill-current' : ''}`} />
+                    <span className="sm:hidden ml-2 text-sm font-semibold">
+                      {isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                    </span>
                   </button>
                 </div>
 
