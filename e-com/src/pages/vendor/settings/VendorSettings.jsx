@@ -134,7 +134,7 @@ export const VendorSettings = () => {
     { id: 'profile', label: 'Profile', icon: UserIcon },
     { id: 'business', label: 'Business Info', icon: Building2 },
     { id: 'bank', label: 'Bank Details', icon: CreditCard },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
+    // { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Security', icon: Shield },
     { id: 'danger', label: 'Danger Zone', icon: AlertTriangle },
   ];
@@ -421,7 +421,7 @@ export const VendorSettings = () => {
           )}
 
           {/* ===== NOTIFICATIONS TAB ===== */}
-          {activeTab === 'notifications' && (
+          {/* {activeTab === 'notifications' && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-2">Notification Preferences</h2>
               <p className="text-sm text-gray-500 mb-6">Choose how you want to be notified.</p>
@@ -462,7 +462,7 @@ export const VendorSettings = () => {
                 </div>
               </form>
             </div>
-          )}
+          )} */}
 
           {/* ===== SECURITY TAB ===== */}
           {activeTab === 'security' && (
