@@ -5,6 +5,7 @@ import {
   requestEmailChange, verifyEmailChange
 } from '../app/store/authSlice';
 
+
 export const useAuth = () => {
   const dispatch = useDispatch();
   const { user, token, isLoading, error, successMessage } = useSelector((state) => state.auth);
