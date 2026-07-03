@@ -4,12 +4,12 @@ import { analyticsService } from '../../services/analytics.service';
 const initialState = {
   stats: null,
   revenueChartData: [],
-  topVendors: [],  // ✅ YEH ADD KIYA
+  topVendors: [],  
   isLoading: false,
   error: null,
 };
 
-// Fetch Dashboard Stats
+
 export const fetchAdminDashboardStats = createAsyncThunk(
   'analytics/fetchAdminDashboardStats',
   async (_, { rejectWithValue }) => {
@@ -22,7 +22,7 @@ export const fetchAdminDashboardStats = createAsyncThunk(
   }
 );
 
-// Fetch Chart Data
+
 export const fetchRevenueChartData = createAsyncThunk(
   'analytics/fetchRevenueChartData',
   async (timeframe, { rejectWithValue }) => {
@@ -35,7 +35,7 @@ export const fetchRevenueChartData = createAsyncThunk(
   }
 );
 
-// ✅ NEW: Fetch Top Vendors
+
 export const fetchTopVendors = createAsyncThunk(
   'analytics/fetchTopVendors',
   async (limit, { rejectWithValue }) => {
@@ -56,7 +56,7 @@ const analyticsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Dashboard Stats
+      
       .addCase(fetchAdminDashboardStats.pending, (state) => { state.isLoading = true; })
       .addCase(fetchAdminDashboardStats.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -67,12 +67,12 @@ const analyticsSlice = createSlice({
         state.error = action.payload;
       })
       
-      // Revenue Chart
+      
       .addCase(fetchRevenueChartData.fulfilled, (state, action) => {
         state.revenueChartData = action.payload;
       })
       
-      // ✅ NEW: Top Vendors
+      
       .addCase(fetchTopVendors.pending, (state) => { state.isLoading = true; })
       .addCase(fetchTopVendors.fulfilled, (state, action) => {
         state.isLoading = false;
