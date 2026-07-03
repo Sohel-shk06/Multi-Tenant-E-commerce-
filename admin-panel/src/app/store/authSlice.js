@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { authService } from '../../services/auth.service';
 
-// Helper to get initial state from localStorage
+
 const getUserFromStorage = () => {
   const user = localStorage.getItem('user');
   return user ? JSON.parse(user) : null;
@@ -16,7 +16,6 @@ const initialState = {
   successMessage: null,
 };
 
-// --- Async Thunks ---
 
 export const loginUser = createAsyncThunk(
   'auth/login',
@@ -59,7 +58,6 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-// ✅ UPDATED: Forgot Password Thunk
 export const forgotPassword = createAsyncThunk(
   'auth/forgotPassword',
   async (email, { rejectWithValue }) => {
@@ -72,7 +70,7 @@ export const forgotPassword = createAsyncThunk(
   }
 );
 
-// ✅ NEW: Verify Reset OTP Thunk
+
 export const verifyResetOtp = createAsyncThunk(
   'auth/verifyResetOtp',
   async ({ email, otp }, { rejectWithValue }) => {
@@ -85,7 +83,7 @@ export const verifyResetOtp = createAsyncThunk(
   }
 );
 
-// ✅ NEW: Reset Password with OTP Thunk
+
 export const resetPasswordWithOtp = createAsyncThunk(
   'auth/resetPasswordWithOtp',
   async ({ email, otp, newPassword }, { rejectWithValue }) => {
@@ -134,7 +132,7 @@ export const verifyEmailChange = createAsyncThunk(
   }
 );
 
-// ✅ FIXED: Change Password Thunk
+
 export const changePassword = createAsyncThunk(
   'auth/changePassword',
   async ({ oldPassword, newPassword }, { rejectWithValue }) => {

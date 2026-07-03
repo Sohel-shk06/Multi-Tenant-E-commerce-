@@ -13,6 +13,6 @@ export const RoleRoute = ({ allowedRoles }) => {
     return <Outlet />;
   }
 
-  // Agar role match nahi karta, toh Unauthorized page par bhej do
+  
   return <Navigate to="/unauthorized" replace />;
 };

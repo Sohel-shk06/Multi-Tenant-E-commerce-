@@ -68,7 +68,7 @@ export const AppRouter = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* 1. Public Routes */}
+        
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -76,39 +76,39 @@ export const AppRouter = () => {
           <Route path="/verify-email/:token" element={<VerifyEmail />} />
         </Route>
 
-        {/* 2. Protected Routes */}
+       
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
 
-            {/* Admin Only Routes */}
+            
             <Route element={<RoleRoute allowedRoles={['admin']} />}>
               <Route path="/admin/dashboard" element={<Dashboard />} />
 
-              {/* Vendors */}
+              
               <Route path="/admin/vendors" element={<VendorList />} />
               <Route path="/admin/vendors/pending" element={<VendorList defaultStatus="pending" />} />
               <Route path="/admin/vendors/suspended" element={<VendorList defaultStatus="suspended" />} />
               <Route path="/admin/vendors/:vendorId" element={<VendorDetails />} />
 
-              {/* Categories */}
+              
               <Route path="/admin/categories" element={<CategoryList />} />
               <Route path="/admin/categories/create" element={<CreateCategory />} />
               <Route path="/admin/categories/edit/:categoryId" element={<CreateCategory />} />
 
-              {/* Products */}
+              
               <Route path="/admin/products" element={<ProductList />} />
               <Route path="/admin/products/create" element={<CreateProduct />} />
               <Route path="/admin/products/edit/:productId" element={<CreateProduct />} />
               <Route path="/admin/products/moderation" element={<ProductModeration />} />
 
-              {/* Orders */}
+              
               <Route path="/admin/orders" element={<OrderList />} />
               <Route path="/admin/orders/pending" element={<OrderList defaultStatus="pending" />} />
               <Route path="/admin/orders/completed" element={<OrderList defaultStatus="completed" />} />
               <Route path="/admin/orders/cancelled" element={<OrderList defaultStatus="cancelled" />} />
               <Route path="/admin/orders/:orderId" element={<OrderDetails />} />
 
-              {/* Payments */}
+              
               <Route path="/admin/payments" element={<Transactions />} />
               <Route path="/admin/payments/payouts" element={<Payouts />} />
               <Route path="/admin/payments/refunds" element={<Refunds />} />
@@ -116,16 +116,16 @@ export const AppRouter = () => {
               <Route path="/admin/payments/analytics" element={<PaymentAnalytics />} />
               <Route path="/admin/payments/:paymentId" element={<PaymentDetails />} />
 
-              {/* Commissions */}
+              
               <Route path="/admin/commissions" element={<CommissionList />} />
               <Route path="/admin/commissions/:commissionId" element={<CommissionDetails />} />
 
-              {/* Disputes */}
+              
               <Route path="/admin/disputes" element={<DisputeList />} />
               <Route path="/admin/disputes/open" element={<OpenDisputes />} />
               <Route path="/admin/disputes/closed" element={<ClosedDisputes />} />
               <Route path="/admin/disputes/:disputeId" element={<DisputeDetails />} />
-              {/* ✅ ✅ ✅ ANALYTICS ROUTES ✅ ✅ ✅ */}
+              
               <Route path="/admin/analytics" element={<RevenueAnalytics />} />
               <Route path="/admin/analytics/revenue" element={<RevenueAnalytics />} />
               <Route path="/admin/analytics/vendors" element={<VendorAnalytics />} />
@@ -147,7 +147,7 @@ export const AppRouter = () => {
           <Route path="/admin/change-email" element={<ChangeEmail />} />
           <Route path="/admin/change-password" element={<ChangePassword />} />
 
-              {/* Stores */}
+              
               <Route path="/admin/stores" element={<StoreList />} />
               <Route path="/admin/stores/create" element={<CreateStore />} />
               <Route path="/admin/stores/edit/:storeId" element={<EditStore />} />
@@ -156,12 +156,12 @@ export const AppRouter = () => {
               <Route path="/admin/stores/:storeId/settings" element={<StoreSettings />} />
             </Route>
 
-            {/* Vendor Only Routes */}
+            
             <Route element={<RoleRoute allowedRoles={['vendor']} />}>
               <Route path="/vendor/dashboard" element={<Dashboard />} />
             </Route>
 
-            {/* Customer Only Routes */}
+            
             <Route element={<RoleRoute allowedRoles={['customer']} />}>
               <Route path="/customer/dashboard" element={<Dashboard />} />
             </Route>
@@ -170,10 +170,10 @@ export const AppRouter = () => {
           </Route>
         </Route>
 
-        {/* 3. Error Routes */}
+        
         <Route path="/unauthorized" element={<Unauthorized />} />
 
-        {/* 4. Catch-all */}
+        
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
