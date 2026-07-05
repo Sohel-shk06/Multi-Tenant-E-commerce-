@@ -447,12 +447,12 @@ export const getVendorStoreById = async (vendorId, storeId) => {
   return store;
 };
 
-// ✅ FIXED: Create store with image upload (clean version)
-export const createVendorStore = async (vendorId, storeData, files = {}) => {
+
+// ✅ FIXED: Create store - controller already images upload kar chuka hai
+export const createVendorStore = async (vendorId, storeData) => {
   console.log('🔧 Service: Creating vendor store with:', { vendorId, storeData });
-  console.log('📁 Files received:', files);
   
-  let { name, description, settings } = storeData;
+  let { name, description, settings, logo, banner } = storeData; // ✅ logo aur banner extract karein
 
   if (!name || !name.trim()) {
     throw new ApiError(400, 'Store name is required');
@@ -485,30 +485,15 @@ export const createVendorStore = async (vendorId, storeData, files = {}) => {
     slug = newSlug;
   }
 
-  // ✅ NEW: Upload images to Cloudinary
-  let logo = '';
-  let banner = '';
-
-  if (files?.logo?.[0]) {
-    const uploaded = await uploadToCloudinary(files.logo[0].buffer, 'stores/logo');
-    logoUrl = uploaded.url;
-    console.log('✅ Logo uploaded:', logoUrl);
-  }
-
-  if (files?.banner?.[0]) {
-    const uploaded = await uploadToCloudinary(files.banner[0].buffer, 'stores/banner');
-    bannerUrl = uploaded.url;
-    console.log('✅ Banner uploaded:', bannerUrl);
-  }
-
+  // ✅ FIXED: Use logo and banner from storeData (already uploaded by controller)
   const store = await Store.create({
     name: name.trim(),
     slug,
     description: description?.trim() || '',
     vendor: vendorId,
     status: 'active',
-    logo: logoUrl,
-    banner: bannerUrl,
+    logo: logo || '',      // ✅ Controller ne already upload karke URL set kiya hai
+    banner: banner || '',  // ✅ Controller ne already upload karke URL set kiya hai
     settings: settings || {
       currency: 'INR',
       returnPolicy: '7 days return policy'
