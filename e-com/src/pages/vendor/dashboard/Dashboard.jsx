@@ -85,7 +85,7 @@ export const Dashboard = () => {
   }
 
   // Access products from vendorProducts slice for InventoryAlerts
-  console.log("data:-", data);
+  // console.log("data:-", data);
   const { products } = useSelector((state) => state.vendorProducts);
 
   const lowStockProducts = products.filter((product) => product.stock <= 10);

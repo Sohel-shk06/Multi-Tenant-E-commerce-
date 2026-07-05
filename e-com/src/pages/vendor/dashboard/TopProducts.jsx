@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 const TopProducts = ({ products = [], totalSold }) => {
-  console.log("TopProducts component rendered with products:", products);
+  // console.log("TopProducts component rendered with products:", products);
   // console.log("Total Revenue:", totalSold);
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full">

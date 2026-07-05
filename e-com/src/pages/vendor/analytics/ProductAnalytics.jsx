@@ -45,7 +45,7 @@ export const ProductAnalytics = () => {
     try {
       const result = await vendorService.getProductAnalytics();
       setData(result);
-      console.log("Product analytics data loaded:", result);
+      // console.log("Product analytics data loaded:", result);
     } catch (error) {
       console.error("Failed to load product analytics", error);
     } finally {

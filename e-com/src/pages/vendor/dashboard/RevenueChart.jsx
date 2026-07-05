@@ -9,7 +9,7 @@ import {
 } from "recharts";
 
 const RevenueChart = ({ chartData }) => {
-  console.log("chartdata:-", chartData);
+  // console.log("chartdata:-", chartData);
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 h-full">
       <div className="flex items-center justify-between mb-4 sm:mb-6">

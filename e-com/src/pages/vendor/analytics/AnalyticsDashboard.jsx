@@ -213,7 +213,6 @@ export const AnalyticsDashboard = () => {
       setLoading(false);
     }
   };
-  console.log("oody--", review);
 
   if (loading) {
     return (
@@ -224,15 +223,15 @@ export const AnalyticsDashboard = () => {
   }
 
   // ── Derived values (real data if available, fallback to dummy) ──
+  // state data
   const totalRevenue = salesData?.thisMonth?.revenue ?? 0;
   const totalOrders = orderData2?.stats?.totalOrders ?? 0;
   const totalCustomers = customerData?.totalCustomers ?? 0;
   const avgOrderValue = orderData2?.stats?.avgOrderValue ?? 0;
   const revenueGrowth = salesData?.growth?.revenue ?? 0;
   const ordersGrowth = salesData?.growth?.orders ?? 0;
-  const customersGrowth = 0;
-  const aovGrowth = 0;
 
+  // OrderData
   const totalProducts = productData?.stats?.totalProducts ?? 0;
   const activeProducts = productData?.stats?.activeProducts ?? 0;
   const lowStockCount = productData?.lowStockProducts?.length ?? 0;
@@ -270,11 +269,24 @@ export const AnalyticsDashboard = () => {
               text: "text-red-600",
             };
 
+  // CustomerData
   const repeatCustomers = customerData?.repeatCustomers ?? 0;
   const newCustomers =
     customerData?.acquisitionTrend?.reduce((s, t) => s + t.newCustomers, 0) ??
     0;
   const retentionRate = customerData?.repeatRate ?? 0;
+  const trend = customerData?.acquisitionTrend ?? [];
+
+  const current = trend.at(-1)?.newCustomers ?? 0;
+  const previous = trend.at(-2)?.newCustomers ?? 0;
+
+  const customersGrowth =
+    previous === 0
+      ? 100 // ya 0, business logic ke hisab se
+      : ((current - previous) / previous) * 100;
+
+     
+      // Review Data
   const distribution = review?.ratingDistribution || {};
 
   const positiveCount = (distribution[5] || 0) + (distribution[4] || 0);
@@ -293,8 +305,6 @@ export const AnalyticsDashboard = () => {
 
   const negativePct =
     totalReviews > 0 ? ((negativeCount / totalReviews) * 100).toFixed(1) : 0;
-
-  console.log(orderData2);
 
   return (
     <div className="min-h-screen p-3 lg:p-6 space-y-6">
@@ -353,7 +363,7 @@ export const AnalyticsDashboard = () => {
             icon={Users}
             iconBg="linear-gradient(135deg,#38bdf8,#6366f1)"
             sparkData={customerData?.acquisitionTrend?.map((d) => ({
-              revenue: d.customers,
+              revenue: d.newCustomers,
             }))}
             sparkColor="#38bdf8"
             className="bg-white border border-slate-200 shadow-sm hover:shadow-md"
@@ -366,7 +376,7 @@ export const AnalyticsDashboard = () => {
                 ? `${(avgOrderValue / 1000).toFixed(1)}K`
                 : avgOrderValue.toLocaleString()
             }`}
-            change={`+${aovGrowth}%`}
+            change={`${revenueGrowth >= 0 ? "+" : ""}${revenueGrowth}%`}
             icon={CreditCard}
             iconBg="linear-gradient(135deg,#fbbf24,#f97316)"
             sparkData={
@@ -611,7 +621,7 @@ export const AnalyticsDashboard = () => {
 
           <p className="text-xs text-slate-500 mb-2">Customer Growth</p>
 
-          <ResponsiveContainer width="100%" height={130}>
+          <ResponsiveContainer width="100%" height={190}>
             <AreaChart data={customerData?.acquisitionTrend}>
               <defs>
                 <linearGradient id="custGrad" x1="0" y1="0" x2="0" y2="1">
@@ -636,7 +646,7 @@ export const AnalyticsDashboard = () => {
 
               <Area
                 type="monotone"
-                dataKey="customers"
+                dataKey="newCustomers"
                 name="Customers"
                 stroke="#6366f1"
                 strokeWidth={2}
@@ -647,160 +657,6 @@ export const AnalyticsDashboard = () => {
           </ResponsiveContainer>
         </Card>
       </div>
-
-      {/* ── Sales Analytics + Revenue Breakdown ── */}
-      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-4"> */}
-      {/* Sales by Category */}
-      {/* <Card>
-          <SectionTitle>Sales by Category</SectionTitle>
-
-          <div className="flex items-center gap-6">
-            <div className="flex-shrink-0">
-              <ResponsiveContainer width={180} height={180}>
-                <PieChart>
-                  <Pie
-                    data={salesByCategoryData}
-                    dataKey="value"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={85}
-                    paddingAngle={3}
-                  >
-                    {salesByCategoryData.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-
-                  <Tooltip
-                    formatter={(v) => `${v}%`}
-                    contentStyle={{
-                      background: "#ffffff",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: 12,
-                      color: "#334155",
-                      fontSize: 12,
-                      boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-
-              <p className="text-center text-xs text-slate-500 -mt-2">
-                ₹{totalRevenue.toLocaleString()}
-              </p>
-
-              <p className="text-center text-xs text-slate-500">
-                Total Revenue
-              </p>
-            </div>
-
-            <div className="flex-1 space-y-2">
-              {salesByCategoryData.map((cat, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between text-sm"
-                >
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      style={{
-                        background: PIE_COLORS[i % PIE_COLORS.length],
-                      }}
-                    />
-
-                    <span className="text-slate-600">{cat.name}</span>
-                  </div>
-
-                  <div className="flex gap-4 text-right">
-                    <span className="text-slate-900 font-medium">
-                      ₹{cat.amount.toLocaleString()}
-                    </span>
-
-                    <span className="text-slate-500 w-10">{cat.value}%</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card> */}
-
-      {/* Revenue Breakdown */}
-      {/* <Card>
-          <SectionTitle>Revenue Breakdown</SectionTitle>
-
-          <div className="flex items-center gap-6">
-            <div className="flex-shrink-0 relative">
-              <ResponsiveContainer width={160} height={160}>
-                <PieChart>
-                  <Pie
-                    data={revenueBreakdown.filter((d) => d.value > 0)}
-                    dataKey="value"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={75}
-                    paddingAngle={3}
-                  >
-                    {revenueBreakdown
-                      .filter((d) => d.value > 0)
-                      .map((d, i) => (
-                        <Cell key={i} fill={d.color} />
-                      ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <p className="text-xs text-slate-500">Total</p>
-
-                <p className="text-sm font-bold text-slate-900">
-                  ₹{totalRevenue.toLocaleString()}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex-1 space-y-3">
-              {revenueBreakdown.map((item, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between rounded-xl px-3 py-2 bg-slate-50 border border-slate-200"
-                >
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="p-1.5 rounded-lg"
-                      style={{ background: item.color + "22" }}
-                    >
-                      <TrendingUp
-                        className="w-3.5 h-3.5"
-                        style={{ color: item.color }}
-                      />
-                    </div>
-
-                    <div>
-                      <p className="text-xs text-slate-600">{item.name}</p>
-
-                      <p className="text-sm font-bold text-slate-900">
-                        {item.amount < 0 ? "-" : ""}₹
-                        {Math.abs(item.amount).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-
-                  <span
-                    className={`text-xs font-semibold ${
-                      item.value < 0 ? "text-red-600" : "text-emerald-600"
-                    }`}
-                  >
-                    {item.value > 0 ? "+" : ""}
-                    {item.value}%
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card> */}
-      {/* </div> */}
 
       {/* ── Customer Reviews ── */}
       <Card>
