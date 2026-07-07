@@ -1,6 +1,8 @@
 import { Store } from '../models/Store.js';
 import { Product } from '../models/Product.js';
 import { ApiError } from '../utils/ApiError.js';
+import { uploadToCloudinary, deleteFromCloudinary } from '../utils/cloudinaryUploader.js';
+
 
 export const getAllStores = async (query, userId, userRole) => {
   const { page = 1, limit = 10, search, status } = query;
@@ -40,27 +42,25 @@ export const getAllStores = async (query, userId, userRole) => {
 
 
 
-export const createStore = async (storeData, vendorId) => {
-  console.log('🔧 Service: Creating store with:', { storeData, vendorId });
+
+// ✅ UPDATED: createStore with image upload
+export const createStore = async (storeData, vendorId, files) => {
+  console.log('🔧 Service: Creating store with:', { storeData, vendorId, files });
   
-  // ✅ Validation
+  // Validation
   if (!storeData.name || !storeData.name.trim()) {
     throw new ApiError(400, 'Store name is required');
   }
 
-  // Auto-generate slug if not provided
+  // Auto-generate slug
   let slug = storeData.slug;
   if (!slug) {
-    slug = storeData.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
+    slug = storeData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   }
 
-  // Check if slug already exists
+  // Check slug uniqueness
   const existingStore = await Store.findOne({ slug });
   if (existingStore) {
-    // If slug exists, append a number
     let counter = 1;
     let newSlug = `${slug}-${counter}`;
     while (await Store.findOne({ slug: newSlug })) {
@@ -68,7 +68,20 @@ export const createStore = async (storeData, vendorId) => {
       newSlug = `${slug}-${counter}`;
     }
     slug = newSlug;
-    console.log('⚠️ Slug already exists, using:', slug);
+  }
+
+  // ✅ Upload images to Cloudinary
+  let logo = '';
+  let banner = '';
+
+  if (files?.logo?.[0]) {
+    const uploaded = await uploadToCloudinary(files.logo[0].buffer, 'stores/logo');
+    logo = uploaded.url;
+  }
+
+  if (files?.banner?.[0]) {
+    const uploaded = await uploadToCloudinary(files.banner[0].buffer, 'stores/banner');
+    banner = uploaded.url;
   }
 
   // Parse settings if it is a JSON string (due to multipart/form-data)
@@ -86,7 +99,7 @@ export const createStore = async (storeData, vendorId) => {
   try {
     const store = await Store.create({
       name: storeData.name.trim(),
-      slug: slug,
+      slug,
       description: storeData.description?.trim() || '',
       vendor: vendorId,
       status: storeData.status || 'active',
@@ -103,12 +116,10 @@ export const createStore = async (storeData, vendorId) => {
   } catch (error) {
     console.error('❌ Database error creating store:', error);
     
-    // Handle MongoDB duplicate key error
     if (error.code === 11000) {
       throw new ApiError(409, 'Store with this name or slug already exists');
     }
     
-    // Handle validation errors
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map(err => err.message);
       throw new ApiError(400, messages.join(', '));
@@ -116,6 +127,47 @@ export const createStore = async (storeData, vendorId) => {
     
     throw error;
   }
+};
+
+// ✅ NEW: updateStore with image upload
+export const updateStoreWithImages = async (storeId, updateData, files, userId, userRole) => {
+  const store = await Store.findById(storeId);
+  if (!store) throw new ApiError(404, 'Store not found');
+
+  if (userRole === 'vendor' && store.vendor.toString() !== userId) {
+    throw new ApiError(403, 'You are not authorized to update this store');
+  }
+
+  // Update slug if name changed
+  if (updateData.name && updateData.name !== store.name) {
+    let slug = updateData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    let existingStore = await Store.findOne({ slug, _id: { $ne: storeId } });
+    if (existingStore) {
+      let counter = 1;
+      let newSlug = `${slug}-${counter}`;
+      while (await Store.findOne({ slug: newSlug, _id: { $ne: storeId } })) {
+        counter++;
+        newSlug = `${slug}-${counter}`;
+      }
+      slug = newSlug;
+    }
+    updateData.slug = slug;
+  }
+
+  // ✅ Upload new images to Cloudinary
+  if (files?.logo?.[0]) {
+    const uploaded = await uploadToCloudinary(files.logo[0].buffer, 'stores/logo');
+    updateData.logo = uploaded.url;
+  }
+
+  if (files?.banner?.[0]) {
+    const uploaded = await uploadToCloudinary(files.banner[0].buffer, 'stores/banner');
+    updateData.banner = uploaded.url;
+  }
+
+  Object.assign(store, updateData);
+  await store.save();
+  return store;
 };
 
 export const updateStore = async (storeId, updateData, userId, userRole) => {

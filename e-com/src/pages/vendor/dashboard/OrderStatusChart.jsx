@@ -2,16 +2,14 @@ import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { vendorService } from "../../../services/vendor.service";
 
-const COLORS = [
-  "#22C55E", // green
-  "#FACC15", // yellow
-  "#3B82F6", // blue
-  "#EF4444", // red
-  "#8B5CF6", // purple
-  "#06B6D4", // cyan
-  "#F97316", // orange
-  "#EC4899", // pink
-];
+const STATUS_COLORS = {
+  delivered: "#22c55e",
+  shipped: "#3b82f6",
+  completed: "#8b5cf6",
+  confirmed: "#f59e0b",
+  cancelled: "#ef4444",
+  pending: "#6b7280",
+};
 
 const OrderStatusChart = () => {
   const [data, setData] = useState([]);
@@ -27,7 +25,7 @@ const OrderStatusChart = () => {
 
       setData(result.statusBreakdown || []);
 
-      console.log("Order Analytics Data:", result.statusBreakdown);
+      // console.log("Order Analytics Data:", result.statusBreakdown);
     } catch (error) {
       console.error("Failed to load order analytics", error);
     } finally {
@@ -35,18 +33,11 @@ const OrderStatusChart = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 h-full">
-        Loading...
-      </div>
-    );
-  }
 
   const chartData = data.map((item, index) => ({
     name: item._id.charAt(0).toUpperCase() + item._id.slice(1).toLowerCase(),
     value: item.count,
-    color: COLORS[index % COLORS.length],
+    color: STATUS_COLORS[item._id] ?? "#94a3b8",
   }));
 
   const totalOrders = chartData.reduce((sum, item) => sum + item.value, 0);
@@ -57,9 +48,9 @@ const OrderStatusChart = () => {
 
       <h2 className="text-lg font-bold text-slate-900 mb-6">📊 Order Status</h2>
 
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
         {/* Chart */}
-        <div className="relative w-[55%] max-w-sm h-64">
+        <div className="relative w-full md:w-[55%] max-w-sm h-74">
           {totalOrders > 0 ? (
             <>
               <ResponsiveContainer width="100%" height="100%">
@@ -87,14 +78,14 @@ const OrderStatusChart = () => {
               </div>
             </>
           ) : (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex items-center justify-end h-full">
               <p className="text-slate-500">No order data available</p>
             </div>
           )}
         </div>
 
         {/* Legend */}
-        <div className="w-[45%] max-w-xs space-y-2">
+        <div className="w-full md:w-[45%] max-w-xs space-y-2">
           {chartData.map((item) => {
             const percentage =
               totalOrders > 0

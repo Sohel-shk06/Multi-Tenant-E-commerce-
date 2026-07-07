@@ -74,11 +74,11 @@ const StatCard = ({
           ) : (
             <ArrowDownRight className="w-3 h-3" />
           )}
-          {change} vs last 30 days
+          {change} vs last days
         </span>
       </div>
       {sparkData && (
-        <div className="h-12 -mx-1">
+        <div className="h-12 -mx-1 hidden lg:block">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={sparkData}
@@ -213,7 +213,6 @@ export const AnalyticsDashboard = () => {
       setLoading(false);
     }
   };
-  console.log("oody--", review);
 
   if (loading) {
     return (
@@ -224,15 +223,15 @@ export const AnalyticsDashboard = () => {
   }
 
   // ── Derived values (real data if available, fallback to dummy) ──
+  // state data
   const totalRevenue = salesData?.thisMonth?.revenue ?? 0;
   const totalOrders = orderData2?.stats?.totalOrders ?? 0;
   const totalCustomers = customerData?.totalCustomers ?? 0;
   const avgOrderValue = orderData2?.stats?.avgOrderValue ?? 0;
   const revenueGrowth = salesData?.growth?.revenue ?? 0;
   const ordersGrowth = salesData?.growth?.orders ?? 0;
-  const customersGrowth = 0;
-  const aovGrowth = 0;
 
+  // OrderData
   const totalProducts = productData?.stats?.totalProducts ?? 0;
   const activeProducts = productData?.stats?.activeProducts ?? 0;
   const lowStockCount = productData?.lowStockProducts?.length ?? 0;
@@ -270,11 +269,24 @@ export const AnalyticsDashboard = () => {
               text: "text-red-600",
             };
 
+  // CustomerData
   const repeatCustomers = customerData?.repeatCustomers ?? 0;
   const newCustomers =
     customerData?.acquisitionTrend?.reduce((s, t) => s + t.newCustomers, 0) ??
     0;
   const retentionRate = customerData?.repeatRate ?? 0;
+  const trend = customerData?.acquisitionTrend ?? [];
+
+  const current = trend.at(-1)?.newCustomers ?? 0;
+  const previous = trend.at(-2)?.newCustomers ?? 0;
+
+  const customersGrowth =
+    previous === 0
+      ? 100 // ya 0, business logic ke hisab se
+      : ((current - previous) / previous) * 100;
+
+     
+      // Review Data
   const distribution = review?.ratingDistribution || {};
 
   const positiveCount = (distribution[5] || 0) + (distribution[4] || 0);
@@ -294,10 +306,8 @@ export const AnalyticsDashboard = () => {
   const negativePct =
     totalReviews > 0 ? ((negativeCount / totalReviews) * 100).toFixed(1) : 0;
 
-  // console.log();
-
   return (
-    <div className="min-h-screen p-6 space-y-6">
+    <div className="min-h-screen p-3 lg:p-6 space-y-6">
       {/* ── Header ── */}
       <div className="relative rounded-2xl overflow-hidden p-8relative bg-linear-to-br from-blue-700 to-blue-500 p-8 text-white shadow-xl">
         <div className="relative">
@@ -314,60 +324,70 @@ export const AnalyticsDashboard = () => {
       </div>
 
       {/* ── Stat Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard
-          title="Total Revenue"
-          value={`₹${totalRevenue.toLocaleString()}`}
-          change={`${revenueGrowth >= 0 ? "+" : ""}${revenueGrowth}%`}
-          icon={TrendingUp}
-          iconBg="linear-gradient(135deg,#8b5cf6,#6366f1)"
-          sparkData={revenueCard}
-          sparkColor="#8b5cf6"
-          className="bg-white border border-slate-200 shadow-sm hover:shadow-md"
-        />
+      <div className="overflow-x-auto hide-scrollbar">
+        <div className="grid grid-cols-4 min-w-[900px] gap-3">
+          <StatCard
+            title="Total Revenue"
+            value={`₹${
+              totalRevenue >= 1000
+                ? `${(totalRevenue / 1000).toFixed(1)}K`
+                : totalRevenue.toLocaleString()
+            }`}
+            change={`${revenueGrowth >= 0 ? "+" : ""}${revenueGrowth}%`}
+            icon={TrendingUp}
+            iconBg="linear-gradient(135deg,#8b5cf6,#6366f1)"
+            sparkData={revenueCard}
+            sparkColor="#8b5cf6"
+            className="bg-white border border-slate-200 shadow-sm hover:shadow-md"
+          />
 
-        <StatCard
-          title="Total Orders"
-          value={totalOrders.toLocaleString()}
-          change={`${ordersGrowth >= 0 ? "+" : ""}${ordersGrowth}%`}
-          icon={ShoppingBag}
-          iconBg="linear-gradient(135deg,#ec4899,#a855f7)"
-          sparkData={
-            orderData2?.recentTrend?.map((d) => ({
-              revenue: d.orders,
-            })) || []
-          }
-          sparkColor="#ec4899"
-          className="bg-white border border-slate-200 shadow-sm hover:shadow-md"
-        />
+          <StatCard
+            title="Total Orders"
+            value={totalOrders.toLocaleString()}
+            change={`${ordersGrowth >= 0 ? "+" : ""}${ordersGrowth}%`}
+            icon={ShoppingBag}
+            iconBg="linear-gradient(135deg,#ec4899,#a855f7)"
+            sparkData={
+              orderData2?.recentTrend?.map((d) => ({
+                revenue: d.orders,
+              })) || []
+            }
+            sparkColor="#ec4899"
+            className="bg-white border border-slate-200 shadow-sm hover:shadow-md"
+          />
 
-        <StatCard
-          title="Total Customers"
-          value={totalCustomers.toLocaleString()}
-          change={`+${customersGrowth}%`}
-          icon={Users}
-          iconBg="linear-gradient(135deg,#38bdf8,#6366f1)"
-          sparkData={customerData?.acquisitionTrend?.map((d) => ({
-            revenue: d.customers,
-          }))}
-          sparkColor="#38bdf8"
-          className="bg-white border border-slate-200 shadow-sm hover:shadow-md"
-        />
+          <StatCard
+            title="Total Customers"
+            value={totalCustomers.toLocaleString()}
+            change={`+${customersGrowth}%`}
+            icon={Users}
+            iconBg="linear-gradient(135deg,#38bdf8,#6366f1)"
+            sparkData={customerData?.acquisitionTrend?.map((d) => ({
+              revenue: d.newCustomers,
+            }))}
+            sparkColor="#38bdf8"
+            className="bg-white border border-slate-200 shadow-sm hover:shadow-md"
+          />
 
-        <StatCard
-          title="Avg Order Value"
-          value={`₹${avgOrderValue.toFixed(2)}`}
-          change={`+${aovGrowth}%`}
-          icon={CreditCard}
-          iconBg="linear-gradient(135deg,#fbbf24,#f97316)"
-          sparkData={
-            orderData2?.recentTrend?.map((d) => ({
-              revenue: d.revenue,
-            })) || []
-          }
-          sparkColor="#fbbf24"
-          className="bg-white border border-slate-200 shadow-sm hover:shadow-md"
-        />
+          <StatCard
+            title="Avg Order Value"
+            value={`₹${
+              avgOrderValue >= 1000
+                ? `${(avgOrderValue / 1000).toFixed(1)}K`
+                : avgOrderValue.toLocaleString()
+            }`}
+            change={`${revenueGrowth >= 0 ? "+" : ""}${revenueGrowth}%`}
+            icon={CreditCard}
+            iconBg="linear-gradient(135deg,#fbbf24,#f97316)"
+            sparkData={
+              orderData2?.recentTrend?.map((d) => ({
+                revenue: d.revenue,
+              })) || []
+            }
+            sparkColor="#fbbf24"
+            className="bg-white border border-slate-200 shadow-sm hover:shadow-md"
+          />
+        </div>
       </div>
 
       {/* ── Revenue Trend + Order Analytics ── */}
@@ -413,6 +433,7 @@ export const AnalyticsDashboard = () => {
               />
 
               <YAxis
+                width={"auto"}
                 tick={{ fill: "#64748b", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
@@ -456,6 +477,9 @@ export const AnalyticsDashboard = () => {
               />
 
               <YAxis
+                dataKey="orders"
+                width="auto"
+                allowDecimals={false}
                 tick={{ fill: "#64748b", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
@@ -528,7 +552,7 @@ export const AnalyticsDashboard = () => {
               ].map((s, i) => (
                 <div
                   key={i}
-                  className="rounded-xl px-4 py-3 bg-slate-50 border border-slate-200 flex justify-between items-center"
+                  className="rounded-xl px-4 py-3 bg-slate-50 border border-slate-200 flex justify-between items-center gap-x-1"
                 >
                   <p className="text-sm font-medium text-slate-600">
                     {s.label}
@@ -597,7 +621,7 @@ export const AnalyticsDashboard = () => {
 
           <p className="text-xs text-slate-500 mb-2">Customer Growth</p>
 
-          <ResponsiveContainer width="100%" height={130}>
+          <ResponsiveContainer width="100%" height={190}>
             <AreaChart data={customerData?.acquisitionTrend}>
               <defs>
                 <linearGradient id="custGrad" x1="0" y1="0" x2="0" y2="1">
@@ -622,7 +646,7 @@ export const AnalyticsDashboard = () => {
 
               <Area
                 type="monotone"
-                dataKey="customers"
+                dataKey="newCustomers"
                 name="Customers"
                 stroke="#6366f1"
                 strokeWidth={2}
@@ -634,198 +658,76 @@ export const AnalyticsDashboard = () => {
         </Card>
       </div>
 
-      {/* ── Sales Analytics + Revenue Breakdown ── */}
-      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-4"> */}
-      {/* Sales by Category */}
-      {/* <Card>
-          <SectionTitle>Sales by Category</SectionTitle>
-
-          <div className="flex items-center gap-6">
-            <div className="flex-shrink-0">
-              <ResponsiveContainer width={180} height={180}>
-                <PieChart>
-                  <Pie
-                    data={salesByCategoryData}
-                    dataKey="value"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={85}
-                    paddingAngle={3}
-                  >
-                    {salesByCategoryData.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-
-                  <Tooltip
-                    formatter={(v) => `${v}%`}
-                    contentStyle={{
-                      background: "#ffffff",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: 12,
-                      color: "#334155",
-                      fontSize: 12,
-                      boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-
-              <p className="text-center text-xs text-slate-500 -mt-2">
-                ₹{totalRevenue.toLocaleString()}
-              </p>
-
-              <p className="text-center text-xs text-slate-500">
-                Total Revenue
-              </p>
-            </div>
-
-            <div className="flex-1 space-y-2">
-              {salesByCategoryData.map((cat, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between text-sm"
-                >
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      style={{
-                        background: PIE_COLORS[i % PIE_COLORS.length],
-                      }}
-                    />
-
-                    <span className="text-slate-600">{cat.name}</span>
-                  </div>
-
-                  <div className="flex gap-4 text-right">
-                    <span className="text-slate-900 font-medium">
-                      ₹{cat.amount.toLocaleString()}
-                    </span>
-
-                    <span className="text-slate-500 w-10">{cat.value}%</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card> */}
-
-      {/* Revenue Breakdown */}
-      {/* <Card>
-          <SectionTitle>Revenue Breakdown</SectionTitle>
-
-          <div className="flex items-center gap-6">
-            <div className="flex-shrink-0 relative">
-              <ResponsiveContainer width={160} height={160}>
-                <PieChart>
-                  <Pie
-                    data={revenueBreakdown.filter((d) => d.value > 0)}
-                    dataKey="value"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={75}
-                    paddingAngle={3}
-                  >
-                    {revenueBreakdown
-                      .filter((d) => d.value > 0)
-                      .map((d, i) => (
-                        <Cell key={i} fill={d.color} />
-                      ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <p className="text-xs text-slate-500">Total</p>
-
-                <p className="text-sm font-bold text-slate-900">
-                  ₹{totalRevenue.toLocaleString()}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex-1 space-y-3">
-              {revenueBreakdown.map((item, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between rounded-xl px-3 py-2 bg-slate-50 border border-slate-200"
-                >
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="p-1.5 rounded-lg"
-                      style={{ background: item.color + "22" }}
-                    >
-                      <TrendingUp
-                        className="w-3.5 h-3.5"
-                        style={{ color: item.color }}
-                      />
-                    </div>
-
-                    <div>
-                      <p className="text-xs text-slate-600">{item.name}</p>
-
-                      <p className="text-sm font-bold text-slate-900">
-                        {item.amount < 0 ? "-" : ""}₹
-                        {Math.abs(item.amount).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-
-                  <span
-                    className={`text-xs font-semibold ${
-                      item.value < 0 ? "text-red-600" : "text-emerald-600"
-                    }`}
-                  >
-                    {item.value > 0 ? "+" : ""}
-                    {item.value}%
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card> */}
-      {/* </div> */}
-
       {/* ── Customer Reviews ── */}
       <Card>
         <SectionTitle>Customer Reviews</SectionTitle>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-8 space-x-6 justify-between">
           {/* Average Rating */}
-          <div className="flex flex-col items-center justify-center">
-            <p className="text-xs text-slate-500 mb-2">Average Rating</p>
+          <div className="col-span-2 flex flex-col items-center justify-center">
+            {/* Desktop */}
+            <div className="hidden md:flex md:flex-col md:items-center">
+              <p className="text-xs text-slate-500 mb-2">Average Rating</p>
 
-            <p className="text-6xl font-bold text-slate-900">
-              {review?.averageRating}
-            </p>
+              <p className="text-6xl font-bold text-slate-900">
+                {review?.averageRating}
+              </p>
 
-            <p className="text-slate-500 text-sm">/ 5</p>
+              <p className="text-slate-500 text-sm">/5</p>
 
-            <div className="flex gap-1 mt-2">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <Star
-                  key={s}
-                  className={`w-5 h-5 ${
-                    s <= Math.round(review?.averageRating)
-                      ? "text-yellow-400 fill-yellow-400"
-                      : "text-slate-300"
-                  }`}
-                />
-              ))}
+              <div className="flex gap-1 mt-2">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    className={`w-5 h-5 ${
+                      s <= Math.round(review?.averageRating)
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-slate-300"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <p className="text-xs text-slate-500 mt-2">
+                Total Reviews{" "}
+                <span className="text-slate-900 font-medium">
+                  {review?.totalReviews.toLocaleString()}
+                </span>
+              </p>
             </div>
 
-            <p className="text-xs text-slate-500 mt-2">
-              Total Reviews:{" "}
-              <span className="text-slate-900 font-medium">
-                {review?.totalReviews.toLocaleString()}
-              </span>
-            </p>
+            {/* Mobile */}
+            <div className="flex flex-col items-center md:hidden">
+              <p className="text-xs text-slate-500 mb-2">Average Rating</p>
+
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star
+                      key={s}
+                      className={`w-5 h-5 ${
+                        s <= Math.round(review?.averageRating)
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-slate-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <span className="text-lg font-bold text-slate-900">
+                  {review?.averageRating}
+                  <span className="text-sm text-slate-500">/5</span>
+                </span>
+              </div>
+
+              <p className="text-xs text-slate-500 mt-2">
+                {review?.totalReviews.toLocaleString()} Reviews
+              </p>
+            </div>
           </div>
 
           {/* Rating Distribution */}
-          <div>
+          <div className="col-span-3 mt-6">
             <p className="text-xs text-slate-500 mb-3">Rating Distribution</p>
 
             <div className="space-y-2">
@@ -840,7 +742,7 @@ export const AnalyticsDashboard = () => {
                   return (
                     <div
                       key={rating}
-                      className="flex items-center gap-3 text-sm"
+                      className="flex items-center gap-3 text-sm justify-between w-full md:w-[95%]"
                     >
                       <span className="text-slate-600 w-12 text-right">
                         {rating} Stars
@@ -861,7 +763,7 @@ export const AnalyticsDashboard = () => {
                         />
                       </div>
 
-                      <span className="text-slate-500 text-xs w-20">
+                      <span className="text-slate-500 text-xs">
                         {count} ({pct}%)
                       </span>
                     </div>
@@ -871,7 +773,7 @@ export const AnalyticsDashboard = () => {
           </div>
 
           {/* Review Sentiment */}
-          <div className="space-y-3">
+          <div className="col-span-3 space-y-3 hidden md:block">
             {[
               {
                 label: "Positive Reviews",

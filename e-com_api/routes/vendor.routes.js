@@ -56,6 +56,6 @@ router.get('/analytics/sales', authorizeRoles('vendor', 'admin'), vendorControll
 router.get('/', authorizeRoles('admin'), vendorController.getVendors);
 router.post('/', authorizeRoles('admin'), vendorController.createVendor);
 router.patch('/:vendorId/status', authorizeRoles('admin'), vendorController.updateVendorStatus);
-router.get('/:vendorId', authorizeRoles('admin'), vendorController.getVendorById);  // ← AB LAST MEIN HAI!
+router.get('/:vendorId', authorizeRoles('admin'), vendorController.getVendorById);
 
 export default router;

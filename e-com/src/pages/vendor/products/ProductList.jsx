@@ -168,7 +168,7 @@ export const ProductList = () => {
           <p className="text-sm text-gray-500 mt-2 mb-6">Start building your catalog by adding your first product.</p>
           <Link
             to="/vendor/products/create"
-            className="inline-flex items-center space-x-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            className="inline-flex items-center space-x-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             <Plus className="w-4 h-4" />
             <span>Add Your First Product</span>
