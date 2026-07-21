@@ -317,8 +317,9 @@ export const Login = () => {
                 type="submit"
                 variant="primary"
                 className="!py-3.5 shadow-md cursor-pointer"
+                disabled={isLoading}
               >
-                Sign In
+                {isLoading ? "Signing In..." : "Sign In"}
               </Button>
             </form>
 
