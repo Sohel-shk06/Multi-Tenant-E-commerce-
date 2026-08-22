@@ -151,8 +151,8 @@ const cartSlice = createSlice({
           }
         }
       })
-      // Load user-specific cart when registration OTP is verified successfully
-      .addCase('auth/verifyRegistrationOtp/fulfilled', (state, action) => {
+      // Load user-specific cart when registration completes successfully
+      .addCase('auth/register/fulfilled', (state, action) => {
         const userId = action.payload.user?._id || action.payload.user?.id;
         if (userId) {
           const keyCart = `cart_${userId}`;

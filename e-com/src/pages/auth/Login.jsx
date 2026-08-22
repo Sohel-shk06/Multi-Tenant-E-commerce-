@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../../app/store/authSlice";
 import { Button } from "../../components/ui/Button";
@@ -7,12 +7,15 @@ import { Button } from "../../components/ui/Button";
 export const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const canvasRef = useRef(null);
   const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
 
   const { isLoading, error } = useSelector((state) => state.auth);
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+
+  const stateMessage = location.state?.message;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -92,7 +95,7 @@ export const Login = () => {
       if (role === "admin") navigate("/admin/dashboard", { replace: true });
       else if (role === "vendor")
         navigate("/vendor/dashboard", { replace: true });
-      else navigate("/customer/home", { replace: true });
+      else navigate("/", { replace: true });
     }
   };
 
@@ -227,6 +230,12 @@ export const Login = () => {
               </p>
             </div>
 
+            {stateMessage && (
+              <div className="mb-4 rounded-xl bg-blue-50 border border-blue-200 p-4">
+                <p className="text-sm font-semibold text-blue-800">{stateMessage}</p>
+              </div>
+            )}
+
             {/* ✅ UPDATED: Better error handling with icons */}
 {error && (
   <div className="mb-4 rounded-xl bg-red-50 border border-red-200 p-4">
@@ -322,24 +331,6 @@ export const Login = () => {
                 {isLoading ? "Signing In..." : "Sign In"}
               </Button>
             </form>
-
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-100"></div>
-              </div>
-              <div className="relative flex justify-center text-xs font-medium text-slate-400">
-                <span className="bg-white px-3">or continue with</span>
-              </div>
-            </div>
-
-            <div className="max-w-sm mx-auto">
-              <Button
-                variant="google"
-                className="w-full cursor-pointer !bg-white !text-slate-700 !border-slate-200 hover:!bg-slate-50 !shadow-sm"
-              >
-                Continue with Google
-              </Button>
-            </div>
 
             <p className="text-center text-sm font-medium text-slate-500 mt-8">
               Don't have an account?{" "}

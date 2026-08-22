@@ -28,7 +28,7 @@ export const ResetPassword = () => {
     }
 
     const resultAction = await resetPassword({ token, newPassword: formData.newPassword });
-    if (resetPassword.fulfilled.match(resultAction)) {
+    if (resultAction.meta?.requestStatus === 'fulfilled') {
       navigate('/login', { state: { message: 'Password reset successful! Please login.' }, replace: true });
     }
   };

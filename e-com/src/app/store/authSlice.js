@@ -17,46 +17,14 @@ export const registerUser = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const response = await authService.register(userData);
-      return response.message;
+      return response.data; // returns { user, token }
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Registration failed');
     }
   }
 );
 
-// ✅ Verify Registration OTP Thunk
-export const verifyRegistrationOtp = createAsyncThunk(
-  'auth/verifyRegistrationOtp',
-  async ({ email, otp }, { rejectWithValue }) => {
-    try {
-      const response = await authService.verifyRegistrationOtp(email, otp);
-      const { user, token } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      return { user, token };
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Invalid OTP');
-    }
-  }
-);
-
-// ✅ Resend Registration OTP Thunk
-export const resendRegistrationOtp = createAsyncThunk(
-  'auth/resendRegistrationOtp',
-  async (email, { rejectWithValue }) => {
-    try {
-      const response = await authService.resendRegistrationOtp(email);
-      return response.message;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to resend OTP');
-    }
-  }
-);
-
 // ✅ Login User Thunk
-// ✅ Login User Thunk - UPDATED with suspended check
 export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
@@ -64,12 +32,10 @@ export const loginUser = createAsyncThunk(
       const response = await authService.login(credentials);
       const { user, token } = response.data;
       
-      // ✅ NEW: Check if user is suspended (double check on frontend)
       if (user.status === 'suspended') {
         return rejectWithValue('Your account has been suspended. Please contact support.');
       }
       
-      // ✅ NEW: Check if user is pending
       if (user.status === 'pending') {
         return rejectWithValue('Your account is pending approval. Please wait for admin approval.');
       }
@@ -78,7 +44,6 @@ export const loginUser = createAsyncThunk(
       localStorage.setItem('user', JSON.stringify(user));
       return { user, token };
     } catch (error) {
-      // ✅ NEW: Handle 403 error specifically
       if (error.response?.status === 403) {
         return rejectWithValue(error.response?.data?.message || 'Access denied');
       }
@@ -113,7 +78,7 @@ export const changePassword = createAsyncThunk(
   }
 );
 
-// ✅ Forgot Password Thunk (OTP based)
+// ✅ Forgot Password Thunk (Token Link based)
 export const forgotPassword = createAsyncThunk(
   'auth/forgotPassword',
   async (email, { rejectWithValue }) => {
@@ -121,30 +86,17 @@ export const forgotPassword = createAsyncThunk(
       const data = await authService.forgotPassword(email);
       return data.message;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to send OTP');
+      return rejectWithValue(error.response?.data?.message || 'Failed to send reset link');
     }
   }
 );
 
-// ✅ Verify Reset OTP Thunk
-export const verifyResetOtp = createAsyncThunk(
-  'auth/verifyResetOtp',
-  async ({ email, otp }, { rejectWithValue }) => {
+// ✅ Reset Password Thunk (Token based)
+export const resetPassword = createAsyncThunk(
+  'auth/resetPassword',
+  async ({ token, newPassword }, { rejectWithValue }) => {
     try {
-      const data = await authService.verifyResetOtp(email, otp);
-      return data.message;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Invalid OTP');
-    }
-  }
-);
-
-// ✅ Reset Password with OTP Thunk
-export const resetPasswordWithOtp = createAsyncThunk(
-  'auth/resetPasswordWithOtp',
-  async ({ email, otp, newPassword }, { rejectWithValue }) => {
-    try {
-      const data = await authService.resetPasswordWithOtp(email, otp, newPassword);
+      const data = await authService.resetPassword(token, newPassword);
       return data.message;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to reset password');
@@ -158,22 +110,9 @@ export const requestEmailChange = createAsyncThunk(
   async (newEmail, { rejectWithValue }) => {
     try {
       const response = await authService.requestEmailChange(newEmail);
-      return response.message;
+      return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to send OTP');
-    }
-  }
-);
-
-// ✅ Verify Email Change Thunk
-export const verifyEmailChange = createAsyncThunk(
-  'auth/verifyEmailChange',
-  async (otp, { rejectWithValue }) => {
-    try {
-      const response = await authService.verifyEmailChange(otp);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to verify OTP');
+      return rejectWithValue(error.response?.data?.message || 'Failed to update email');
     }
   }
 );
@@ -204,41 +143,18 @@ const authSlice = createSlice({
         state.isLoading = true; 
         state.error = null; 
       })
-      .addCase(registerUser.fulfilled, (state) => {
+      .addCase(registerUser.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.successMessage = 'OTP sent! Please check your email to verify.';
-      })
-      .addCase(registerUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      })
-
-      // ✅ Verify Registration OTP
-      .addCase(verifyRegistrationOtp.pending, (state) => { 
-        state.isLoading = true; 
-        state.error = null; 
-      })
-      .addCase(verifyRegistrationOtp.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
+        const { user, token } = action.payload || {};
+        if (user && user.status === 'active') {
+          state.user = user;
+          state.token = token;
+          localStorage.setItem('token', token);
+          localStorage.setItem('user', JSON.stringify(user));
+        }
         state.successMessage = 'Registration successful!';
       })
-      .addCase(verifyRegistrationOtp.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      })
-
-      // ✅ Resend Registration OTP
-      .addCase(resendRegistrationOtp.pending, (state) => { 
-        state.isLoading = true; 
-        state.error = null; 
-      })
-      .addCase(resendRegistrationOtp.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.successMessage = action.payload;
-      })
-      .addCase(resendRegistrationOtp.rejected, (state, action) => {
+      .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
@@ -301,30 +217,16 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // ✅ Verify Reset OTP
-      .addCase(verifyResetOtp.pending, (state) => { 
+      // ✅ Reset Password
+      .addCase(resetPassword.pending, (state) => { 
         state.isLoading = true; 
         state.error = null; 
       })
-      .addCase(verifyResetOtp.fulfilled, (state, action) => {
+      .addCase(resetPassword.fulfilled, (state, action) => {
         state.isLoading = false;
         state.successMessage = action.payload;
       })
-      .addCase(verifyResetOtp.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      })
-
-      // ✅ Reset Password with OTP
-      .addCase(resetPasswordWithOtp.pending, (state) => { 
-        state.isLoading = true; 
-        state.error = null; 
-      })
-      .addCase(resetPasswordWithOtp.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.successMessage = action.payload;
-      })
-      .addCase(resetPasswordWithOtp.rejected, (state, action) => {
+      .addCase(resetPassword.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
@@ -336,30 +238,16 @@ const authSlice = createSlice({
       })
       .addCase(requestEmailChange.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.successMessage = action.payload;
+        state.successMessage = action.payload.message || 'Email updated successfully!';
+        if (state.user && action.payload.data?.email) {
+          state.user.email = action.payload.data.email;
+          localStorage.setItem('user', JSON.stringify(state.user));
+        }
       })
       .addCase(requestEmailChange.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
-      })
-
-      // ✅ Verify Email Change
-      .addCase(verifyEmailChange.pending, (state) => { 
-        state.isLoading = true; 
-        state.error = null; 
-      })
-      .addCase(verifyEmailChange.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.successMessage = 'Email updated successfully!';
-        if (state.user) {
-          state.user.email = action.payload.email;
-          localStorage.setItem('user', JSON.stringify(state.user));
-        }
-      })
-      .addCase(verifyEmailChange.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      });  // ✅ SIRF YAHAN SEMICOLON HONA CHAHIYE (last case ke baad)
+      });
   },
 });
 

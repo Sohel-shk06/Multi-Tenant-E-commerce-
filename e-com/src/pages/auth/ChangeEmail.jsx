@@ -1,39 +1,30 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useAuth } from '../../hooks/useAuth';
-import { 
-  requestEmailChange as requestEmailChangeThunk, 
-  verifyEmailChange as verifyEmailChangeThunk 
-} from '../../app/store/authSlice';
+import { requestEmailChange as requestEmailChangeThunk } from '../../app/store/authSlice';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Mail, CheckCircle } from 'lucide-react';
 
 export const ChangeEmail = () => {
   const dispatch = useDispatch();
-  const { user, isLoading, error, successMessage, clearError } = useAuth();
+  const { user, isLoading, error, successMessage, clearError, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
   const [newEmail, setNewEmail] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [step, setStep] = useState(1);
   const [localError, setLocalError] = useState('');
-  const [timer, setTimer] = useState(0);
   
-  const otpRefs = useRef([]);
-
   useEffect(() => {
-    if (timer > 0) {
-      const interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
-      return () => clearInterval(interval);
+    if (!isAuthenticated || !user) {
+      navigate('/login', { replace: true });
     }
-  }, [timer]);
+  }, [isAuthenticated, user, navigate]);
 
   useEffect(() => {
     setLocalError('');
     if (error) clearError();
-  }, [step]);
+  }, [newEmail]);
 
   if (!user) {
     return (
@@ -48,7 +39,7 @@ export const ChangeEmail = () => {
     );
   }
 
-  const handleSendOtp = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLocalError('');
     
@@ -64,74 +55,14 @@ export const ChangeEmail = () => {
 
     try {
       const resultAction = await dispatch(requestEmailChangeThunk(newEmail));
-      
       if (requestEmailChangeThunk.fulfilled.match(resultAction)) {
-        setStep(2);
-        setTimer(60);
-      } else {
-        setLocalError(resultAction.payload || 'Failed to send OTP');
-      }
-    } catch (err) {
-      console.error('Send OTP error:', err);
-      setLocalError(err.message || 'Something went wrong');
-    }
-  };
-
-  const handleOtpChange = (index, value) => {
-    if (isNaN(value)) return;
-    
-    const newOtp = [...otp];
-    newOtp[index] = value.substring(value.length - 1);
-    setOtp(newOtp);
-    
-    if (value && index < 5) {
-      otpRefs.current[index + 1].focus();
-    }
-  };
-
-  const handleOtpKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      otpRefs.current[index - 1].focus();
-    }
-  };
-
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    setLocalError('');
-    
-    const otpString = otp.join('');
-    if (otpString.length !== 6) {
-      setLocalError('Please enter the complete 6-digit OTP');
-      return;
-    }
-
-    try {
-      const resultAction = await dispatch(verifyEmailChangeThunk(otpString));
-      
-      if (verifyEmailChangeThunk.fulfilled.match(resultAction)) {
         setNewEmail('');
-        setOtp(['', '', '', '', '', '']);
-        setStep(1);
       } else {
-        setLocalError(resultAction.payload || 'Failed to verify OTP');
+        setLocalError(resultAction.payload || 'Failed to update email');
       }
     } catch (err) {
-      console.error('Verify OTP error:', err);
+      console.error('Update email error:', err);
       setLocalError(err.message || 'Something went wrong');
-    }
-  };
-
-  const handleResendOtp = async () => {
-    if (timer > 0) return;
-    setLocalError('');
-    
-    try {
-      const resultAction = await dispatch(requestEmailChangeThunk(newEmail));
-      if (requestEmailChangeThunk.fulfilled.match(resultAction)) {
-        setTimer(60);
-      }
-    } catch (err) {
-      console.error('Resend OTP error:', err);
     }
   };
 
@@ -163,85 +94,21 @@ export const ChangeEmail = () => {
           </div>
         )}
 
-        <form onSubmit={step === 1 ? handleSendOtp : handleVerifyOtp} className="space-y-6">
-          {step === 1 ? (
-            <>
-              <Input
-                label="New Email Address"
-                type="email"
-                name="newEmail"
-                required
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                placeholder="newemail@example.com"
-              />
-              <p className="text-xs text-gray-500 -mt-4">
-                We will send a 6-digit OTP to this new email address for verification.
-              </p>
-              <div className="flex justify-end">
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? 'Sending OTP...' : 'Send OTP'}
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
-                  Enter 6-digit OTP sent to <br />
-                  <span className="font-semibold text-indigo-600">{newEmail}</span>
-                </label>
-                
-                <div className="flex gap-3 justify-center">
-                  {otp.map((digit, index) => (
-                    <input
-                      key={index}
-                      ref={(el) => (otpRefs.current[index] = el)}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength="1"
-                      value={digit}
-                      onChange={(e) => handleOtpChange(index, e.target.value)}
-                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                      className="w-12 h-14 text-center text-2xl font-bold rounded-lg border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-sm pt-2">
-                <p className="text-gray-600">Didn't receive the code?</p>
-                <button
-                  type="button"
-                  onClick={handleResendOtp}
-                  disabled={timer > 0 || isLoading}
-                  className={`font-medium ${
-                    timer > 0 ? 'text-gray-400 cursor-not-allowed' : 'text-indigo-600 hover:text-indigo-500'
-                  }`}
-                >
-                  {timer > 0 ? `Resend in ${timer}s` : 'Resend OTP'}
-                </button>
-              </div>
-
-              <div className="flex justify-between gap-4 pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep(1);
-                    setOtp(['', '', '', '', '', '']);
-                    setLocalError('');
-                  }}
-                  disabled={isLoading}
-                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  ← Change Email
-                </button>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? 'Verifying...' : 'Verify & Update'}
-                </Button>
-              </div>
-            </>
-          )}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Input
+            label="New Email Address"
+            type="email"
+            name="newEmail"
+            required
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            placeholder="newemail@example.com"
+          />
+          <div className="flex justify-end">
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Updating...' : 'Update Email'}
+            </Button>
+          </div>
         </form>
       </div>
     </div>
