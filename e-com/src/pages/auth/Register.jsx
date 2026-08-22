@@ -1,11 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
-import { 
-  registerUser, 
-  verifyRegistrationOtp, 
-  resendRegistrationOtp 
-} from "../../app/store/authSlice";
+import { registerUser } from "../../app/store/authSlice";
 import { Button } from "../../components/ui/Button";
 import { ArrowLeft } from "lucide-react";
 
@@ -15,9 +11,8 @@ export const Register = () => {
   const canvasRef = useRef(null);
   const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
 
-  const { isLoading, error, successMessage } = useSelector((state) => state.auth);
+  const { isLoading, error } = useSelector((state) => state.auth);
 
-  const [step, setStep] = useState(1); // 1: Form, 2: OTP
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -26,14 +21,10 @@ export const Register = () => {
     role: "customer",
   });
 
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [agreed, setAgreed] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [localError, setLocalError] = useState('');
-  const [timer, setTimer] = useState(0);
-
-  const otpRefs = useRef([]);
 
   // Canvas animation (same as before)
   useEffect(() => {
@@ -100,38 +91,12 @@ export const Register = () => {
     };
   }, []);
 
-  // Timer for resend OTP
-  useEffect(() => {
-    if (timer > 0) {
-      const interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
-      return () => clearInterval(interval);
-    }
-  }, [timer]);
-
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setLocalError('');
   };
 
-  const handleOtpChange = (index, value) => {
-    if (isNaN(value)) return;
-    
-    const newOtp = [...otp];
-    newOtp[index] = value.substring(value.length - 1);
-    setOtp(newOtp);
-    
-    if (value && index < 5) {
-      otpRefs.current[index + 1].focus();
-    }
-  };
-
-  const handleOtpKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      otpRefs.current[index - 1].focus();
-    }
-  };
-
-  // Step 1: Register (Send OTP)
+  // Simplified Register - No OTP
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLocalError('');
@@ -157,61 +122,20 @@ export const Register = () => {
       const resultAction = await dispatch(registerUser(registerData));
       
       if (registerUser.fulfilled.match(resultAction)) {
-        setStep(2);
-        setTimer(60);
+        const user = resultAction.payload?.user;
+        if (user?.role === 'vendor' || user?.status === 'pending') {
+          navigate('/login', { 
+            state: { message: 'Registration successful! Your account is pending admin approval.' },
+            replace: true 
+          });
+        } else {
+          navigate('/', { replace: true });
+        }
       } else {
         setLocalError(resultAction.payload || 'Registration failed');
       }
     } catch (err) {
       setLocalError(err.message || 'Something went wrong');
-    }
-  };
-
-  // Step 2: Verify OTP
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    setLocalError('');
-
-    const otpString = otp.join('');
-    if (otpString.length !== 6) {
-      setLocalError('Please enter the complete 6-digit OTP');
-      return;
-    }
-
-    try {
-      const resultAction = await dispatch(verifyRegistrationOtp({ 
-        email: formData.email, 
-        otp: otpString 
-      }));
-      
-      if (verifyRegistrationOtp.fulfilled.match(resultAction)) {
-        // Redirect based on role
-        const role = resultAction.payload.user.role;
-        if (role === 'vendor') {
-          navigate('/vendor/dashboard', { replace: true });
-        } else {
-          navigate('/', { replace: true });
-        }
-      } else {
-        setLocalError(resultAction.payload || 'Invalid OTP');
-      }
-    } catch (err) {
-      setLocalError(err.message || 'Something went wrong');
-    }
-  };
-
-  // Resend OTP
-  const handleResendOtp = async () => {
-    if (timer > 0) return;
-    setLocalError('');
-    
-    try {
-      const resultAction = await dispatch(resendRegistrationOtp(formData.email));
-      if (resendRegistrationOtp.fulfilled.match(resultAction)) {
-        setTimer(60);
-      }
-    } catch (err) {
-      setLocalError(err.message || 'Failed to resend OTP');
     }
   };
 
@@ -238,13 +162,10 @@ export const Register = () => {
 
         <div className="my-auto max-w-lg relative z-10">
           <h2 className="text-4xl font-bold tracking-tight leading-[1.15] text-white uppercase mt-6 mb-3">
-            {step === 1 ? 'Start Your Journey' : 'Verify Your Email'}
+            Start Your Journey
           </h2>
           <p className="text-base text-slate-200 leading-relaxed mb-10">
-            {step === 1 
-              ? 'Join thousands of shoppers and vendors in a seamless and secure marketplace experience.'
-              : `We've sent a 6-digit verification code to ${formData.email}`
-            }
+            Join thousands of shoppers and vendors in a seamless and secure marketplace experience.
           </p>
 
           <div className="relative mt-10">
@@ -290,137 +211,69 @@ export const Register = () => {
         </div>
 
         <div className="w-full max-w-[400px] bg-white rounded-3xl p-8 sm:p-10 shadow-lg">
-          {step === 1 ? (
-            <>
-              <div className="mb-8 text-left">
-                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Create Your Account</h2>
-                <p className="text-sm text-slate-400 font-medium mt-1.5">Join our marketplace and start your journey today</p>
-              </div>
+          <div className="mb-8 text-left">
+            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Create Your Account</h2>
+            <p className="text-sm text-slate-400 font-medium mt-1.5">Join our marketplace and start your journey today</p>
+          </div>
 
-              {(error || localError) && (
-                <div className="mb-4 rounded-xl bg-red-50 border border-red-100 p-4 text-xs font-bold text-red-600">
-                  {localError || error}
-                </div>
-              )}
-
-              <form className="space-y-4 max-w-md lg:max-w-lg" onSubmit={handleSubmit}>
-                <div>
-                  <input type="text" name="name" required value={formData.name} onChange={handleChange} placeholder="Full Name" className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 font-medium focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/5 transition-all" />
-                </div>
-
-                <div>
-                  <input type="email" name="email" required value={formData.email} onChange={handleChange} placeholder="Email Address" className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 font-medium focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/5 transition-all" />
-                </div>
-
-                <div className="relative">
-                  <select name="role" value={formData.role} onChange={handleChange} className="w-full pl-4 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 font-medium focus:outline-none focus:border-indigo-500 focus:bg-white transition-all appearance-none cursor-pointer">
-                    <option value="customer">Register as Customer</option>
-                    <option value="vendor">Register as Vendor</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 pointer-events-none">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                    </svg>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="relative">
-                    <input type={showPassword ? "text" : "password"} name="password" required value={formData.password} onChange={handleChange} placeholder="Password" className="w-full pl-4 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 font-medium focus:outline-none focus:border-indigo-500 transition-all" />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-indigo-600 text-xs font-semibold">
-                      {showPassword ? "Hide" : "Show"}
-                    </button>
-                  </div>
-
-                  <div className="relative">
-                    <input type={showConfirm ? "text" : "password"} name="confirmPassword" required value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm" className="w-full pl-4 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 font-medium focus:outline-none focus:border-indigo-500 transition-all" />
-                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-indigo-600 text-xs font-semibold">
-                      {showConfirm ? "Hide" : "Show"}
-                    </button>
-                  </div>
-                </div>
-
-                <label className="flex items-start gap-2.5 cursor-pointer pt-1 select-none">
-                  <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-transparent cursor-pointer" />
-                  <span className="text-xs text-slate-400 font-medium leading-normal">
-                    I agree to the <span className="text-indigo-600 hover:underline font-semibold">Terms & Conditions</span> and <span className="text-indigo-600 hover:underline font-semibold">Privacy Policy</span>
-                  </span>
-                </label>
-
-                <Button type="submit" variant="primary" className="!py-3.5 shadow-md" disabled={isLoading}>
-                  {isLoading ? 'Sending OTP...' : 'Create Account'}
-                </Button>
-              </form>
-
-              <p className="text-center text-sm font-medium text-slate-400 mt-8">
-                Already have an account? <Link to="/login" className="text-indigo-600 hover:text-indigo-700 font-bold underline underline-offset-4 decoration-indigo-200">Sign In</Link>
-              </p>
-            </>
-          ) : (
-            <>
-              <div className="mb-8 text-left">
-                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Verify Your Email</h2>
-                <p className="text-sm text-slate-400 font-medium mt-1.5">
-                  Enter the 6-digit code sent to <span className="font-semibold text-indigo-600">{formData.email}</span>
-                </p>
-              </div>
-
-              {(error || localError) && (
-                <div className="mb-4 rounded-xl bg-red-50 border border-red-100 p-4 text-xs font-bold text-red-600">
-                  {localError || error}
-                </div>
-              )}
-
-              <form onSubmit={handleVerifyOtp} className="space-y-6">
-                <div>
-                  <div className="flex gap-3 justify-center">
-                    {otp.map((digit, index) => (
-                      <input
-                        key={index}
-                        ref={(el) => (otpRefs.current[index] = el)}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength="1"
-                        value={digit}
-                        onChange={(e) => handleOtpChange(index, e.target.value)}
-                        onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                        className="w-12 h-14 text-center text-2xl font-bold rounded-lg border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-sm">
-                  <p className="text-gray-600">Didn't receive the code?</p>
-                  <button
-                    type="button"
-                    onClick={handleResendOtp}
-                    disabled={timer > 0 || isLoading}
-                    className={`font-medium ${timer > 0 ? 'text-gray-400 cursor-not-allowed' : 'text-indigo-600 hover:text-indigo-500'}`}
-                  >
-                    {timer > 0 ? `Resend in ${timer}s` : 'Resend OTP'}
-                  </button>
-                </div>
-
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Verifying...' : 'Verify & Register'}
-                </Button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep(1);
-                    setOtp(['', '', '', '', '', '']);
-                    setLocalError('');
-                  }}
-                  className="w-full flex items-center justify-center text-sm text-gray-600 hover:text-gray-900"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Change details
-                </button>
-              </form>
-            </>
+          {(error || localError) && (
+            <div className="mb-4 rounded-xl bg-red-50 border border-red-100 p-4 text-xs font-bold text-red-600">
+              {localError || error}
+            </div>
           )}
+
+          <form className="space-y-4 max-w-md lg:max-w-lg" onSubmit={handleSubmit}>
+            <div>
+              <input type="text" name="name" required value={formData.name} onChange={handleChange} placeholder="Full Name" className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 font-medium focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/5 transition-all" />
+            </div>
+
+            <div>
+              <input type="email" name="email" required value={formData.email} onChange={handleChange} placeholder="Email Address" className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 font-medium focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/5 transition-all" />
+            </div>
+
+            <div className="relative">
+              <select name="role" value={formData.role} onChange={handleChange} className="w-full pl-4 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 font-medium focus:outline-none focus:border-indigo-500 focus:bg-white transition-all appearance-none cursor-pointer">
+                <option value="customer">Register as Customer</option>
+                <option value="vendor">Register as Vendor</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 pointer-events-none">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="relative">
+                <input type={showPassword ? "text" : "password"} name="password" required value={formData.password} onChange={handleChange} placeholder="Password" className="w-full pl-4 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 font-medium focus:outline-none focus:border-indigo-500 transition-all" />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-indigo-600 text-xs font-semibold">
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+
+              <div className="relative">
+                <input type={showConfirm ? "text" : "password"} name="confirmPassword" required value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm" className="w-full pl-4 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 font-medium focus:outline-none focus:border-indigo-500 transition-all" />
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-indigo-600 text-xs font-semibold">
+                  {showConfirm ? "Hide" : "Show"}
+                </button>
+              </div>
+            </div>
+
+            <label className="flex items-start gap-2.5 cursor-pointer pt-1 select-none">
+              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-transparent cursor-pointer" />
+              <span className="text-xs text-slate-400 font-medium leading-normal">
+                I agree to the <span className="text-indigo-600 hover:underline font-semibold">Terms & Conditions</span> and <span className="text-indigo-600 hover:underline font-semibold">Privacy Policy</span>
+              </span>
+            </label>
+
+            <Button type="submit" variant="primary" className="!py-3.5 shadow-md" disabled={isLoading}>
+              {isLoading ? 'Creating Account...' : 'Create Account'}
+            </Button>
+          </form>
+
+          <p className="text-center text-sm font-medium text-slate-400 mt-8">
+            Already have an account? <Link to="/login" className="text-indigo-600 hover:text-indigo-700 font-bold underline underline-offset-4 decoration-indigo-200">Sign In</Link>
+          </p>
         </div>
       </div>
     </div>

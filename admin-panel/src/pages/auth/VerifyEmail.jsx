@@ -14,7 +14,7 @@ export const VerifyEmail = () => {
     const verify = async () => {
       try {
         const resultAction = await verifyEmail(token);
-        if (verifyEmail.fulfilled.match(resultAction)) {
+        if (resultAction.meta?.requestStatus === 'fulfilled') {
           setStatus('success');
           setMessage('Your email has been successfully verified!');
           setTimeout(() => navigate('/login', { replace: true }), 3000);

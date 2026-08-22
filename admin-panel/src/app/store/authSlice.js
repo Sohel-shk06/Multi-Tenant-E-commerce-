@@ -65,33 +65,7 @@ export const forgotPassword = createAsyncThunk(
       const data = await authService.forgotPassword(email);
       return data.message; 
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to send OTP');
-    }
-  }
-);
-
-
-export const verifyResetOtp = createAsyncThunk(
-  'auth/verifyResetOtp',
-  async ({ email, otp }, { rejectWithValue }) => {
-    try {
-      const data = await authService.verifyResetOtp(email, otp);
-      return data.message;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Invalid OTP');
-    }
-  }
-);
-
-
-export const resetPasswordWithOtp = createAsyncThunk(
-  'auth/resetPasswordWithOtp',
-  async ({ email, otp, newPassword }, { rejectWithValue }) => {
-    try {
-      const data = await authService.resetPasswordWithOtp(email, otp, newPassword);
-      return data.message;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to reset password');
+      return rejectWithValue(error.response?.data?.message || 'Failed to send reset link');
     }
   }
 );
@@ -113,21 +87,9 @@ export const requestEmailChange = createAsyncThunk(
   async (newEmail, { rejectWithValue }) => {
     try {
       const response = await authService.requestEmailChange(newEmail);
-      return response.message;
+      return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to send OTP');
-    }
-  }
-);
-
-export const verifyEmailChange = createAsyncThunk(
-  'auth/verifyEmailChange',
-  async (otp, { rejectWithValue }) => {
-    try {
-      const response = await authService.verifyEmailChange(otp);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to verify OTP');
+      return rejectWithValue(error.response?.data?.message || 'Failed to update email');
     }
   }
 );
@@ -205,34 +167,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // ✅ NEW: Verify Reset OTP Cases
-      .addCase(verifyResetOtp.pending, (state) => { 
-        state.isLoading = true; 
-        state.error = null; 
-      })
-      .addCase(verifyResetOtp.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.successMessage = action.payload;
-      })
-      .addCase(verifyResetOtp.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      })
-
-      // ✅ NEW: Reset Password with OTP Cases
-      .addCase(resetPasswordWithOtp.pending, (state) => { 
-        state.isLoading = true; 
-        state.error = null; 
-      })
-      .addCase(resetPasswordWithOtp.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.successMessage = action.payload;
-      })
-      .addCase(resetPasswordWithOtp.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      })
-      
       // Reset Password Cases
       .addCase(resetPassword.pending, (state) => { state.isLoading = true; state.error = null; })
       .addCase(resetPassword.fulfilled, (state, action) => {
@@ -252,28 +186,13 @@ const authSlice = createSlice({
       })
       .addCase(requestEmailChange.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.successMessage = action.payload;
-      })
-      .addCase(requestEmailChange.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      })
-
-      // Verify Email Change Cases
-      .addCase(verifyEmailChange.pending, (state) => { 
-        state.isLoading = true; 
-        state.error = null; 
-        state.successMessage = null;
-      })
-      .addCase(verifyEmailChange.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.successMessage = 'Email updated successfully!';
-        if (state.user) {
-          state.user.email = action.payload.email;
+        state.successMessage = action.payload.message || 'Email updated successfully!';
+        if (state.user && action.payload.data?.email) {
+          state.user.email = action.payload.data.email;
           localStorage.setItem('user', JSON.stringify(state.user));
         }
       })
-      .addCase(verifyEmailChange.rejected, (state, action) => {
+      .addCase(requestEmailChange.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })

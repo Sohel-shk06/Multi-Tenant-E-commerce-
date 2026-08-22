@@ -1,10 +1,8 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   loginUser, registerUser, logout, verifyEmail, changePassword,
-  forgotPassword, verifyResetOtp, resetPasswordWithOtp,
-  requestEmailChange, verifyEmailChange
+  forgotPassword, resetPassword, requestEmailChange
 } from '../app/store/authSlice';
-
 
 export const useAuth = () => {
   const dispatch = useDispatch();
@@ -22,9 +20,7 @@ export const useAuth = () => {
     verifyEmail: (token) => dispatch(verifyEmail(token)),
     changePassword: (data) => dispatch(changePassword(data)),
     forgotPassword: (email) => dispatch(forgotPassword(email)),
-    verifyResetOtp: (data) => dispatch(verifyResetOtp(data)),
-    resetPasswordWithOtp: (data) => dispatch(resetPasswordWithOtp(data)),
+    resetPassword: (data) => dispatch(resetPassword(data)),
     requestEmailChange: (newEmail) => dispatch(requestEmailChange(newEmail)),
-    verifyEmailChange: (otp) => dispatch(verifyEmailChange(otp)),
   };
 };

@@ -95,14 +95,6 @@ const userSchema = new mongoose.Schema({
   verifyEmailToken: String,
   verifyEmailExpire: Date,
 
-  // ✅ NEW: Email Change OTP Fields (Admin/Any User email change ke liye)
-  pendingEmail: { type: String, default: null },
-  emailChangeOtp: { type: String, default: null },
-  emailChangeOtpExpire: { type: Date, default: null },
-
-    registrationOtp: { type: String, default: null },
-  registrationOtpExpire: { type: Date, default: null },
-
 }, { timestamps: true });
 
 // 🔥 FIX: Mongoose 8+ mein async function mein 'next' pass nahi hota.

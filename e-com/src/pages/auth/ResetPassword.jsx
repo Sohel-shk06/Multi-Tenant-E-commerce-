@@ -1,40 +1,44 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 
 export const ResetPassword = () => {
   const { token } = useParams();
   const navigate = useNavigate();
+  const { resetPassword, isLoading, error: authError } = useAuth();
   const [formData, setFormData] = useState({ password: '', confirmPassword: '' });
-  const [status, setStatus] = useState('idle');
-  const [error, setError] = useState('');
+  const [localError, setLocalError] = useState('');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError('');
+    setLocalError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLocalError('');
+
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match!');
+      setLocalError('Passwords do not match!');
       return;
     }
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters long.');
+      setLocalError('Password must be at least 8 characters long.');
       return;
     }
 
-    setStatus('loading');
-    
-    // TODO: Yahan baad mein Redux thunk dispatch hoga
-    // const result = await dispatch(resetPassword({ token, newPassword: formData.password }));
-    
-    setTimeout(() => {
-      setStatus('success');
-      navigate('/login', { state: { message: 'Password reset successful! Please login.' } });
-    }, 1000);
+    try {
+      const resultAction = await resetPassword({ token, newPassword: formData.password });
+      if (resultAction.meta?.requestStatus === 'fulfilled') {
+        navigate('/login', { state: { message: 'Password reset successful! Please login.' }, replace: true });
+      } else {
+        setLocalError(resultAction.payload || 'Failed to reset password.');
+      }
+    } catch (err) {
+      setLocalError(err.message || 'Something went wrong.');
+    }
   };
 
   return (
@@ -46,9 +50,9 @@ export const ResetPassword = () => {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
+          {(localError || authError) && (
             <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-700">{error}</p>
+              <p className="text-sm text-red-700">{localError || authError}</p>
             </div>
           )}
 
@@ -73,9 +77,15 @@ export const ResetPassword = () => {
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={status === 'loading'}>
-            {status === 'loading' ? 'Resetting...' : 'Reset Password'}
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? 'Resetting...' : 'Reset Password'}
           </Button>
+
+          <div className="text-center pt-2">
+            <Link to="/login" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+              ← Back to login
+            </Link>
+          </div>
         </form>
       </div>
     </div>
